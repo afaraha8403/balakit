@@ -9,7 +9,7 @@ description: >-
 user-invocable: true
 disable-model-invocation: true
 invocation-type: manual
-version: "2.0.0"
+version: "2.1.0"
 author: "Ali Farahat"
 tags: ["decision-making", "red-team", "evidence", "orchestration"]
 when_to_use: |
@@ -86,6 +86,15 @@ Stage 1 is performed by the orchestrator without delegates.
 If the decision is materially ambiguous, ask focused clarification before
 starting Stage 1. If the task primarily audits something already built or
 written, recommend `dissect` instead.
+
+If two cheap throwaway sketches would settle the fork, offer that **prototype
+off-ramp** before Stage 1: scratch dir, no pipeline, observe the behavior,
+then resume here with evidence. Skip with `skip: shape already concrete`.
+
+When a candidate crosses a function boundary, sketch types and signatures
+first (`not implemented`). Screen with
+[references/design-red-flags.md](references/design-red-flags.md). Scrap the
+sketch when the same workaround repeats.
 
 ### Procedure
 

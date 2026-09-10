@@ -3,8 +3,8 @@
 <p align="center"><strong>Opinionated rules and skills for AI coding agents.</strong></p>
 
 <p align="center">
-  Standing rules land AGENTS.md-first. Skills go through <a href="https://skills.sh/">skills.sh</a>.<br>
-  Domain groups ship as <a href="https://agent-plugins.org">Agent Plugins</a> + Cursor local plugins.
+  Standing rules land AGENTS.md-first. Skills: <a href="https://agent-plugins.org">Agent Plugins</a> when the client can load a plugin, otherwise <a href="https://skills.sh/">skills.sh</a>.<br>
+  Domain groups ship as portable Agent Plugins 1.0.0 + Cursor local plugins.
 </p>
 
 <p align="center">
@@ -15,6 +15,7 @@
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
+  <a href="#compatibility">Compatibility</a> ·
   <a href="#paste-this-into-your-agent">Paste into your agent</a> ·
   <a href="#faq">FAQ</a>
 </p>
@@ -38,9 +39,26 @@ npx balakit status
 
 Node `>=18`. Preview with `--dry-run`. `-y` skips confirms.
 
+### Three install paths
+
+1. **Native plugin → skills.** Five packages under `plugins/` (`balakit-engineering`, `balakit-marketing`, `balakit-media`, `balakit-nlm`, `balakit-seo-skills`) each have a root `plugin.json` + `skills/`. That is [Agent Plugins 1.0.0](https://agent-plugins.org/specification).
+2. **`npx balakit init` → standing rules.** Plugin install never writes AGENTS.md / CLAUDE.md / `.mdc`.
+3. **`npx balakit add` / [skills.sh](https://skills.sh/) → fallback.** Clients with no plugin loader, or when native install failed.
+
+### Compatibility
+
+| Client | Skills | Standing rules |
+| --- | --- | --- |
+| Cursor | Native Agent Plugins, or user-scope `init` copies to `~/.cursor/plugins/local/` | `init` → `.mdc` + AGENTS.md |
+| Copilot / VS Code | Native Agent Plugins: point at a `plugins/balakit-*` folder, not the repo root | `init` |
+| Kiro | Native Agent Plugins (`plugins/balakit-*`). No marketplace add command in this kit; skills.sh maps to `kiro-cli` | `init` → AGENTS.md if it reads it |
+| ChatGPT / Codex | One [OpenAI plugin catalog](https://developers.openai.com/codex/plugins). ChatGPT: Plugins tab (web/desktop). Codex CLI: `codex plugin …` / `/plugins`. **IDE extension: no plugins.** | `init` → `~/.codex/AGENTS.md` for Codex CLI. ChatGPT Work does not read that file |
+| Claude Code | Marketplace only (`.claude-plugin/`). Root `plugin.json` is invisible | `init` → CLAUDE.md |
+| OpenCode, Cline, Kilo, Windsurf, Gemini CLI, … | CLI / skills.sh | `init` → AGENTS.md if they read it |
+
 ### Paste this into your agent
 
-Works in Cursor, Claude Code, Copilot, Codex, OpenCode, and anything that can install a plugin or run a shell:
+Works in Cursor, Claude Code, ChatGPT / Codex, Copilot, OpenCode, and anything that can install a plugin or run a shell:
 
 ```text
 Install Balakit from https://github.com/afaraha8403/balakit (npm package: balakit).
@@ -59,11 +77,12 @@ If this client can install plugins natively, do that FIRST. Native install loads
   Cursor: do not /add-plugin the repo URL. User-scope CLI copies plugins to ~/.cursor/plugins/local/. Or add marketplace https://github.com/afaraha8403/balakit from Customize → Plugins, enable the plugins, reload the window.
   Claude Code: /plugin marketplace add afaraha8403/balakit
                then /plugin install <name>@balakit for: balakit-engineering, balakit-marketing, balakit-media, balakit-nlm, balakit-seo-skills
-  Codex:       codex plugin marketplace add afaraha8403/balakit
-               then `codex plugin add <name>@balakit` for the same five names
+               Claude Code cannot see root plugin.json — use the marketplace (needs .claude-plugin/).
+  ChatGPT / Codex: one OpenAI catalog (not two products). ChatGPT web/desktop: Plugins tab. Codex CLI: `codex plugin marketplace add afaraha8403/balakit` then `codex plugin add <name>@balakit` for the same five names. OpenAI's IDE extension does not load plugins — use ChatGPT desktop, Codex CLI, or the CLI below.
   Copilot CLI: copilot plugin marketplace add afaraha8403/balakit
                then `copilot plugin install <name>@balakit` for the same five names
   VS Code:     Command Palette → Chat: Install Plugin From Source wants a single plugin.json. Point it at a plugins/balakit-* folder, or skip and use the CLI below.
+  OpenCode / unknown: no plugin install. Skip native plugins. Use init + add below.
 
 Then always write standing rules (`init` does not run skills.sh):
 
@@ -71,7 +90,7 @@ Then always write standing rules (`init` does not run skills.sh):
 
 If native plugin install already loaded the five skill plugins, skip the next add. If this client has no plugin install, or native failed:
 
-  npx balakit@latest add authoring-skills-and-rules cloakbrowser-fallback deep-deliberation dissect documentation-writer release-deploy everything-seo seo-audit marketing-psychology startup-marketing-brain media-gen nlm-skill --scope <project|user> --agents <detected or cursor,claude-code,opencode,codex,copilot> -y
+  npx balakit@latest add authoring-skills-and-rules cloakbrowser-fallback deep-deliberation dissect documentation-writer blinded-eval subsystem-walkthrough design-rationale proving-change-safety generating-app-verify refreshing-app-verify unmatched-workflow kit-workflows release-deploy everything-seo seo-audit marketing-psychology startup-marketing-brain media-gen nlm-skill --scope <project|user> --agents <detected or cursor,claude-code,opencode,codex,copilot> -y
 
 Do not npm publish or gh release create. Run `npx balakit@latest status`, tell me what it reports, and remind me to reload Cursor if plugins/local or the plugin UI changed. Customize → User Rules is account UI — the CLI cannot write it.
 ```
@@ -80,7 +99,7 @@ Do not npm publish or gh release create. Run `npx balakit@latest status`, tell m
 
 - **Two scopes.** `--scope project` (this repo) vs `--scope user` (this machine, all projects).
 - **Rules ≠ skills.** `init` = standing rules. `add <skill>` = skills.sh (`-g` on user scope).
-- **Native plugins when the client supports them.** Marketplace manifests ship in-repo. Cursor: `~/.cursor/plugins/local/` (CLI copy) or add the GitHub marketplace. Claude / Codex / Copilot: marketplace add `afaraha8403/balakit`, then install the five skill plugins. Standing rules still come from `balakit init`.
+- **Native plugins when the client supports them.** Marketplace manifests ship in-repo. Cursor: `~/.cursor/plugins/local/` (CLI copy) or add the GitHub marketplace. Claude Code: marketplace add. ChatGPT / Codex: same OpenAI catalog (Plugins tab or `codex plugin …`). Copilot: marketplace add `afaraha8403/balakit`, then install the five skill plugins. Standing rules still come from `balakit init`.
 - **One version when you ship.** Git tag `vX.Y.Z`, `package.json` `"version"`, CHANGELOG heading, and npm publish are the same semver (`release` rule).
 
 ## Scopes
@@ -121,6 +140,8 @@ balakit init
 
 ## Destinations
 
+Filesystem layout when using the CLI, not native plugin install.
+
 | Agent | Skills (project) | Skills (user) | Standing (project) | Standing (user) |
 | --- | --- | --- | --- | --- |
 | Cursor | `.cursor/skills` **and** `.agents/skills` | `~/.cursor/skills` **and** `~/.agents/skills` | `.cursor/rules/*.mdc` + `AGENTS.md` | `~/.cursor/rules/*.mdc`. Plugins: `~/.cursor/plugins/local/` |
@@ -145,6 +166,8 @@ npx skills add afaraha8403/balakit --skill dissect
 
 `skills/` and `rules/` are the source of truth. `./sync.sh` materializes `plugins/` plus marketplace catalogs.
 
+This repo is a **marketplace**, not one plugin. Catalogs: `.cursor-plugin/marketplace.json`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`. Portable packages live under `plugins/`. Do not `/add-plugin` the repo root.
+
 | Plugin | Ships | Format |
 | --- | --- | --- |
 | `balakit-core` | rules: `base`, `testing`, `comments`, `changelog`, `release` | Cursor Plugin |
@@ -153,9 +176,9 @@ npx skills add afaraha8403/balakit --skill dissect
 | `balakit-marketing` | `marketing-psychology`, `startup-marketing-brain` | Agent Plugins + Cursor |
 | `balakit-media` | `media-gen` | Agent Plugins + Cursor |
 | `balakit-nlm` | `nlm-skill` | Agent Plugins + Cursor |
-| `balakit-engineering` | `authoring-skills-and-rules`, `cloakbrowser-fallback`, `deep-deliberation`, `dissect`, `documentation-writer`, `release-deploy` | Agent Plugins + Cursor |
+| `balakit-engineering` | `authoring-skills-and-rules`, `cloakbrowser-fallback`, `deep-deliberation`, `dissect`, `documentation-writer`, `blinded-eval`, `subsystem-walkthrough`, `design-rationale`, `proving-change-safety`, `generating-app-verify`, `refreshing-app-verify`, `unmatched-workflow`, `kit-workflows`, `release-deploy` | Agent Plugins + Cursor |
 
-Rules are **not** a portable Agent Plugins v1 component (they stay in Cursor plugins + `AGENTS.md`). Every plugin `version` equals `package.json`. Skill `SKILL.md` `version:` stays independent.
+Rules are **not** a portable Agent Plugins v1 component (they stay in Cursor plugins + `AGENTS.md`). There is no bundled `mcp.json` — `nlm-skill` talks to an external MCP. Every plugin `version` equals `package.json`. Skill `SKILL.md` `version:` stays independent.
 
 Native marketplace add:
 
@@ -164,7 +187,8 @@ Native marketplace add:
 /plugin marketplace add afaraha8403/balakit
 /plugin install balakit-engineering@balakit
 
-# Codex
+# ChatGPT / Codex — one OpenAI catalog. ChatGPT: Plugins tab (web/desktop).
+# Codex CLI:
 codex plugin marketplace add afaraha8403/balakit
 codex plugin add balakit-engineering@balakit
 
@@ -191,17 +215,25 @@ Cursor public marketplace: do **not** submit from a routine change. When you are
 | Skill | Summary |
 | --- | --- |
 | `authoring-skills-and-rules` | Create/update Skills and rules across agents |
+| `blinded-eval` | Blinded eval of a Skill or prompt change |
 | `cloakbrowser-fallback` | Stealth Chromium when normal automation is blocked |
 | `deep-deliberation` | Checkpointed option comparison before building |
+| `design-rationale` | Motivation investigator: why code is shaped this way |
 | `dissect` | Audit an existing service/plan into a minimal-build plan |
 | `documentation-writer` | Research-first technical documentation |
 | `everything-seo` | Comprehensive SEO playbook |
+| `generating-app-verify` | Generate a repo-local skill that drives the app like a user |
+| `kit-workflows` | Bug-fix, feature, and refactor playbooks |
 | `marketing-psychology` | Psychology for product and marketing copy |
 | `media-gen` | Fal.ai image, video, upscale, dual-model ad creative |
 | `nlm-skill` | NotebookLM CLI (`nlm`) and MCP |
+| `proving-change-safety` | Prove the one fact a change is safe because of by running real code |
+| `refreshing-app-verify` | Keep a generated verify skill's feature map honest |
 | `release-deploy` | GitHub tag releases; changelog-driven notes |
 | `seo-audit` | SEO audit workflow |
 | `startup-marketing-brain` | Startup marketing: distribution, automation, monetization |
+| `subsystem-walkthrough` | Onboarding explainer: how a subsystem works |
+| `unmatched-workflow` | Design a falsifiable playbook when no narrower skill fits |
 
 ## FAQ
 
@@ -213,6 +245,15 @@ This repo only → `--scope project` (default). Every project on this PC → `--
 
 **Does native plugin install replace the CLI?**
 No. Plugins load skills (and Cursor plugins can load rules). `balakit init` still writes the AGENTS.md / CLAUDE.md standing kit. Skip `balakit add` only when this client already loaded the five skill plugins.
+
+**Claude Code ignored root `plugin.json`.**
+Expected. Claude Code loads `.claude-plugin/plugin.json`. Use `/plugin marketplace add afaraha8403/balakit`, then `/plugin install <name>@balakit`.
+
+**ChatGPT or Codex — which one?**
+Same OpenAI plugins. ChatGPT = Plugins tab (web/desktop). Codex CLI = `codex plugin …` / `/plugins`. OpenAI’s IDE extension does not load plugins. Cursor / VS Code Copilot is a different client.
+
+**OpenCode (or Cline, Windsurf, …) has no plugin install.**
+Skip native plugins. `npx balakit init` then `npx balakit add … --agents opencode` (or the detected id).
 
 **Customize → User Rules is empty.**
 That UI is Cursor account settings, not files. The CLI writes `~/.cursor/rules/*.mdc` and `~/.cursor/plugins/local/`. Reload the window.

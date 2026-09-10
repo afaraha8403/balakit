@@ -127,3 +127,34 @@ test("plugin versions lockstep with package.json after build", () => {
   assert.equal(result.ok, true, result.mismatches.map((m) => `${m.path}=${m.version}`).join(", "));
   assert.ok(result.found.length > 0);
 });
+
+test("generated plugin READMEs name format and install layers", () => {
+  buildPlugins();
+  const index = readFileSync(join(ROOT, "plugins", "README.md"), "utf8");
+  assert.match(index, /do not `\/add-plugin` the repo root/);
+  assert.match(index, /Portable Agent Plugins 1\.0\.0/);
+  assert.match(index, /Vendor shims/);
+  assert.match(index, /CLI fallback/);
+
+  const agentReadme = readFileSync(join(ROOT, "plugins", "balakit-engineering", "README.md"), "utf8");
+  assert.match(agentReadme, /\*\*Format:\*\* Agent Plugins 1\.0\.0/);
+
+  const rulesReadme = readFileSync(join(ROOT, "plugins", "balakit-core", "README.md"), "utf8");
+  assert.match(rulesReadme, /\*\*Format:\*\* Cursor Plugin \(rules, not Agent Plugins v1\)\./);
+});
+
+test("built plugin skill folders match the catalog exactly", () => {
+  buildPlugins();
+  for (const plugin of PLUGINS) {
+    const skillsDir = join(ROOT, "plugins", plugin.name, "skills");
+    if (plugin.skills.length === 0) {
+      assert.equal(existsSync(skillsDir), false);
+      continue;
+    }
+    const onDisk = readdirSync(skillsDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort();
+    assert.deepEqual(onDisk, [...plugin.skills].sort());
+  }
+});

@@ -236,10 +236,16 @@ function buildPlugin(plugin) {
     writeClaudeManifest(pluginRoot, plugin);
   }
 
+  const formatLine =
+    plugin.format === "agent"
+      ? "**Format:** Agent Plugins 1.0.0 (root `plugin.json` + `skills/`) plus Cursor / ChatGPT-Codex / Claude marketplace wrappers."
+      : "**Format:** Cursor Plugin (rules, not Agent Plugins v1).";
   const readmeLines = [
     `# ${plugin.name}`,
     "",
     plugin.description,
+    "",
+    formatLine,
     "",
     "Generated from balakit `skills/` and `rules/` — do not edit by hand.",
     "Regenerate with `./sync.sh` or `node scripts/build-plugins.mjs`.",
@@ -362,9 +368,14 @@ export function buildPlugins() {
       "",
       "Regenerate: `node scripts/build-plugins.mjs` (also run by `./sync.sh`).",
       "",
-      "The `balakit` CLI installs rules into AGENTS.md / CLAUDE.md / `.cursor/rules`",
-      "and skills via skills.sh (`--scope project|user`). Plugins are the portable",
-      "Agent Plugins 1.0.0 packages (plus Cursor / Codex / Claude marketplace wrappers).",
+      "Three layers (do not `/add-plugin` the repo root):",
+      "",
+      "1. **Portable Agent Plugins 1.0.0** — skill plugins have root `plugin.json` + `skills/`.",
+      "2. **Vendor shims** — `.cursor-plugin/`, `.claude-plugin/`, `.codex-plugin/` (ChatGPT / Codex share `.codex-plugin/`).",
+      "3. **CLI fallback** — `npx balakit init` (standing rules) + `npx balakit add` / skills.sh when the client has no plugin loader.",
+      "",
+      "`balakit-core` and `balakit-seo` are Cursor rules plugins only (not Agent Plugins v1).",
+      "The `balakit` CLI still writes AGENTS.md / CLAUDE.md / `.cursor/rules`.",
       "",
     ].join("\n"),
   );

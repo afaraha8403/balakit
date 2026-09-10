@@ -3,15 +3,17 @@ name: authoring-skills-and-rules
 description: >-
   Author Skills (SKILL.md) and rules/instructions across Claude Code, Cursor,
   OpenCode, Codex, and GitHub Copilot. Covers frontmatter, file layout,
-  activation model, cross-platform mirroring, and the universal craft:
-  progressive disclosure, trigger-rich descriptions (context pointers), leading
-  words, token budget, naming, and what to leave out.
-  Use when the user asks to write, scaffold, refactor, port, or review a Skill,
-  Cursor rule (.mdc), AGENTS.md, copilot-instructions, or prompt file — or to
-  make one Skill/rule work across multiple agents.
+  activation, mirroring, and craft: progressive disclosure, Apply-when
+  descriptions, leading words, playbook steps copied into todos, skip
+  reasons, and the deletion test.
+  Apply when the user asks to write, scaffold, refactor, port, or review a
+  Skill, Cursor rule (.mdc), AGENTS.md, copilot-instructions, or prompt file
+  — or to make one Skill/rule work across multiple agents. Use blinded-eval
+  when a behavior-changing draft needs blinded proof. Use dissect to audit
+  an existing system, not to author a skill.
 user-invocable: true
 disable-model-invocation: false
-version: "1.1.0"
+version: "1.2.0"
 author: "Ali Farahat"
 tags: ["meta", "skills", "rules", "authoring", "cross-platform", "claude-code", "cursor", "opencode", "codex", "copilot"]
 when_to_use: |
@@ -29,13 +31,15 @@ when_to_use: |
   DO NOT USE WHEN:
   - The task is to USE an existing skill, not to author one.
   - The user wants product/feature code with no agent-instruction component.
+  - The user wants blinded proof that a draft changes agent behavior; use
+    blinded-eval.
 ---
 
 # Authoring Skills and Rules (cross-platform)
 
 > **Leading words:** progressive disclosure, context pointer, token budget,
-> trigger-rich description, leading words, phase separation, branch-specific
-> reference, single source of truth, deletion test.
+> Apply-when description, playbook todos, skip reason, leading words,
+> phase separation, encode lessons in structure, deletion test.
 
 A practitioner's guide to writing and maintaining the two artifact families that
 steer coding agents — **Skills** (on-demand, procedural capabilities) and
@@ -125,6 +129,9 @@ is what the model reads to decide whether to pull in the Skill or rule. Spend
 your effort here.
 
 - Write it in the **third person**, stating **what it does + when to use it**.
+- Prefer **Apply when** / **Use for** plus a sibling pointer so the agent
+  does not pick the wrong specialist (`use blinded-eval for blinded proof;
+  use dissect for an existing-system audit`).
 - Pack in **concrete triggers**: file types, tool names, verbs, user phrases.
   - ✅ "Extract text and tables from PDFs, fill forms, merge documents. Use when
     the user mentions PDFs, forms, or document extraction."
@@ -177,12 +184,28 @@ behavior to your intent without long prose.
 - Assume the agent is capable — don't explain `git`, `npm`, or basic concepts.
 - Be **actionable and specific**, like a sharp internal doc. Prefer examples and
   `@file` / path references over pasting whole files.
+- **Tell it to do the thing; skip the reason** unless the rule is confusing
+  without one. Justification that does not change a decision is sediment.
 - **No time-sensitive phrasing** ("after August 2025, do X"). Skills are
   long-lived; describe the current way and collapse legacy into an aside.
 - **Justify constants** (why `timeout=30`), and **declare dependencies** and how
   to install them — never assume a tool is present.
 
-### 6. What to leave out
+### 6. Playbook steps become todos
+Numbered workflow steps are copyable. On invoke, open a todo list whose
+**first items are those steps, copied verbatim**. A step you choose not to
+do stays in the list with `skip: <reason>` or `n/a: <reason>`. Skipped rigor
+must stay inspectable. Give the skill a **reply contract** (what the agent
+returns when the workflow ends).
+
+### 7. Encode lessons in structure
+The second time you write the same instruction, encode it as a lint, a
+script, a metadata flag, or a test — then delete the prose. Do not grow the
+SKILL.md. Optional: a custom `subagent_type` whose first instruction is "read
+this skill in full" prevents `generalPurpose` drift. Use it when the skill
+is a style wrapper; keep `generalPurpose` when you want model diversity.
+
+### 8. What to leave out
 - Secrets, API keys, tokens — ever.
 - Whole style guides (use a linter) and generic tool docs the agent already knows.
 - Rare edge cases and duplicated codebase docs (link to the canonical source).
@@ -212,11 +235,15 @@ explicitly operating solo and the scope is unambiguous).
 ### Phase 2 — Draft
 
 ```
-- [ ] Write the description first (triggers + what + when), third person
+- [ ] Write the description first (Apply when + sibling pointer), third person
 - [ ] Scaffold the correct file layout per platform (see references/)
-- [ ] Write the lean body; inject leading words; push depth to references/,
-      logic to scripts/
+- [ ] Write the lean body; inject leading words; numbered steps that can be
+      copied into todos; skip:/n/a: for dropped steps; reply contract
+- [ ] Push depth to references/, logic to scripts/
 ```
+
+Copy this phase's checklist into the todo list verbatim before drafting.
+A skipped item stays with `skip: <reason>`.
 
 🛑 **Checkpoint:** Read the description aloud. If you cannot name the triggers
 crisply, the scope is still fuzzy — go back to Phase 1.
@@ -237,6 +264,11 @@ in sync before validating.
 ### Phase 4 — Validate
 
 Run the checklist below. Any miss → back to the relevant phase.
+
+If the draft **changes agent behavior** (new workflow, new trigger, new
+guardrail — not a typo), run **blinded-eval** before promoting. Hold the
+rubric back from the draft's authoring pass. Typos and comment-only edits
+skip eval (`skip: formatting-only`).
 
 ### Updating an existing Skill or rule
 
@@ -270,6 +302,10 @@ The 4 phases apply, with these additions:
       mirrors are in sync.
 - [ ] One capability per Skill / one concept per rule.
 - [ ] Deletion test run on every paragraph — no no-ops, no sediment.
+- [ ] Numbered steps are copyable into todos; skipped steps have `skip:` /
+      `n/a:`; a reply contract exists.
+- [ ] Behavior-changing drafts ran blinded-eval, or an explicit `skip:` for
+      formatting-only.
 
 ---
 

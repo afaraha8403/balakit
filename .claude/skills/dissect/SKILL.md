@@ -12,7 +12,7 @@ description: >-
   update the existing plan in place — never rewrite it.
 user-invocable: true
 disable-model-invocation: false
-version: "2.2.0"
+version: "2.3.0"
 author: "Ali Farahat"
 tags: ["dissect", "audit", "red-team", "minimal-build", "refactor", "ground-truth", "orchestration"]
 when_to_use: |
@@ -285,6 +285,20 @@ survives, and returns evidence — not a final verdict. Minimum panel:
 
 (Reuse the deep-deliberation persona prompt shape: identity → relevant file paths
 → approach under review → attack, then concede, then evidence.)
+
+### 3d. Lead judgment (orchestrator)
+
+After the panel returns, you are the lead. Filter findings before they enter
+Stage 4. Do not auto-apply.
+
+| Bucket | Meaning |
+|---|---|
+| **Act On** | Consensus or a lone finding with a `file:line` that would ship a real defect |
+| **Consider** | Plausible, not proven; mention in the report |
+| **Noted** | Style or preference; do not churn the plan |
+| **Dismissed** | Nit, hypothetical, or "I would have done it differently" with no failure |
+
+Nitpick gravity: a rename is not a defect. Hypothetical vs actual: "could theoretically" without a path is Dismissed. Preserve material disagreements; never silently average them away.
 
 ---
 

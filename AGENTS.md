@@ -39,6 +39,7 @@ Two registers — pick by surface:
 - **Ask only when it pays:** Ask when blocked, or when a choice is costly / hard to reverse. Otherwise pick the sane default, act, and state the call in one line. Don't stall on reversible decisions.
 - **Surface tradeoffs:** On real forks, present options → let human pick. No silent high-stakes choices.
 - **Push back:** Not a yes-machine. Bad human approach? Explain downside → propose alternative. Accept override.
+- **Attack the premise:** After two failed fixes that share one premise, census which actors hold the imbalance, then question the premise instead of writing a third fix that assumes it.
 
 ### Simplicity First (Lazy, Not Negligent)
 **Best code = the code you never wrote. Write only what the task needs.**
@@ -52,19 +53,21 @@ Climb the ladder before writing code → stop at the first rung that works:
 6. **Only then:** the minimum that works.
 
 - **Naive → Optimize:** Build correct naive version first. Verify. Optimize later. Correctness > Performance.
+- **Name the data shape first:** before writing logic, name the types or structures the work will move through. Downstream code should become obvious from that shape.
 - **Only requested features:** Build exact request. No unasked "flexibility," no speculative abstraction.
-- **Duplicate > Abstraction:** No abstractions for single-use code.
-- **Validate at trust boundaries:** user input, external API — and not internal glue.
+- **Duplicate > Abstraction:** No abstractions for single-use code. Stateful or branchy logic belongs in a type, a table, or a state machine — not a growing if-chain.
+- **Validate at trust boundaries:** user input, external API — and not internal glue. Make illegal states unrepresentable at those boundaries.
+- **Build the lever:** non-trivial bulk work (migrations, sweeps, similar edits) is a rerunnable script or codemod, not a pile of hand edits.
 - **Refine:** 200 lines → 50 lines.
 - **NEVER cut [non-negotiable]:** trust-boundary validation, data-loss handling, security, accessibility. Code stays small because it is *necessary*, not golfed.
 
 ### Surgical Changes & Code Discipline
 **Touch only what is needed. Clean your own mess.**
-- **Fix cause, not symptom:** Change must trace directly to request. 
-- **Leave adjacent code alone:** No side-effect refactoring or formatting tweaks.
+- **Fix cause, not symptom:** Change must trace directly to request. Do not add a guard that silences a crash; reproduce, then fix the cause.
+- **Leave adjacent code alone:** No side-effect refactoring or formatting tweaks. Redesign from first principles only when the new requirement **invalidates** the current shape.
 - **Match existing style:** Always.
 - **Explain "Why":** Articulate, clear inline comments or JSDoc for *why*, not *what* (Standard Mode).
-- **Dead code hygiene:** List unreachable code after refactor. Ask to delete. No silent corpses.
+- **Dead code hygiene:** List unreachable code after refactor. Ask to delete. No silent corpses. Remove dead weight **before** adding the new path. When reshaping an internal API, migrate callers and delete the old path in the same change.
 
 ### Filesystem, Environment & Execution
 - **Strict filesystem:** Ask before creating files. No `.md` unless instructed.
@@ -78,6 +81,9 @@ Climb the ladder before writing code → stop at the first rung that works:
 - **Establish criteria:** - Validation: failing test → pass.
   - Bug: failing reproduction → pass.
   - Refactor: pass before → pass after.
+- **Prove it on the real artifact:** run the feature, read the actual value, inspect the diff. Compiling, a delegate summary, or "it looks right" is not proof.
+- **Sequence verifiable units:** multi-step work checks each unit before the next. Do not batch verification at the end.
+- **Minimize reader load:** a competent reader should answer "where does X come from?" in thirty seconds. Collapse one-caller wrappers and shrink mutable scope.
 - **Skipped tests:** Explain in chat, not code comments.
 
 ### Change Log Maintenance
@@ -239,7 +245,7 @@ Procedure: `release-deploy` skill + `skills/release-deploy/projects/<owner>-<rep
 
 Every test must earn its place by preventing a bug that would affect users. Do not write tests to hit a coverage number. If you cannot explain what bug a test would catch, do not write it.
 
-Favor integration tests over unit tests. Test real code paths — input validated, work performed, result returned. Reserve unit tests for complex business logic: pricing calculations, date handling, permission resolution. Do not write unit tests for glue code or tests that mock everything away.
+Favor integration tests over unit tests. Test real code paths — input validated, work performed, result returned. Reserve unit tests for complex business logic: pricing calculations, date handling, permission resolution. Do not write unit tests for glue code or tests that mock everything away. If a test would still pass when every imported function returns `undefined`, rewrite the assertion or delete the test.
 
 ### Folder Convention
 
@@ -261,7 +267,9 @@ Follow whatever layout the project already uses; do not impose a new one mid-pro
 
 A behavior change in a PR requires a test that exercises that behavior. "Behavior change" means: what the user sees or what the API returns is different. Refactors that preserve behavior do not require new tests — existing tests should still pass.
 
-**Bug fixes:** Write the failing test first. The test is the proof the bug existed and that the fix works.
+**Bug fixes:** Write the failing test first. The test is the proof the bug existed and that the fix works. If the cheap local test path is unclear, expensive, integration-heavy, or not requested, say so in chat with the closest executable check you will run instead. Prefer no test over a mock-only "regression" that would still pass if every imported function returned `undefined`.
+
+Prove behavior on the **real artifact** (the function the user calls, the CLI, the running app) — not a proxy, a self-report, or "it compiles."
 
 ### End-to-End Tests
 

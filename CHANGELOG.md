@@ -7,7 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.16.0]
+
+### Features
+- `blinded-eval`: blinded evaluation of a Skill or prompt change (isolated candidates, organic prompt, judge from artifacts).
+- `subsystem-walkthrough`, `design-rationale`, and `proving-change-safety`: onboarding explainer, motivation investigator (epistemics), and prove-the-safety-fact-by-running-code.
+- `generating-app-verify` and `refreshing-app-verify`: generate and keep a repo-local `skills/verify-<app>/` that drives the app like a user.
+- `unmatched-workflow`: design a falsifiable playbook when no narrower skill fits.
+- `kit-workflows`: bug-fix, feature, and refactor playbooks (not a sticky mode).
+
 ### Changes
+- After blinded eval, walkthrough / rationale / change-safety / verify / unmatched playbooks encode the lessons that beat a weak stub: Complexity + Placement, 7-row Sources Consulted, leftover prove script with do-not-ship vs unproven, `helpers/` launch helper, harness-first and no silent API delete.
+- Generated plugin READMEs name Cursor vs Agent Plugins format and the three install layers (do not `/add-plugin` the repo root).
+- `kit-workflows` v1.1.0: reply names the playbook; bug-fix forbids silencing guards (dummy `0` / empty catch); fail-before is captured before the edit. Blinded trap (`10.50` vs `BigInt`) beat a stub that returned `0n` so checkout would keep running.
+- `authoring-skills-and-rules` v1.2.0: Apply-when descriptions, playbook steps copied into todos with `skip:` reasons, encode-lessons-in-structure, and Phase 4 behavior-changing drafts run `blinded-eval`.
+- `documentation-writer` v1.2.0: Diátaxis mode pick, STE / Global English, artifact slop catalog; user-invocable.
+- Standing `base` and `testing` rules: data-shape-first, attack-the-premise, prove-on-the-real-artifact, fail-before skip contract, and the undefined-import test check.
+- `deep-deliberation` v2.1.0: prototype off-ramp, types-first sketch, design red-flags.
+- `dissect` v2.3.0: lead-judgment filter after the red-team panel (Act On / Consider / Noted / Dismissed).
+- `media-gen` v3.1.0: decision model at the top; dropped a hardcoded user path.
+- README documents native Agent Plugins vs vendor shims vs CLI/skills.sh fallback, including Claude Code’s `.claude-plugin/` requirement and ChatGPT / Codex as one OpenAI catalog.
 - Paste-into-agent prompt uses native Agent Plugins marketplace install when the client supports it. Dropped leftover-Mental cleanup from the install prompt (does not apply to most users).
 
 ## [v1.15.0]
