@@ -14,13 +14,32 @@
 </p>
 
 <p align="center">
+  <a href="#whats-in-the-kit">What's in the kit</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#compatibility">Compatibility</a> ·
   <a href="#paste-this-into-your-agent">Paste into your agent</a> ·
   <a href="#faq">FAQ</a>
 </p>
 
-Take what you like, ignore the rest: meta-principle, simplicity ladder, changelog / testing / comments discipline, SEO guardrails, and release version lockstep.
+Take what you like, ignore the rest. Standing rules: meta-principle, simplicity ladder, changelog / testing / comments, SEO guardrails, and release version lockstep. Engineering playbooks: how a subsystem works, why code is shaped this way, prove a change is safe by running real code, and drive the app the way a user does.
+
+## What's in the kit
+
+Ask the agent by skill name. These are playbooks, not a personality pack and not a sticky mode.
+
+| When you need | Skill |
+| --- | --- |
+| How does this subsystem work? | `subsystem-walkthrough` |
+| Why is it shaped this way? | `design-rationale` (every claim labeled Direct / Supported / Inferred / Speculative / Unknown) |
+| Is this diff safe to merge? | `proving-change-safety` — prove the one fact by running real code |
+| Bug fix, small feature, or refactor | `kit-workflows` |
+| No narrower playbook fits | `unmatched-workflow` |
+| Prove the app like a user | `generating-app-verify` then `refreshing-app-verify` |
+| Prove a Skill or prompt change | `blinded-eval` |
+| Audit an existing service or plan | `dissect` |
+| Compare options before building | `deep-deliberation` |
+
+Also in the kit: authoring Skills/rules, documentation (Diátaxis + STE), GitHub tag releases, SEO, marketing psychology, Fal.ai media, and NotebookLM. Full table under [Skills](#skills).
 
 ## Quick start
 
@@ -97,6 +116,10 @@ Do not npm publish or gh release create. Run `npx balakit@latest status`, tell m
 
 ## Highlights
 
+- **How / why / is it safe.** `subsystem-walkthrough`, `design-rationale`, and `proving-change-safety`.
+- **Named playbooks, not a sticky mode.** `kit-workflows` is bug-fix, feature, or refactor. `unmatched-workflow` when none of those fit.
+- **Drive the app like a user.** `generating-app-verify` writes a repo-local verify skill. `refreshing-app-verify` keeps the feature map honest.
+- **Eval a Skill change before you ship it.** `blinded-eval`: isolated candidates, the same organic prompt, judge from artifacts.
 - **Two scopes.** `--scope project` (this repo) vs `--scope user` (this machine, all projects).
 - **Rules ≠ skills.** `init` = standing rules. `add <skill>` = skills.sh (`-g` on user scope).
 - **Native plugins when the client supports them.** Marketplace manifests ship in-repo. Cursor: `~/.cursor/plugins/local/` (CLI copy) or add the GitHub marketplace. Claude Code: marketplace add. ChatGPT / Codex: same OpenAI catalog (Plugins tab or `codex plugin …`). Copilot: marketplace add `afaraha8403/balakit`, then install the five skill plugins. Standing rules still come from `balakit init`.
@@ -212,28 +235,45 @@ Cursor public marketplace: do **not** submit from a routine change. When you are
 
 ## Skills
 
+### Understand and change code
+
 | Skill | Summary |
 | --- | --- |
-| `authoring-skills-and-rules` | Create/update Skills and rules across agents |
-| `blinded-eval` | Blinded eval of a Skill or prompt change |
-| `cloakbrowser-fallback` | Stealth Chromium when normal automation is blocked |
+| `subsystem-walkthrough` | How a subsystem works: architecture, runtime flow, ownership, layering |
+| `design-rationale` | Why code is shaped this way. Git and PRs first. Every claim labeled by evidence strength |
+| `proving-change-safety` | What a change could break beyond the diff; prove the one safety fact by running real code |
+| `kit-workflows` | Bug-fix, named-data-shape feature, or behavior-preserving refactor. Not a sticky mode |
+| `unmatched-workflow` | Design a falsifiable playbook when no narrower skill fits |
+| `dissect` | Audit an existing service or plan into a minimal-build plan |
 | `deep-deliberation` | Checkpointed option comparison before building |
-| `design-rationale` | Motivation investigator: why code is shaped this way |
-| `dissect` | Audit an existing service/plan into a minimal-build plan |
-| `documentation-writer` | Research-first technical documentation |
+
+### Prove behavior
+
+| Skill | Summary |
+| --- | --- |
+| `generating-app-verify` | Generate a repo-local skill that drives the real app the way a user does |
+| `refreshing-app-verify` | Keep a generated verify skill's feature map honest |
+
+### Author skills and docs
+
+| Skill | Summary |
+| --- | --- |
+| `authoring-skills-and-rules` | Create or update Skills and rules across agents. Playbook steps become todos with `skip:` reasons |
+| `blinded-eval` | Blinded eval of a Skill or prompt change (isolated candidates, organic prompt, judge from artifacts) |
+| `documentation-writer` | Research-first docs: one Diátaxis mode, STE / Global English |
+| `release-deploy` | GitHub tag releases; changelog-driven notes |
+| `cloakbrowser-fallback` | Stealth Chromium when normal automation is blocked |
+
+### Marketing, SEO, media
+
+| Skill | Summary |
+| --- | --- |
 | `everything-seo` | Comprehensive SEO playbook |
-| `generating-app-verify` | Generate a repo-local skill that drives the app like a user |
-| `kit-workflows` | Bug-fix, feature, and refactor playbooks |
+| `seo-audit` | SEO audit workflow |
 | `marketing-psychology` | Psychology for product and marketing copy |
+| `startup-marketing-brain` | Startup marketing: distribution, automation, monetization |
 | `media-gen` | Fal.ai image, video, upscale, dual-model ad creative |
 | `nlm-skill` | NotebookLM CLI (`nlm`) and MCP |
-| `proving-change-safety` | Prove the one fact a change is safe because of by running real code |
-| `refreshing-app-verify` | Keep a generated verify skill's feature map honest |
-| `release-deploy` | GitHub tag releases; changelog-driven notes |
-| `seo-audit` | SEO audit workflow |
-| `startup-marketing-brain` | Startup marketing: distribution, automation, monetization |
-| `subsystem-walkthrough` | Onboarding explainer: how a subsystem works |
-| `unmatched-workflow` | Design a falsifiable playbook when no narrower skill fits |
 
 ## FAQ
 

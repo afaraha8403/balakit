@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changes
+- README leads with the engineering playbooks (how / why / is it safe, kit workflows, blinded eval, verify-the-app) instead of only install plumbing.
+
 ## [v1.16.1]
 
 ### Fixes
