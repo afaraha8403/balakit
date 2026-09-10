@@ -45,24 +45,21 @@ Also in the kit: authoring Skills/rules, documentation (Diátaxis + STE), GitHub
 
 ```bash
 npx balakit                      # guided: this repo vs this machine
-npx balakit init -y              # this repo — team rules
-npx balakit init --scope user -y # this machine — user rules + Cursor plugins
+npx balakit init -y              # this repo — standing rules + engineering skills
+npx balakit init --scope user -y # this machine — same kit + Cursor plugins
+npx balakit init --rules-only -y # standing rules only (old path)
+npx balakit doctor               # kit health (not Mental)
 ```
 
-`init` installs **standing rules** (and, on `--scope user`, copies Cursor plugins to `~/.cursor/plugins/local/`). **Skills are a second step** — `init` does not run skills.sh.
-
-```bash
-npx balakit add dissect --scope user --agents claude-code,opencode -y
-npx balakit status
-```
+`init` installs **standing rules and default engineering skills**. `--rules-only` keeps the previous rules-only path. User scope also copies Cursor plugins to `~/.cursor/plugins/local/`. Extra skills (SEO, marketing, media, nlm, `cloakbrowser-fallback`) are still `add`.
 
 Node `>=18`. Preview with `--dry-run`. `-y` skips confirms.
 
-### Three install paths
+### One command, two fallbacks
 
-1. **Native plugin → skills.** Five packages under `plugins/` (`balakit-engineering`, `balakit-marketing`, `balakit-media`, `balakit-nlm`, `balakit-seo-skills`) each have a root `plugin.json` + `skills/`. That is [Agent Plugins 1.0.0](https://agent-plugins.org/specification).
-2. **`npx balakit init` → standing rules.** Plugin install never writes AGENTS.md / CLAUDE.md / `.mdc`.
-3. **`npx balakit add` / [skills.sh](https://skills.sh/) → fallback.** Clients with no plugin loader, or when native install failed.
+1. **`npx balakit init` → standing rules + engineering skills.** User scope also copies Cursor plugins to `~/.cursor/plugins/local/`. `--rules-only` skips skills.
+2. **Native plugin → extra skill packages.** Five packages under `plugins/` (`balakit-engineering`, `balakit-marketing`, `balakit-media`, `balakit-nlm`, `balakit-seo-skills`) each have a root `plugin.json` + `skills/`. That is [Agent Plugins 1.0.0](https://agent-plugins.org/specification). Plugin install never writes AGENTS.md.
+3. **`npx balakit add` / [skills.sh](https://skills.sh/) → extra skills.** Clients with no plugin loader, or skills beyond the init set.
 
 ### Compatibility
 
@@ -82,36 +79,17 @@ Works in Cursor, Claude Code, ChatGPT / Codex, Copilot, OpenCode, and anything t
 ```text
 Install Balakit from https://github.com/afaraha8403/balakit (npm package: balakit).
 
-Balakit is an opinionated rules + skills kit. Standing rules go AGENTS.md-first (plus CLAUDE.md and Cursor .mdc). Skills are Agent Skills. Domain groups ship as Agent Plugins 1.0.0 packages (https://agent-plugins.org/specification).
+Run: npx balakit@latest init --scope <project|user> -y
+That writes standing rules (AGENTS.md / CLAUDE.md / .mdc) and default engineering skills via pinned skills.sh. User scope also copies Cursor plugins to ~/.cursor/plugins/local/.
 
-This repo is a marketplace, not a single root plugin.json. Do not /add-plugin the repo root. Portable packages live under plugins/:
-- Skill plugins: balakit-engineering, balakit-marketing, balakit-media, balakit-nlm, balakit-seo-skills (each has plugin.json + skills/)
-- Cursor also ships balakit-core and balakit-seo (rules) via .cursor-plugin/marketplace.json (pluginRoot: plugins)
-Manifests: .cursor-plugin/marketplace.json · .claude-plugin/marketplace.json · .agents/plugins/marketplace.json
-
-Ask me: this repo (--scope project, default) or this machine (--scope user).
-
-If this client can install plugins natively, do that FIRST. Native install loads the skill packages; it does not write AGENTS.md standing rules.
-
-  Cursor: do not /add-plugin the repo URL. User-scope CLI copies plugins to ~/.cursor/plugins/local/. Or add marketplace https://github.com/afaraha8403/balakit from Customize → Plugins, enable the plugins, reload the window.
-  Claude Code: /plugin marketplace add afaraha8403/balakit
-               then /plugin install <name>@balakit for: balakit-engineering, balakit-marketing, balakit-media, balakit-nlm, balakit-seo-skills
-               Claude Code cannot see root plugin.json — use the marketplace (needs .claude-plugin/).
-  ChatGPT / Codex: one OpenAI catalog (not two products). ChatGPT web/desktop: Plugins tab. Codex CLI: `codex plugin marketplace add afaraha8403/balakit` then `codex plugin add <name>@balakit` for the same five names. OpenAI's IDE extension does not load plugins — use ChatGPT desktop, Codex CLI, or the CLI below.
+Optional extras (native plugin when this client can; otherwise skip):
+  Cursor: add marketplace https://github.com/afaraha8403/balakit — do not /add-plugin the repo root. Or rely on user-scope init copy.
+  Claude Code: /plugin marketplace add afaraha8403/balakit then /plugin install <name>@balakit
+  ChatGPT / Codex: Plugins tab or `codex plugin …`. OpenAI IDE extension: no plugins.
   Copilot CLI: copilot plugin marketplace add afaraha8403/balakit
-               then `copilot plugin install <name>@balakit` for the same five names
-  VS Code:     Command Palette → Chat: Install Plugin From Source wants a single plugin.json. Point it at a plugins/balakit-* folder, or skip and use the CLI below.
-  OpenCode / unknown: no plugin install. Skip native plugins. Use init + add below.
 
-Then always write standing rules (`init` does not run skills.sh):
-
-  npx balakit@latest init --scope <project|user> -y
-
-If native plugin install already loaded the five skill plugins, skip the next add. If this client has no plugin install, or native failed:
-
-  npx balakit@latest add authoring-skills-and-rules cloakbrowser-fallback deep-deliberation dissect documentation-writer blinded-eval subsystem-walkthrough design-rationale proving-change-safety generating-app-verify refreshing-app-verify unmatched-workflow kit-workflows release-deploy everything-seo seo-audit marketing-psychology startup-marketing-brain media-gen nlm-skill --scope <project|user> --agents <detected or cursor,claude-code,opencode,codex,copilot> -y
-
-Do not npm publish or gh release create. Run `npx balakit@latest status`, tell me what it reports, and remind me to reload Cursor if plugins/local or the plugin UI changed. Customize → User Rules is account UI — the CLI cannot write it.
+Then: npx balakit@latest doctor
+Reload Cursor if plugins/local changed. Do not npm publish.
 ```
 
 ## Highlights
@@ -121,7 +99,7 @@ Do not npm publish or gh release create. Run `npx balakit@latest status`, tell m
 - **Drive the app like a user.** `generating-app-verify` writes a repo-local verify skill. `refreshing-app-verify` keeps the feature map honest.
 - **Eval a Skill change before you ship it.** `blinded-eval`: isolated candidates, the same organic prompt, judge from artifacts.
 - **Two scopes.** `--scope project` (this repo) vs `--scope user` (this machine, all projects).
-- **Rules ≠ skills.** `init` = standing rules. `add <skill>` = skills.sh (`-g` on user scope).
+- **Rules + default skills.** `init` = standing rules and engineering skills. `--rules-only` skips skills. Extra skills still `add`.
 - **Native plugins when the client supports them.** Marketplace manifests ship in-repo. Cursor: `~/.cursor/plugins/local/` (CLI copy) or add the GitHub marketplace. Claude Code: marketplace add. ChatGPT / Codex: same OpenAI catalog (Plugins tab or `codex plugin …`). Copilot: marketplace add `afaraha8403/balakit`, then install the five skill plugins. Standing rules still come from `balakit init`.
 - **One version when you ship.** Git tag `vX.Y.Z`, `package.json` `"version"`, CHANGELOG heading, and npm publish are the same semver (`release` rule).
 
@@ -143,12 +121,14 @@ Default team rules: `base`, `testing`, `comments`, `changelog`, `release`.
 ```bash
 npx balakit                         # guided setup
 npx balakit init                    # same guided flow
-npx balakit init -y                 # team kit, this repo
-npx balakit init --scope user -y    # team kit + Cursor plugins, this machine
+npx balakit init -y                 # standing rules + engineering skills, this repo
+npx balakit init --scope user -y    # same kit + Cursor plugins, this machine
+npx balakit init --rules-only -y    # standing rules only
 npx balakit add base testing
 npx balakit add dissect --scope user --agents claude-code,opencode
 npx balakit list
 npx balakit status
+npx balakit doctor                   # kit health
 npx balakit update                  # project manifest
 npx balakit update --scope user     # home manifest
 npx balakit remove testing
@@ -159,7 +139,7 @@ npm install -g balakit
 balakit init
 ```
 
-`--agents <ids|all>` selects skills.sh targets (default: detect). `--personal`, `doctor`, and `--mental-*` are leftover flags: they print a URL and exit.
+`--agents <ids|all>` selects skills.sh targets (default: detect). `--personal` and `--mental-*` print a URL and exit. `doctor` is kit health; Mental health is `mental doctor`.
 
 ## Destinations
 
@@ -281,10 +261,10 @@ Cursor public marketplace: do **not** submit from a routine change. When you are
 This repo only → `--scope project` (default). Every project on this PC → `--scope user`. User scope also copies Cursor plugins.
 
 **Why didn’t skills show up after `init`?**
-`init` writes standing rules (and user-scope Cursor plugin copies). Skills come from native plugin install **or** `balakit add <skills> --scope … --agents …`.
+Default `init` installs engineering skills (plus standing rules). `--rules-only` skips them. Marketing / SEO / media / nlm / `cloakbrowser-fallback` still need `balakit add` or native plugins. Reload the agent window after a skill install.
 
 **Does native plugin install replace the CLI?**
-No. Plugins load skills (and Cursor plugins can load rules). `balakit init` still writes the AGENTS.md / CLAUDE.md standing kit. Skip `balakit add` only when this client already loaded the five skill plugins.
+No. Plugins load skills (and Cursor plugins can load rules). `balakit init` still writes the AGENTS.md / CLAUDE.md standing kit. Skip extra `balakit add` when this client already loaded the skill plugins you want.
 
 **Claude Code ignored root `plugin.json`.**
 Expected. Claude Code loads `.claude-plugin/plugin.json`. Use `/plugin marketplace add afaraha8403/balakit`, then `/plugin install <name>@balakit`.
@@ -293,7 +273,7 @@ Expected. Claude Code loads `.claude-plugin/plugin.json`. Use `/plugin marketpla
 Same OpenAI plugins. ChatGPT = Plugins tab (web/desktop). Codex CLI = `codex plugin …` / `/plugins`. OpenAI’s IDE extension does not load plugins. Cursor / VS Code Copilot is a different client.
 
 **OpenCode (or Cline, Windsurf, …) has no plugin install.**
-Skip native plugins. `npx balakit init` then `npx balakit add … --agents opencode` (or the detected id).
+Skip native plugins. `npx balakit init` installs standing rules and engineering skills via skills.sh. Add more with `npx balakit add … --agents opencode`.
 
 **Customize → User Rules is empty.**
 That UI is Cursor account settings, not files. The CLI writes `~/.cursor/rules/*.mdc` and `~/.cursor/plugins/local/`. Reload the window.

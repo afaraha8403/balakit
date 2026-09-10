@@ -10,10 +10,13 @@ import { spawnSync } from "node:child_process";
 import { REPO } from "./pkg.mjs";
 import { getCapability } from "./agents.mjs";
 
+/** npm dist-tag pin for the vercel-labs `skills` CLI. */
+export const SKILLS_CLI_VERSION = "1.5.25";
+
 /**
  * skills.sh agent names verified live against vercel-labs/skills registry.
  * Last smoke: 2026-07-18 (npx skills add … -l -a <ids>).
- * Refresh when adding a new skillsShId to the capability registry.
+ * Pin: SKILLS_CLI_VERSION. Refresh when adding a new skillsShId.
  */
 export const SKILLS_SH_VERIFIED_IDS = Object.freeze([
   "amp",
@@ -61,66 +64,103 @@ export function resolveSkillsShTargets(agentIds) {
   return { skillsShIds, skippedUnverified, skippedUnsupported };
 }
 
+function skillsBin() {
+  return `skills@${SKILLS_CLI_VERSION}`;
+}
+
 /**
- * Build an `npx skills add` command.
+ * Build an `npx skills add` argv list.
+ * @param {string[]} skillNames
+ * @param {string[]} agentIds balakit agent ids
+ * @param {"project"|"global"} scope
+ */
+export function skillsAddArgv(skillNames, agentIds, scope) {
+  const { skillsShIds } = resolveSkillsShTargets(agentIds);
+  return [
+    "npx",
+    "-y",
+    skillsBin(),
+    "add",
+    REPO,
+    ...skillNames.flatMap((s) => ["-s", s]),
+    ...skillsShIds.flatMap((a) => ["-a", a]),
+    ...(scope === "global" ? ["-g"] : []),
+    "-y",
+  ];
+}
+
+/**
+ * Build an `npx skills add` command string (tests / review).
  * @param {string[]} skillNames
  * @param {string[]} agentIds balakit agent ids
  * @param {"project"|"global"} scope
  */
 export function skillsAddCommand(skillNames, agentIds, scope) {
-  const { skillsShIds } = resolveSkillsShTargets(agentIds);
-  return [
-    "npx -y skills add",
-    REPO,
-    ...skillNames.map((s) => `-s ${s}`),
-    ...skillsShIds.map((a) => `-a ${a}`),
-    scope === "global" ? "-g" : "",
-    "-y",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return skillsAddArgv(skillNames, agentIds, scope).join(" ");
 }
 
 /**
- * Build an `npx skills remove` command.
+ * Build an `npx skills remove` argv list.
+ * @param {string[]} skillNames
+ * @param {"project"|"global"} scope
+ */
+export function skillsRemoveArgv(skillNames, scope) {
+  return [
+    "npx",
+    "-y",
+    skillsBin(),
+    "remove",
+    ...skillNames,
+    ...(scope === "global" ? ["-g"] : []),
+    "-y",
+  ];
+}
+
+/**
+ * Build an `npx skills remove` command string.
  * @param {string[]} skillNames
  * @param {"project"|"global"} scope
  */
 export function skillsRemoveCommand(skillNames, scope) {
-  return [
-    "npx -y skills remove",
-    ...skillNames,
-    scope === "global" ? "-g" : "",
-    "-y",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return skillsRemoveArgv(skillNames, scope).join(" ");
 }
 
 /**
- * Build an `npx skills update` command.
+ * Build an `npx skills update` argv list.
+ * @param {string[]} [skillNames]
+ * @param {"project"|"global"} scope
+ */
+export function skillsUpdateArgv(skillNames, scope) {
+  return [
+    "npx",
+    "-y",
+    skillsBin(),
+    "update",
+    ...(skillNames?.length ? skillNames : []),
+    scope === "global" ? "-g" : "-p",
+    "-y",
+  ];
+}
+
+/**
+ * Build an `npx skills update` command string.
  * @param {string[]} [skillNames]
  * @param {"project"|"global"} scope
  */
 export function skillsUpdateCommand(skillNames, scope) {
-  return [
-    "npx -y skills update",
-    ...(skillNames?.length ? skillNames : []),
-    scope === "global" ? "-g" : "-p",
-    "-y",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return skillsUpdateArgv(skillNames, scope).join(" ");
 }
 
 /**
- * Run a shell command with inherited stdio.
+ * Run skills.sh via argv (no shell). Accepts argv or a whitespace-joined string.
  * @returns {{ ok: boolean, cmd: string }}
  */
 export function runSkillsCmd(cmd, { dryRun = false } = {}) {
-  if (dryRun) return { ok: true, cmd };
-  const result = spawnSync(cmd, { stdio: "inherit", shell: true });
-  return { ok: result.status === 0, cmd };
+  const args = Array.isArray(cmd) ? cmd : String(cmd).split(/\s+/).filter(Boolean);
+  const display = args.join(" ");
+  if (dryRun) return { ok: true, cmd: display };
+  const result = spawnSync(args[0], args.slice(1), { stdio: "inherit" });
+  return { ok: result.status === 0, cmd: display };
 }
 
 /**
@@ -133,7 +173,7 @@ export function smokeSkillsShAgents(skillsShIds = SKILLS_SH_VERIFIED_IDS.slice(0
   const cmd = [
     "npx",
     "-y",
-    "skills",
+    skillsBin(),
     "add",
     REPO,
     "-l",

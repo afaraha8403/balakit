@@ -1,7 +1,7 @@
 /**
  * Shared CLI argument helpers and usage text.
  */
-import { CMD, VERSION, TEAM_INIT_RULES } from "./pkg.mjs";
+import { CMD, VERSION, TEAM_INIT_RULES, TEAM_INIT_SKILLS } from "./pkg.mjs";
 import { loadRules, loadSkills, trunc } from "./catalog.mjs";
 import { AGENTS, AGENT_IDS, formatCapabilityMatrix, detectAgents } from "./agents.mjs";
 import { MENTAL_MOVED, MENTAL_REPO } from "./mental-moved.mjs";
@@ -16,21 +16,24 @@ Usage:
   npx ${CMD} add <names...>          Add rules and/or skills by name
   npx ${CMD} remove <names...>       Remove owned kit pieces
   npx ${CMD} list                    Available rules, skills, capability matrix
-  npx ${CMD} status                  What balakit owns + reconcile health
+  npx ${CMD} status                  What balakit owns (inventory)
+  npx ${CMD} doctor                  Health: drift, plugins/local, leftover Mental
   npx ${CMD} update                  Refresh installed kit pieces
 
 Options:
   --scope project|user   Install to this repo (default) or this machine
   --agents <ids|all>     Skills targets (default: detect + confirm in wizard)
+  --rules-only           Init: standing rules only (skip default skills)
   --dry-run              Preview without writing
   -y, --yes              Skip confirms
   -v, --version          Print version
   -h, --help             Show this help
 
-Team init rules: ${TEAM_INIT_RULES.join(", ")}
+Init rules: ${TEAM_INIT_RULES.join(", ")}
+Init skills: ${TEAM_INIT_SKILLS.join(", ")}
 
 Mental continuity has moved to ${MENTAL_REPO}
-(\`doctor\`, \`--personal\`, and \`--mental-*\` flags print the new location.)
+(\`--personal\` and \`--mental-*\` flags print the new location.)
 
 Skills are installed via skills.sh. Direct path:
   npx skills add afaraha8403/balakit
@@ -44,7 +47,6 @@ Available rules: ${rules.map((r) => r.name).join(", ")}
  * @param {ReturnType<typeof parseArgv>} args
  */
 export function isMentalMovedRequest(args) {
-  if (args.command === "doctor") return true;
   if (args.personal || args.withPersonal || args.liftIgnore) return true;
   if (args.mentalTooling || args.mentalDataPolicy) return true;
   if (args.names.includes("mental")) return true;
@@ -67,6 +69,7 @@ export function parseArgv(argv) {
     mentalTooling: undefined,
     mentalDataPolicy: undefined,
     liftIgnore: false,
+    rulesOnly: false,
   };
   const csv = (v) => v.split(",").map((s) => s.trim()).filter(Boolean);
   const commands = new Set([
@@ -101,6 +104,8 @@ export function parseArgv(argv) {
       args.mentalDataPolicy = next() ?? "";
     } else if (a === "--lift-ignore") {
       args.liftIgnore = true;
+    } else if (a === "--rules-only") {
+      args.rulesOnly = true;
     } else if (a === "--scope") {
       const v = next();
       if (v !== "project" && v !== "user") {

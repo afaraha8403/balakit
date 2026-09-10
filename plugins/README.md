@@ -19,7 +19,7 @@ Three layers (do not `/add-plugin` the repo root):
 
 1. **Portable Agent Plugins 1.0.0** — skill plugins have root `plugin.json` + `skills/`.
 2. **Vendor shims** — `.cursor-plugin/`, `.claude-plugin/`, `.codex-plugin/` (ChatGPT / Codex share `.codex-plugin/`).
-3. **CLI fallback** — `npx balakit init` (standing rules) + `npx balakit add` / skills.sh when the client has no plugin loader.
+3. **CLI fallback** — `npx balakit init` (standing rules + engineering skills; `--rules-only` skips skills) + `npx balakit add` / skills.sh for extras or when the client has no plugin loader.
 
 `balakit-core` and `balakit-seo` are Cursor rules plugins only (not Agent Plugins v1).
 The `balakit` CLI still writes AGENTS.md / CLAUDE.md / `.cursor/rules`.

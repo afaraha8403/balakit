@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.17.0]
+
+### Features
+- `init` installs standing rules and default engineering skills. `--rules-only` keeps the previous rules-only path.
+- `doctor` is kit health (manifest drift, leftover Mental, Cursor plugins/local), not a Mental-moved URL.
+- skills.sh is pinned to `skills@1.5.25` and spawned as argv (no `shell: true`).
+
 ### Changes
 - README leads with the engineering playbooks (how / why / is it safe, kit workflows, blinded eval, verify-the-app) instead of only install plumbing.
+- Paste-into-agent is one `init` command plus optional native extras and `doctor`.
+- Plugin index README matches complete-kit `init` (`--rules-only` skips skills; extras still `add`).
 
 ## [v1.16.1]
 

@@ -177,7 +177,7 @@ test("removePersonalRules clears global dummy files", () => {
 
 test("skillsAddCommand includes -g for global and skill flags", () => {
   const cmd = skillsAddCommand(["dissect"], ["cursor", "claude-code"], "global");
-  assert.match(cmd, /npx -y skills add/);
+  assert.match(cmd, /npx -y skills@/);
   assert.match(cmd, /-s dissect/);
   assert.match(cmd, /-a cursor/);
   assert.match(cmd, /-a claude-code/);
@@ -187,7 +187,7 @@ test("skillsAddCommand includes -g for global and skill flags", () => {
 
 test("skillsRemoveCommand builds remove invocation", () => {
   const cmd = skillsRemoveCommand(["dissect"], "global");
-  assert.match(cmd, /skills remove/);
+  assert.match(cmd, /skills@[\d.]+ remove/);
   assert.match(cmd, /dissect/);
   assert.match(cmd, /-g/);
 });

@@ -36,8 +36,9 @@ test("resolveSkillsShTargets skips agents with no skillsShId", () => {
   assert.ok(skippedUnsupported.includes("aider"));
 });
 
-test("skillsAddCommand only emits verified -a ids", () => {
+test("skillsAddCommand pins skills CLI and only emits verified -a ids", () => {
   const cmd = skillsAddCommand(["dissect"], ["cursor", "amazon-q", "aider"], "project");
+  assert.match(cmd, /npx -y skills@/);
   assert.match(cmd, /-a cursor/);
   assert.match(cmd, /-a kiro-cli/);
   assert.doesNotMatch(cmd, /-a aider/);

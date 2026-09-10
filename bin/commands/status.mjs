@@ -18,7 +18,7 @@ import { loadRules } from "../lib/catalog.mjs";
 import { buildInstallPlan, runInstallPlan } from "../lib/install.mjs";
 import { skillsUpdateCommand, runSkillsCmd } from "../lib/skills-bridge.mjs";
 import { detectAgents, formatCapabilityMatrix } from "../lib/agents.mjs";
-import { MENTAL_MOVED } from "../lib/mental-moved.mjs";
+import { MENTAL_REPO } from "../lib/mental-moved.mjs";
 import { listCursorLocalPlugins } from "../lib/cursor-native.mjs";
 
 export function cmdList() {
@@ -27,11 +27,68 @@ export function cmdList() {
 }
 
 /**
- * Mental doctor no longer lives here.
+ * Kit health: manifest integrity, AGENTS/CLAUDE drift, leftover Mental, plugins/local.
  */
 export function cmdDoctor() {
-  console.error(MENTAL_MOVED.trimEnd());
-  return 1;
+  const issues = [];
+  const notes = [];
+  const cwd = process.cwd();
+  const home = homedir();
+  const proj = readManifest(projectManifestPath());
+  const glob = readManifest(globalManifestPath());
+
+  console.log(`${CMD} v${VERSION} — doctor\n`);
+
+  if (isCorruptManifest(proj)) {
+    issues.push("Project manifest is corrupt (.balakit/installed.json)");
+  }
+  if (isCorruptManifest(glob)) {
+    issues.push("User manifest is corrupt (~/.balakit/installed.json)");
+  }
+
+  const liveAgents = hasManagedBlock(join(cwd, "AGENTS.md"));
+  const liveClaude = hasManagedBlock(join(cwd, "CLAUDE.md"));
+  const teamRules = (proj.rules || []).filter((n) => n !== "mental");
+
+  if ((liveAgents || liveClaude) && !teamRules.length && !proj.rules.length) {
+    issues.push("Live managed block in AGENTS.md/CLAUDE.md but empty project manifest");
+  }
+  if (teamRules.length && !liveAgents && !liveClaude) {
+    issues.push("Project manifest lists rules but no managed AGENTS.md/CLAUDE.md block");
+  }
+
+  if (
+    proj.rules.includes("mental") ||
+    glob.rules.includes("mental") ||
+    proj.skills.includes("mental") ||
+    glob.skills.includes("mental")
+  ) {
+    notes.push(`Ledger still lists mental. Balakit no longer ships it. Run mental doctor — ${MENTAL_REPO}`);
+  }
+
+  const localPlugins = listCursorLocalPlugins(home);
+  console.log("Cursor plugins/local:");
+  if (localPlugins.length) {
+    console.log(`  ${localPlugins.join(", ")}`);
+  } else {
+    console.log("  (none)");
+  }
+
+  if (notes.length) {
+    console.log("\nNotes:");
+    for (const n of notes) console.log(`  ${n}`);
+  }
+
+  if (issues.length) {
+    console.log("\nIssues:");
+    for (const i of issues) console.log(`  ✖ ${i}`);
+    console.log(`\nMental health lives in ${MENTAL_REPO} (\`mental doctor\`).`);
+    return 1;
+  }
+
+  console.log("\nKit looks healthy.");
+  console.log(`Mental health lives in ${MENTAL_REPO} (\`mental doctor\`).`);
+  return 0;
 }
 
 function mark(path) {

@@ -21,6 +21,7 @@ export {
   skillsRemoveCommand,
   resolveSkillsShTargets,
   SKILLS_SH_VERIFIED_IDS,
+  SKILLS_CLI_VERSION,
 } from "./lib/skills-bridge.mjs";
 export { installTeamRules, installPersonalRules, installUserRules, partitionRules } from "./lib/rules-install.mjs";
 export {
@@ -34,6 +35,8 @@ export {
   RULE_BUNDLED_SKILLS,
   PERSONAL_RULES,
   TEAM_INIT_RULES,
+  TEAM_INIT_SKILLS,
+  defaultInitSkills,
   RULE_ALIASES,
   canonicalizeRuleName,
   canonicalizeRuleNames,
@@ -73,6 +76,7 @@ async function main() {
     dryRun: args.dryRun,
     yes: args.yes,
     scope: args.scope,
+    rulesOnly: args.rulesOnly,
   };
 
   let code = 0;

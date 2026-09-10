@@ -2,7 +2,7 @@
  * Guided setup: intent → tools → kit → review → apply.
  */
 import * as p from "@clack/prompts";
-import { CMD, VERSION, TEAM_INIT_RULES, SKILL_BUNDLED_BY } from "../lib/pkg.mjs";
+import { CMD, VERSION, TEAM_INIT_RULES, SKILL_BUNDLED_BY, defaultInitSkills } from "../lib/pkg.mjs";
 import { loadRules, loadSkills, trunc } from "../lib/catalog.mjs";
 import {
   buildInstallPlan,
@@ -17,6 +17,7 @@ import { detectAgents, AGENT_IDS, getCapability } from "../lib/agents.mjs";
  *   dryRun?: boolean,
  *   yes?: boolean,
  *   scope?: "project"|"user",
+ *   rulesOnly?: boolean,
  * }} opts
  */
 export async function cmdInteractive(opts = {}) {
@@ -34,13 +35,13 @@ export async function cmdInteractive(opts = {}) {
       options: [
         {
           value: "team",
-          label: "This repo — project standing rules",
-          hint: `${TEAM_INIT_RULES.join(", ")} → AGENTS.md + CLAUDE.md + .cursor/rules`,
+          label: "This repo — project standing rules + engineering skills",
+          hint: `${TEAM_INIT_RULES.join(", ")} + engineering skills → AGENTS.md + CLAUDE.md + .cursor/rules`,
         },
         {
           value: "user",
           label: "This machine — all projects",
-          hint: "User-wide ~/.cursor/rules, ~/.claude, ~/.codex, plugins/local",
+          hint: "User-wide rules + engineering skills + ~/.cursor/plugins/local",
         },
         {
           value: "advanced",
@@ -57,7 +58,7 @@ export async function cmdInteractive(opts = {}) {
   }
 
   let agentIds = opts.agents?.length ? opts.agents : detectAgents();
-  if (!opts.agents?.length && !opts.yes) {
+  if (!opts.agents?.length && !opts.yes && !opts.rulesOnly) {
     const confirmed = await p.multiselect({
       message: "Which tools should receive skills? (detection is a hint)",
       options: AGENT_IDS.filter((id) => getCapability(id)?.skillsShId).map((id) => {
@@ -85,6 +86,7 @@ export async function cmdInteractive(opts = {}) {
 
   if (intent === "team" || intent === "user") {
     ruleNames = TEAM_INIT_RULES.filter((n) => allRules.some((r) => r.name === n));
+    skillNames = defaultInitSkills(allSkills, { rulesOnly: opts.rulesOnly });
   }
   if (intent === "advanced") {
     const picked = await p.groupMultiselect({

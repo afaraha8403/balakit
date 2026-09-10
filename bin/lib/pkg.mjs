@@ -67,8 +67,39 @@ export function canonicalizeRuleNames(names) {
   return [...new Set(names.map(canonicalizeRuleName))];
 }
 
-/** Default team kit installed by `balakit init`. */
+/** Default standing rules installed by `balakit init`. */
 export const TEAM_INIT_RULES = ["base", "testing", "comments", "changelog", "release"];
+
+/**
+ * Default engineering skills installed by `balakit init` unless `--rules-only`.
+ * Marketing, SEO, media, and nlm stay opt-in via `add`.
+ */
+export const TEAM_INIT_SKILLS = Object.freeze([
+  "subsystem-walkthrough",
+  "design-rationale",
+  "proving-change-safety",
+  "kit-workflows",
+  "unmatched-workflow",
+  "dissect",
+  "deep-deliberation",
+  "generating-app-verify",
+  "refreshing-app-verify",
+  "blinded-eval",
+  "authoring-skills-and-rules",
+  "documentation-writer",
+  "release-deploy",
+]);
+
+/**
+ * Packaged names from TEAM_INIT_SKILLS, or empty when `--rules-only`.
+ * @param {{ name: string }[]} catalog
+ * @param {{ rulesOnly?: boolean }} [opts]
+ */
+export function defaultInitSkills(catalog, { rulesOnly = false } = {}) {
+  if (rulesOnly) return [];
+  const packaged = new Set(catalog.map((s) => s.name));
+  return TEAM_INIT_SKILLS.filter((n) => packaged.has(n));
+}
 
 /** Manifest schema version for ownership ledger. */
 export const MANIFEST_SCHEMA = 2;

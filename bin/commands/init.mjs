@@ -2,8 +2,8 @@
  * `balakit init` — guided setup, or non-interactive with flags + -y.
  */
 import * as p from "@clack/prompts";
-import { CMD, VERSION, TEAM_INIT_RULES } from "../lib/pkg.mjs";
-import { loadRules } from "../lib/catalog.mjs";
+import { CMD, VERSION, TEAM_INIT_RULES, defaultInitSkills } from "../lib/pkg.mjs";
+import { loadRules, loadSkills } from "../lib/catalog.mjs";
 import { buildInstallPlan, runInstallPlan } from "../lib/install.mjs";
 import { cmdInteractive } from "./interactive.mjs";
 
@@ -13,6 +13,7 @@ import { cmdInteractive } from "./interactive.mjs";
  *   dryRun?: boolean,
  *   yes?: boolean,
  *   scope?: "project"|"user",
+ *   rulesOnly?: boolean,
  * }} opts
  */
 export async function cmdInit(opts = {}) {
@@ -21,14 +22,17 @@ export async function cmdInit(opts = {}) {
   }
 
   const allRules = loadRules();
+  const allSkills = loadSkills();
+  const kitLabel = opts.scope === "user" ? "user" : "project";
 
-  p.intro(`${CMD} v${VERSION} — init (team)${opts.dryRun ? "  [dry-run]" : ""}`);
+  p.intro(`${CMD} v${VERSION} — init (${kitLabel})${opts.dryRun ? "  [dry-run]" : ""}`);
 
   const ruleNames = TEAM_INIT_RULES.filter((n) => allRules.some((r) => r.name === n));
+  const skillNames = defaultInitSkills(allSkills, { rulesOnly: opts.rulesOnly });
 
   const plan = buildInstallPlan({
     ruleNames,
-    skillNames: [],
+    skillNames,
     allRules,
     agents: opts.agents,
     scope: opts.scope,

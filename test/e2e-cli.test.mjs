@@ -33,7 +33,7 @@ for (let i = 0; i < args.length; i++) {
   if (args[i] === "-s") skills.push(args[++i]);
 }
 const global = args.includes("-g");
-const isSkills = args.includes("skills");
+const isSkills = args.some((a) => a === "skills" || String(a).startsWith("skills@"));
 const isAdd = args.includes("add");
 const isRemove = args.includes("remove");
 const isUpdate = args.includes("update");
@@ -108,6 +108,9 @@ test("e2e: project init writes AGENTS.md, always-on .mdc, and project manifest â
   const manifest = JSON.parse(readFileSync(join(cwd, ".balakit", "installed.json"), "utf8"));
   assert.ok(manifest.rules.includes("base"));
   assert.ok(manifest.rules.includes("testing"));
+  assert.ok(manifest.skills.includes("dissect"));
+  assert.ok(existsSync(join(cwd, ".agents", "skills", "dissect", "SKILL.md")));
+  assert.ok(existsSync(join(cwd, ".cursor", "skills", "dissect", "SKILL.md")));
 
   assert.equal(existsSync(join(home, ".cursor", "plugins", "local")), false);
   assert.equal(existsSync(join(home, ".cursor", "rules", "base.mdc")), false);
@@ -125,6 +128,7 @@ test("e2e: user init writes home rules, OpenCode AGENTS.md, and copies plugins/l
   assert.ok(existsSync(join(home, ".balakit", "installed.json")));
   assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-core")));
   assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-seo-skills")));
+  assert.ok(existsSync(join(home, ".cursor", "skills", "dissect", "SKILL.md")));
 
   assert.equal(existsSync(join(cwd, "AGENTS.md")), false);
   assert.equal(existsSync(join(cwd, ".balakit", "installed.json")), false);
@@ -194,6 +198,20 @@ test("e2e: status shows project and home surfaces; remove one rule keeps the res
   assert.ok(existsSync(join(cwd, ".cursor", "rules", "base.mdc")));
   assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Meta-Principle/);
   assert.doesNotMatch(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Every test must earn its place/);
+});
+
+test("e2e: --rules-only init skips default skills; doctor is kit health", () => {
+  const r = run(["init", "-y", "--rules-only", "--scope", "project", "--agents", "cursor"]);
+  assert.equal(r.status, 0, out(r));
+  const manifest = JSON.parse(readFileSync(join(cwd, ".balakit", "installed.json"), "utf8"));
+  assert.ok(manifest.rules.includes("base"));
+  assert.equal((manifest.skills || []).includes("dissect"), false);
+  assert.equal(existsSync(join(cwd, ".agents", "skills", "dissect")), false);
+
+  const doctor = run(["doctor"]);
+  assert.equal(doctor.status, 0, out(doctor));
+  assert.doesNotMatch(out(doctor), /Mental has moved out of Balakit/);
+  assert.match(out(doctor), /Kit looks healthy/);
 });
 
 test("e2e: --personal still exits as Mental-moved", () => {

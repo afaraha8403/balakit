@@ -135,6 +135,8 @@ test("generated plugin READMEs name format and install layers", () => {
   assert.match(index, /Portable Agent Plugins 1\.0\.0/);
   assert.match(index, /Vendor shims/);
   assert.match(index, /CLI fallback/);
+  assert.match(index, /standing rules \+ engineering skills/);
+  assert.doesNotMatch(index, /init` \(standing rules\) \+/);
 
   const agentReadme = readFileSync(join(ROOT, "plugins", "balakit-engineering", "README.md"), "utf8");
   assert.match(agentReadme, /\*\*Format:\*\* Agent Plugins 1\.0\.0/);

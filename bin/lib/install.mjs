@@ -260,6 +260,21 @@ export async function runInstallPlan(plan, { dryRun = false, yes = false, review
     notes.push(...copied.notes);
   }
 
+  if (!dryRun && !skillsFailed) {
+    const receipt = [];
+    if (plan.team.length) {
+      receipt.push(`Project rules: ${plan.team.map((r) => r.name).join(", ")}`);
+    }
+    if (plan.personal.length) {
+      receipt.push(`User-wide rules: ${plan.personal.map((r) => r.name).join(", ")}`);
+    }
+    if (plan.skills.length) receipt.push(`Skills: ${plan.skills.join(", ")}`);
+    if (scope === "user" && agentIds.includes("cursor")) {
+      receipt.push("Cursor plugins copied to ~/.cursor/plugins/local — reload the window");
+    }
+    if (receipt.length) p.note(receipt.join("\n"), "Installed");
+  }
+
   return {
     cancelled: false,
     ok: !skillsFailed,

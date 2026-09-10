@@ -28,6 +28,8 @@ import {
   getCapability,
   BEGIN,
   MENTAL_MOVED,
+  defaultInitSkills,
+  TEAM_INIT_SKILLS,
 } from "../bin/cli.mjs";
 import { loadRules } from "../bin/lib/catalog.mjs";
 import { hasManagedBlock } from "../bin/lib/render.mjs";
@@ -134,8 +136,18 @@ test("migrateManifest renames legacy global rule to base", () => {
 test("parseArgv rejects leftover Mental flags with moved message", () => {
   assert.throws(() => parseArgv(["init", "--personal"]), /Mental has moved/);
   assert.throws(() => parseArgv(["add", "mental"]), /Mental has moved/);
-  assert.throws(() => parseArgv(["doctor"]), /Mental has moved/);
   assert.throws(() => parseArgv(["init", "--mental-tooling", "user"]), /Mental has moved/);
+});
+
+test("parseArgv treats doctor as kit health, not Mental-moved", () => {
+  const a = parseArgv(["doctor"]);
+  assert.equal(a.command, "doctor");
+});
+
+test("parseArgv accepts --rules-only", () => {
+  const a = parseArgv(["init", "--rules-only", "-y"]);
+  assert.equal(a.rulesOnly, true);
+  assert.equal(a.command, "init");
 });
 
 test("parseArgv still parses add of remaining rules", () => {
@@ -217,4 +229,11 @@ test("loadRules no longer includes mental", () => {
 
 test("MENTAL_MOVED is exported for leftover CLI surfaces", () => {
   assert.match(MENTAL_MOVED, /github\.com\/.*\/mental/);
+});
+
+test("defaultInitSkills honors --rules-only and packaged catalog", () => {
+  assert.deepEqual(defaultInitSkills([{ name: "dissect" }], { rulesOnly: true }), []);
+  assert.deepEqual(defaultInitSkills([{ name: "dissect" }]), ["dissect"]);
+  assert.ok(TEAM_INIT_SKILLS.includes("dissect"));
+  assert.ok(TEAM_INIT_SKILLS.includes("kit-workflows"));
 });

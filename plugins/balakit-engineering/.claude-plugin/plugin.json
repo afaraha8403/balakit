@@ -1,6 +1,6 @@
 {
   "name": "balakit-engineering",
-  "version": "1.16.1",
+  "version": "1.17.0",
   "description": "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, verification, blinded eval, deliberation, dissect, docs, release, and stealth browser fallback.",
   "author": {
     "name": "Ali Farahat",
