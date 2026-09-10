@@ -97,10 +97,14 @@ export function copyCursorLocalPlugins({
     .map((d) => d.name);
   if (!dryRun) mkdirSync(destRoot, { recursive: true });
   for (const name of names) {
+    const src = join(srcRoot, name);
+    if (!existsSync(src)) {
+      continue;
+    }
     const dest = join(destRoot, name);
     if (!dryRun) {
       rmSync(dest, { recursive: true, force: true });
-      cpSync(join(srcRoot, name), dest, { recursive: true });
+      cpSync(src, dest, { recursive: true });
     }
     written.push(dest);
   }

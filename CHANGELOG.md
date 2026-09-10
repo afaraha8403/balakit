@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.16.1]
+
+### Fixes
+- `npm test` runs files one at a time so plugin rebuild cannot delete `plugins/` while user-init copies it (GitHub Actions Node 20 failed; local parallel often won).
+
 ## [v1.16.0]
 
 ### Features
