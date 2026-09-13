@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.18.0]
+
+### Features
+- `agent-ready`: stack- and host-agnostic playbook for well-known agent discovery (Auth.md, api-catalog, A2A, MCP, WebMCP, DNS-AID, ACP/UCP/x402) with a skip-unless matrix. Ships in `balakit-seo-skills`.
+
+### Fixes
+- `seo-ai-search` and technical SEO crawl guidance now treat AI bot access as a declared policy (Content-Signal matching User-agent lines) instead of always allowing GPTBot.
+
+### Changes
+- `everything-seo` v1.3.0 and `seo-audit` v2.1.0 require robots.txt and sitemap to be *served* (status + Content-Type), not only submitted to Search Console.
+
 ## [v1.17.0]
 
 ### Features

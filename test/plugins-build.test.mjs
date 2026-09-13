@@ -84,7 +84,7 @@ test("SEO is split into Cursor-rules plugin and AP skills plugin", () => {
   assert.deepEqual(seo.rules, ["seo-ai-search"]);
   assert.deepEqual(seo.skills, []);
   assert.equal(skills.format, "agent");
-  assert.deepEqual(skills.skills.sort(), ["everything-seo", "seo-audit"]);
+  assert.deepEqual(skills.skills.sort(), ["agent-ready", "everything-seo", "seo-audit"]);
 });
 
 test("Codex and Claude marketplace catalogs list agent-format plugins", () => {

@@ -68,9 +68,11 @@ Validate with Google's [Rich Results Test](https://search.google.com/test/rich-r
 
 ## robots.txt for local-business sites
 
+- Serve `/robots.txt` as `text/plain` 200. If a sitemap exists, include a
+  `Sitemap:` line to this origin.
 - Allow retrieval bots (OAI-SearchBot, ChatGPT-User, AppleBot, PerplexityBot)
-  so AI search engines can include the business in cited answers.
+  so AI search engines can include the business in cited answers (`search=yes`).
 - Block training scrapers (GPTBot, ClaudeBot, Bytespider) if you do not want
-  the content used for model training — this is a business decision, not an
-  SEO rule.
+  the content used for model training — this is a business decision; declare
+  it with Content-Signal (`ai-train=no`) so User-agent lines match.
 - Keep `Googlebot` fully allowed.

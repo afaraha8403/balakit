@@ -9,7 +9,7 @@ description: >-
   search readiness.
 user-invocable: false
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 derived_from: "NotebookLM"
 tags: ["SEO", "technical-SEO", "on-page-SEO", "link-building", "digital-PR", "CRO", "content-automation", "E-E-A-T", "Core-Web-Vitals", "GEO", "RAG-optimization"]
@@ -29,7 +29,8 @@ when_to_use: |
   - DO NOT USE for: paid search (PPC), social media marketing, or general web
     design. For local-business / public-profile audits specifically, prefer the
     seo-audit skill (it carries the phase-separated Crawl > Audit > Fix > Verify
-    workflow and delegates depth here).
+    workflow and delegates depth here). For well-known agent discovery
+    (Auth.md, A2A, MCP, ACP/UCP/x402), use agent-ready.
 ---
 
 # Everything SEO
@@ -47,8 +48,9 @@ links are the votes.
 ## Phase 1 — Audit
 
 ```
-- [ ] Crawlability & bot governance (robots.txt: allow OAI-SearchBot,
-      ChatGPT-User; block GPTBot, Google-Extended).
+- [ ] Crawlability & bot governance (/robots.txt text/plain 200; Content-Signal
+      matches User-agent policy; allow retrieval bots when search=yes; block
+      training scrapers when ai-train=no).
 - [ ] Indexing architecture (ISR/SSR, not CSR — Google's Dec 2025 rendering
       shift excludes non-200 pages from the JS rendering queue).
 - [ ] Core Web Vitals (INP < 200ms via scheduler.yield(); LCP < 2.5s via
@@ -139,7 +141,7 @@ Google decision matrix and IndexNow setup details.
 ## SEO Mastery Checklist
 
 - [ ] Technical audit complete: crawlability, indexing, CWV, schema, rendering.
-- [ ] `robots.txt` distinguishes retrieval bots from training scrapers.
+- [ ] `/robots.txt` is served; Content-Signal matches User-agent policy.
 - [ ] Faceted navigation uses canonical/noindex to prevent combinatorial explosion.
 - [ ] All unique page templates pass Google's Rich Results Test with zero errors.
 - [ ] Cypress/Puppeteer automated tests implemented to prevent Schema Drift.
@@ -162,7 +164,7 @@ Google decision matrix and IndexNow setup details.
 
 | File | When to Load |
 |---|---|
-| [references/technical_seo.md](references/technical_seo.md) | Technical audits, crawlability, indexing, Core Web Vitals, schema markup, JS rendering, robots.txt, hreflang |
+| [references/technical_seo.md](references/technical_seo.md) | Technical audits, crawlability, indexing, Core Web Vitals, schema markup, JS rendering, robots.txt, hreflang. Agent protocol cards → `agent-ready`. |
 | [references/semantic_intent.md](references/semantic_intent.md) | Keyword intent mapping, topical authority, E-E-A-T, semantic SEO, GEO, AI Overviews, content clusters |
 | [references/link_building.md](references/link_building.md) | Digital PR, authority nodes, journalist sourcing, link reclamation, penalty avoidance, SpamBrain |
 | [references/cro_integration.md](references/cro_integration.md) | SEO + CRO alignment, A/B testing without SEO damage, conversion elements, unified KPIs |

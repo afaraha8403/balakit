@@ -44,11 +44,11 @@ export const PLUGINS = [
   {
     name: "balakit-seo-skills",
     description:
-      "SEO and AI-search skills: everything-seo playbook and seo-audit workflow.",
-    keywords: ["seo", "geo", "structured-data", "audit", "balakit"],
+      "SEO and AI-search skills: everything-seo playbook, seo-audit workflow, and agent-ready discovery.",
+    keywords: ["seo", "geo", "structured-data", "audit", "agent-ready", "balakit"],
     format: "agent",
     rules: [],
-    skills: ["everything-seo", "seo-audit"],
+    skills: ["agent-ready", "everything-seo", "seo-audit"],
   },
   {
     name: "balakit-marketing",

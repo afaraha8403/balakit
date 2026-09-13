@@ -7,7 +7,7 @@ Each plugin installs separately (Cursor marketplace or Agent Plugins clients).
 | --- | --- | --- | --- |
 | `balakit-core` | Cursor Plugin | base, testing, comments, changelog, release | — |
 | `balakit-seo` | Cursor Plugin | seo-ai-search | — |
-| `balakit-seo-skills` | Agent Plugins + Cursor | — | everything-seo, seo-audit |
+| `balakit-seo-skills` | Agent Plugins + Cursor | — | agent-ready, everything-seo, seo-audit |
 | `balakit-marketing` | Agent Plugins + Cursor | — | marketing-psychology, startup-marketing-brain |
 | `balakit-media` | Agent Plugins + Cursor | — | media-gen |
 | `balakit-nlm` | Agent Plugins + Cursor | — | nlm-skill |

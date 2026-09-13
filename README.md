@@ -175,7 +175,7 @@ This repo is a **marketplace**, not one plugin. Catalogs: `.cursor-plugin/market
 | --- | --- | --- |
 | `balakit-core` | rules: `base`, `testing`, `comments`, `changelog`, `release` | Cursor Plugin |
 | `balakit-seo` | `seo-ai-search` rule only | Cursor Plugin |
-| `balakit-seo-skills` | `everything-seo`, `seo-audit` | Agent Plugins + Cursor twin |
+| `balakit-seo-skills` | `everything-seo`, `seo-audit`, `agent-ready` | Agent Plugins + Cursor twin |
 | `balakit-marketing` | `marketing-psychology`, `startup-marketing-brain` | Agent Plugins + Cursor |
 | `balakit-media` | `media-gen` | Agent Plugins + Cursor |
 | `balakit-nlm` | `nlm-skill` | Agent Plugins + Cursor |
@@ -250,6 +250,7 @@ Cursor public marketplace: do **not** submit from a routine change. When you are
 | --- | --- |
 | `everything-seo` | Comprehensive SEO playbook |
 | `seo-audit` | SEO audit workflow |
+| `agent-ready` | Portable agent discovery (well-known, MCP/A2A, commerce) |
 | `marketing-psychology` | Psychology for product and marketing copy |
 | `startup-marketing-brain` | Startup marketing: distribution, automation, monetization |
 | `media-gen` | Fal.ai image, video, upscale, dual-model ad creative |

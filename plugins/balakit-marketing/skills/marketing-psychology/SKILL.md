@@ -11,7 +11,7 @@ description: >-
   psychology, or ethical influence.
 user-invocable: false
 disable-model-invocation: false
-version: "2.0.0"
+version: "2.0.1"
 author: "Ali Farahat"
 tags: ["marketing-psychology", "behavioral-design", "cognitive-biases", "conversion", "ethical-influence"]
 when_to_use: |
@@ -23,6 +23,7 @@ when_to_use: |
 
   DO NOT USE WHEN:
   - User needs SEO (use everything-seo or seo-audit).
+  - User needs agent discovery / well-known protocol cards (use agent-ready).
   - User needs overall startup marketing strategy (use startup-marketing-brain).
   - User is asking about visual/UI design, not behavioral copy.
 ---

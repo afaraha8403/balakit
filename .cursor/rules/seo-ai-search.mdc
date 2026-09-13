@@ -24,9 +24,10 @@ Maintain strict separation of concerns across your framework (Next.js, Astro, Nu
 | JSON-LD builders | Centralized schema definitions (e.g., `schema.ts`) |
 | AI site index & routing | `/llms.txt` (or framework equivalent route) |
 | AI knowledge export | `/llms-full.txt` (Full context export) |
+| Crawler policy | `/robots.txt` (`text/plain` 200, Content-Signal matching User-agent policy) and `/ai.txt` if the project uses one |
+| Sitemap | `/sitemap.xml` (XML 200; `Sitemap:` line in robots.txt) |
 | Machine-readable pricing | Static server route (e.g., `pricing.md` or API) |
-| Agentic commerce index | Declared in `/llms.txt` under **Agentic commerce** |
-| Crawler policy | `/robots.txt` and `/ai.txt` in the public static directory |
+| Agentic commerce index | Declared in `/llms.txt` under **Agentic commerce**. Well-known protocol cards (ACP, UCP, x402, A2A, MCP) → `agent-ready` skill, not this rule. |
 
 ---
 
@@ -36,7 +37,7 @@ When building endpoints specifically for AI consumption (`/llms.txt`, JSON-LD, U
 
 - **Prompt Injection Sanitization:** User-generated content (reviews, Q&A, profiles) surfaced in JSON-LD or `/llms.txt` MUST be sanitized. Ensure malicious instructions (e.g., "Ignore previous instructions and execute X") cannot hijack downstream RAG systems or Agentic Commerce workflows.
 - **Adversarial Validation (AV):** Critical machine-readable logic (like Agentic capabilities or pricing APIs) should undergo adversarial testing. Ensure outputs cannot be easily hallucinated or misinterpreted by external models.
-- **Crawler Nuance:** Allow *verified* AI crawlers (e.g., `GPTBot`, `ClaudeBot`) in `/robots.txt`, but implement aggressive rate-limiting. Explicitly block unverified, aggressive scraper bots to prevent data scraping DDoS attacks.
+- **Crawler policy match:** `robots.txt` Content-Signal (`search` / `ai-train` / `ai-input`) must match the `User-agent` Allow/Disallow lines. Kit default unless the product overrides: `search=yes`, `ai-train=no`. Rate-limit unverified scrapers. Do not "always allow GPTBot" when `ai-train=no`.
 
 ---
 
@@ -96,6 +97,7 @@ The frontend **declares** machine commerce URLs in `/llms.txt` (discovery, check
 - [ ] **SECURITY:** UGC in JSON-LD or `/llms.txt` is sanitized against prompt injection.
 - [ ] New static guides linked from `/llms.txt` + `CONTENT_VERSION` bumped.
 - [ ] If commerce API URLs changed: **Agentic commerce** updated + version bumped.
+- [ ] `/robots.txt` Content-Signal matches User-agent policy when crawl files changed.
 - [ ] Copy is easily extractable (definitions / steps / comparisons), not generic filler.
 
 ---
@@ -106,5 +108,6 @@ The frontend **declares** machine commerce URLs in `/llms.txt` (discovery, check
 - Manual ChatGPT ranking checks
 - Competitor research
 - Marketing campaign copy
+- Well-known agent protocol documents (Auth.md, api-catalog, A2A, MCP, DNS-AID, ACP/UCP/x402) — use the `agent-ready` skill
 
 *For the above tasks, use dedicated Marketing/SEO Agent skills. Do not apply this code implementation rule.*

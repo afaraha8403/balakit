@@ -11,7 +11,7 @@ description: >-
   Delegates depth to the everything-seo skill.
 user-invocable: false
 disable-model-invocation: false
-version: "2.0.0"
+version: "2.1.0"
 author: "Ali Farahat"
 tags: ["seo-audit", "local-seo", "technical-seo", "structured-data", "geo"]
 when_to_use: |
@@ -24,6 +24,8 @@ when_to_use: |
 
   DO NOT USE WHEN:
   - User needs high-level SEO strategy (use everything-seo).
+  - User needs well-known agent discovery, Auth.md, A2A, MCP, or agentic
+    commerce endpoints (use agent-ready).
   - User needs content marketing or keyword research (use startup-marketing-brain).
   - User needs PPC or paid search advice.
 ---
@@ -41,15 +43,21 @@ public profiles, landing pages, marketing pages). Depth lives in
 ## Phase 1 — Crawl
 
 ```
-- [ ] robots.txt: allow retrieval bots (OAI-SearchBot, ChatGPT-User, AppleBot,
-      PerplexityBot); block training scrapers if business policy says so
-      (GPTBot, ClaudeBot, Bytespider); keep Googlebot fully allowed.
+- [ ] GET /robots.txt is text/plain 200. Allow retrieval bots (OAI-SearchBot,
+      ChatGPT-User, AppleBot, PerplexityBot) when search=yes; block training
+      scrapers if policy says so (GPTBot, ClaudeBot, Bytespider); keep
+      Googlebot fully allowed.
+- [ ] Content-Signal on robots.txt matches those User-agent lines, or
+      n/a: policy not declared yet (name the skip reason).
+- [ ] GET /sitemap.xml is XML 200 listing canonical public URLs (not only
+      "submitted to GSC").
 - [ ] Sitemap submitted to Google Search Console + Bing Webmaster Tools.
 - [ ] IndexNow implementation present (Bing + Yandex push).
 ```
 
 🛑 **Checkpoint:** Confirm the crawl surface is mapped. Do not proceed to
-Audit until robots.txt + sitemap + IndexNow status are each named.
+Audit until robots.txt (served + policy) + sitemap served + IndexNow
+status are each named. Well-known agent cards → `agent-ready`.
 
 ## Phase 2 — Audit
 
@@ -116,3 +124,4 @@ Any miss → back to Phase 3.
 | `../everything-seo/references/semantic_intent.md` | AEO/GEO patterns for AI search |
 | `../everything-seo/references/content_automation.md` | Content quality + AI writing detection |
 | `../everything-seo/references/technical_seo.md` | Deep technical SEO (bot governance, IndexNow, INP) |
+| `../agent-ready/SKILL.md` | Well-known agent discovery (not a page-SEO audit) |

@@ -8,9 +8,23 @@ In 2026, technical SEO has shifted from merely ensuring pages are indexed to **m
 
 ### Pillar 1: Crawlability & Bot Governance
 
-Configure `robots.txt` to differentiate between beneficial retrieval bots and training scrapers.
+**Serve the files (any stack, any host):**
+- `GET /robots.txt` is `text/plain` HTTP 200 ([RFC 9309](https://www.rfc-editor.org/rfc/rfc9309)).
+- `GET /sitemap.xml` is XML HTTP 200, lists canonical public `<url><loc>` entries, and stays current when pages are published or removed ([Sitemaps protocol](https://www.sitemaps.org/protocol.html)).
+- If a sitemap exists, robots.txt includes `Sitemap: https://{origin}/sitemap.xml` (this origin, not a sample host).
 
-**Allow retrieval bots (power AI search):**
+**Policy match, not a single allow-list.** Declare preferences, then make `User-agent` lines match them. Kit default (override per product):
+
+```
+Content-Signal: search=yes, ai-train=no, ai-input=yes
+```
+
+- `search=yes` → allow retrieval bots (OAI-SearchBot, ChatGPT-User, PerplexityBot, AppleBot).
+- `ai-train=no` → disallow training scrapers (GPTBot, Google-Extended, and others the policy names).
+- `ai-input` is a product choice (whether chat/RAG may use the site as input).
+- Always allow `Googlebot` and `Bingbot` for organic search.
+
+**Allow retrieval bots (when `search=yes`):**
 ```
 User-agent: OAI-SearchBot
 Disallow:
@@ -22,7 +36,7 @@ User-agent: PerplexityBot
 Disallow:
 ```
 
-**Block training scrapers (protect proprietary data):**
+**Block training scrapers (when `ai-train=no`):**
 ```
 User-agent: GPTBot
 Disallow: /
@@ -32,9 +46,9 @@ Disallow: /
 ```
 
 **Key rules:**
-- Always allow `Googlebot` and `Bingbot` for organic search.
-- Be intentional about which AI agents can index vs. train on your data.
-- Test `robots.txt` with Google's robots.txt Tester and Bing's Webmaster Tools.
+- Test `robots.txt` with Google's robots.txt Tester and Bing's Webmaster Tools (optional extra: any third-party crawler scanner).
+- Optional GEO: `Accept: text/markdown` on key pages may return markdown; HTML stays the default. Depth: `agent-ready`.
+- Well-known agent protocol cards (Auth.md, A2A, MCP, commerce) → `agent-ready`, not this file.
 
 ### Pillar 2: Indexing & Architecture
 
@@ -155,8 +169,8 @@ Link authors to authoritative entities using `ProfilePage` and `sameAs`.
 
 ## Technical SEO Checklist
 
-- [ ] `robots.txt` allows Googlebot, Bingbot, and retrieval bots. Blocks training scrapers.
-- [ ] Sitemap is valid, under 50MB, and includes `lastmod` dates.
+- [ ] `/robots.txt` is `text/plain` 200; Content-Signal matches User-agent policy; Googlebot and Bingbot allowed.
+- [ ] `/sitemap.xml` is XML 200, under 50MB, includes `lastmod`, and is referenced from robots.txt.
 - [ ] Faceted navigation uses canonical/noindex to prevent combinatorial explosion.
 - [ ] Hreflang tags are self-referencing and have return tags.
 - [ ] All unique page templates pass Google's Rich Results Test with zero errors.
