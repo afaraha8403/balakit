@@ -237,6 +237,7 @@ export function describePersonalTargets() {
     "~/.config/opencode/AGENTS.md (managed block)",
     "~/.cursor/rules/<name>.mdc",
     "~/.cursor/plugins/local/<plugin> (copied on user-scope skill/plugin install)",
+    "~/.copilot/skills/<name> → ~/.agents/skills/<name> (symlink post-pass when Copilot is selected)",
   ];
 }
 

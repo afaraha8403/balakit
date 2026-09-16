@@ -22,6 +22,10 @@ import {
 import { skillsAddCommand, runSkillsCmd, resolveSkillsShTargets } from "./skills-bridge.mjs";
 import { recordInstall, readManifest, projectManifestPath, globalManifestPath } from "./manifest.mjs";
 import { linkCursorProjectSkills, copyCursorLocalPlugins } from "./cursor-native.mjs";
+import {
+  shouldLinkCopilotUserSkills,
+  linkCopilotUserSkills,
+} from "./copilot-native.mjs";
 
 /** @typedef {"project"|"user"} InstallScope */
 
@@ -106,6 +110,9 @@ export function buildInstallPlan({
       "~/.config/opencode/AGENTS.md",
       "~/.cursor/rules/*.mdc",
     );
+  }
+  if (installScope === "user" && selection.skills.length && agentIds.includes("copilot")) {
+    surfaces.push("~/.copilot/skills");
   }
 
   return {
@@ -270,11 +277,22 @@ export async function runInstallPlan(plan, { dryRun = false, yes = false, review
   }
 
   if (scope === "user" && agentIds.includes("cursor")) {
-    const copied = copyCursorLocalPlugins({ dryRun, home: plan.home });
+    const copied = copyCursorLocalPlugins({ dryRun, home: plan.home ?? homedir() });
     if (copied.written.length) {
       p.note(copied.written.join("\n"), dryRun ? "Would copy Cursor plugins" : "Cursor local plugins");
     }
     notes.push(...copied.notes);
+  }
+
+  if (shouldLinkCopilotUserSkills(scope, agentIds, plan.skills)) {
+    const linked = linkCopilotUserSkills(plan.skills, { dryRun, home: plan.home ?? homedir() });
+    if (linked.written.length) {
+      p.note(linked.written.join("\n"), dryRun ? "Would link Copilot skills" : "Copilot skill links");
+    }
+    notes.push(...linked.notes);
+    if (!dryRun && linked.written.length) {
+      recordInstall("global", { surfaces: ["~/.copilot/skills"] }, { home: plan.home ?? homedir() });
+    }
   }
 
   if (!dryRun && !skillsFailed) {
@@ -288,6 +306,9 @@ export async function runInstallPlan(plan, { dryRun = false, yes = false, review
     if (plan.skills.length) receipt.push(`Skills: ${plan.skills.join(", ")}`);
     if (scope === "user" && agentIds.includes("cursor")) {
       receipt.push("Cursor plugins copied to ~/.cursor/plugins/local — reload the window");
+    }
+    if (shouldLinkCopilotUserSkills(scope, agentIds, plan.skills)) {
+      receipt.push("Copilot skills linked at ~/.copilot/skills → ~/.agents/skills — reload VS Code");
     }
     if (receipt.length) p.note(receipt.join("\n"), "Installed");
   }

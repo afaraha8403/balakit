@@ -17,7 +17,7 @@ Usage:
   npx ${CMD} remove <names...>       Remove owned kit pieces
   npx ${CMD} list                    Available rules, skills, capability matrix
   npx ${CMD} status                  What balakit owns (inventory)
-  npx ${CMD} doctor                  Health: drift, plugins/local, leftover Mental
+  npx ${CMD} doctor                  Health: drift, plugins/local, Copilot ~/.copilot/skills, leftover Mental
   npx ${CMD} update                  Refresh installed kit pieces
 
 Options:

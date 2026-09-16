@@ -16,7 +16,7 @@ Install walkthrough: [Install](install.md). What each skill does: [Skills](skill
 | `npx balakit remove <names...>` | Remove owned kit pieces. Refuses an unsafe `AGENTS.md` wipe |
 | `npx balakit list` | Available rules, skills, capability matrix |
 | `npx balakit status` | What BalaKit owns (project + user manifests) |
-| `npx balakit doctor` | Kit health: manifest drift, leftover Mental names, `plugins/local` |
+| `npx balakit doctor` | Kit health: manifest drift, leftover Mental names, `plugins/local`, Copilot `~/.copilot/skills` |
 | `npx balakit update` | Re-install from the manifest. Skills via `skills update` |
 | `npx balakit -h` | Help |
 | `npx balakit -v` | Print semver |
@@ -106,7 +106,7 @@ Only verified skills.sh ids are passed as `-a`. Others are skipped for skill ins
 
 ## doctor vs Mental
 
-`balakit doctor` is this kit: corrupt or drifted manifests, managed `AGENTS.md` / `CLAUDE.md` blocks, `~/.cursor/plugins/local`, leftover `mental` names in a manifest.
+`balakit doctor` is this kit: corrupt or drifted manifests, managed `AGENTS.md` / `CLAUDE.md` blocks, `~/.cursor/plugins/local`, leftover `mental` names in a manifest, and missing `~/.copilot/skills` links when the user manifest lists skills with agent `copilot`.
 
 Mental health is `mental doctor`. See [docs/mental-design.md](mental-design.md).
 

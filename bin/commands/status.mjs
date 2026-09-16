@@ -9,6 +9,7 @@ import { CMD, VERSION } from "../lib/pkg.mjs";
 import { printList } from "../lib/args.mjs";
 import {
   readManifest,
+  recordInstall,
   projectManifestPath,
   globalManifestPath,
   isCorruptManifest,
@@ -20,6 +21,11 @@ import { skillsUpdateCommand, runSkillsCmd } from "../lib/skills-bridge.mjs";
 import { detectAgents, formatCapabilityMatrix } from "../lib/agents.mjs";
 import { MENTAL_REPO } from "../lib/mental-moved.mjs";
 import { listCursorLocalPlugins } from "../lib/cursor-native.mjs";
+import {
+  shouldLinkCopilotUserSkills,
+  linkCopilotUserSkills,
+  missingCopilotUserSkills,
+} from "../lib/copilot-native.mjs";
 
 export function cmdList() {
   printList();
@@ -27,15 +33,14 @@ export function cmdList() {
 }
 
 /**
- * Kit health: manifest integrity, AGENTS/CLAUDE drift, leftover Mental, plugins/local.
+ * Kit health: manifest integrity, AGENTS/CLAUDE drift, leftover Mental, plugins/local,
+ * Copilot user-skill dest when Copilot is a selected user agent.
  */
-export function cmdDoctor() {
+export function cmdDoctor({ cwd = process.cwd(), home = homedir() } = {}) {
   const issues = [];
   const notes = [];
-  const cwd = process.cwd();
-  const home = homedir();
-  const proj = readManifest(projectManifestPath());
-  const glob = readManifest(globalManifestPath());
+  const proj = readManifest(projectManifestPath(cwd));
+  const glob = readManifest(globalManifestPath(home));
 
   console.log(`${CMD} v${VERSION} — doctor\n`);
 
@@ -72,6 +77,19 @@ export function cmdDoctor() {
     console.log(`  ${localPlugins.join(", ")}`);
   } else {
     console.log("  (none)");
+  }
+
+  if ((glob.agents || []).includes("copilot") && (glob.skills || []).length) {
+    const missing = missingCopilotUserSkills(glob.skills, { home });
+    console.log("Copilot user skills (~/.copilot/skills):");
+    if (missing.length) {
+      console.log(`  missing: ${missing.join(", ")}`);
+      issues.push(
+        `User manifest lists skills and agent copilot, but ~/.copilot/skills is missing: ${missing.join(", ")}. Rerun \`npx balakit update --scope user\`.`,
+      );
+    } else {
+      console.log(`  ${glob.skills.join(", ")}`);
+    }
   }
 
   if (notes.length) {
@@ -145,6 +163,8 @@ export function cmdStatus() {
   } else {
     if (glob.rules.length) console.log(`  rules:  ${glob.rules.join(", ")}`);
     if (glob.skills.length) console.log(`  skills: ${glob.skills.join(", ")}`);
+    if (glob.agents?.length) console.log(`  agents: ${glob.agents.join(", ")}`);
+    if (glob.surfaces?.length) console.log(`  surfaces: ${glob.surfaces.join(", ")}`);
     if (glob.updatedAt) console.log(`  updated: ${glob.updatedAt} (kit ${glob.version || "?"})`);
   }
 
@@ -158,6 +178,7 @@ export function cmdStatus() {
   console.log(`  ${mark(join(home, ".claude", "CLAUDE.md"))} ~/.claude/CLAUDE.md`);
   console.log(`  ${mark(join(home, ".codex", "AGENTS.md"))} ~/.codex/AGENTS.md`);
   console.log(`  ${mark(join(home, ".config", "opencode", "AGENTS.md"))} ~/.config/opencode/AGENTS.md`);
+  console.log(`  ${mark(join(home, ".copilot", "skills"))} ~/.copilot/skills`);
 
   if (proj.rules.includes("mental") || glob.rules.includes("mental") || proj.skills.includes("mental") || glob.skills.includes("mental")) {
     console.log("\nMental:");
@@ -236,6 +257,19 @@ export async function cmdUpdate(opts = {}) {
           p.log.error("skills.sh update did not complete. Try manually:");
           p.log.message(cmd);
           failed = true;
+        }
+      }
+      if (shouldLinkCopilotUserSkills(job.scope, job.agents, job.skillNames)) {
+        const linked = linkCopilotUserSkills(job.skillNames, { dryRun: opts.dryRun });
+        if (linked.written.length) {
+          p.note(
+            linked.written.join("\n"),
+            opts.dryRun ? "Would link Copilot skills" : "Copilot skill links",
+          );
+        }
+        if (linked.notes.length) p.note(linked.notes.join("\n"), "Copilot skill links");
+        if (!opts.dryRun && linked.written.length) {
+          recordInstall("global", { surfaces: ["~/.copilot/skills"] });
         }
       }
     }

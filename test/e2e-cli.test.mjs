@@ -14,10 +14,12 @@ import {
   chmodSync,
   existsSync,
   readFileSync,
+  lstatSync,
+  readlinkSync,
   rmSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, delimiter } from "node:path";
+import { join, delimiter, relative } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -43,10 +45,15 @@ if (isSkills && isAdd) {
   const cwd = process.cwd();
   for (const name of skills) {
     const dest = global
-      ? join(home, ".cursor", "skills", name)
+      ? join(home, ".agents", "skills", name)
       : join(cwd, ".agents", "skills", name);
     mkdirSync(dest, { recursive: true });
     writeFileSync(join(dest, "SKILL.md"), "# " + name + "\\n");
+    if (global) {
+      const cursorDest = join(home, ".cursor", "skills", name);
+      mkdirSync(cursorDest, { recursive: true });
+      writeFileSync(join(cursorDest, "SKILL.md"), "# " + name + "\\n");
+    }
   }
   process.exit(0);
 }
@@ -183,6 +190,7 @@ test("e2e: user skill add passes -g (dry-run) and copies plugins on apply", () =
   assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-core")));
   const glob = JSON.parse(readFileSync(join(home, ".balakit", "installed.json"), "utf8"));
   assert.ok(glob.skills.includes("dissect"));
+  assert.equal(existsSync(join(home, ".copilot", "skills", "dissect")), false);
 });
 
 test("e2e: status shows project and home surfaces; remove one rule keeps the rest", () => {
@@ -219,3 +227,41 @@ test("e2e: --personal still exits as Mental-moved", () => {
   assert.notEqual(r.status, 0);
   assert.match(out(r), /Mental has moved/);
 });
+
+test("e2e: user skill add with copilot links ~/.copilot/skills; remove drops the link", () => {
+  const r = run(["add", "dissect", "-y", "--scope", "user", "--agents", "copilot"]);
+  assert.equal(r.status, 0, out(r));
+
+  const agentsSkill = join(home, ".agents", "skills", "dissect");
+  const copilotSkill = join(home, ".copilot", "skills", "dissect");
+  assert.ok(existsSync(join(agentsSkill, "SKILL.md")), "stub should land in ~/.agents/skills");
+  assert.ok(lstatSync(copilotSkill).isSymbolicLink(), "CLI should symlink ~/.copilot/skills/dissect");
+  assert.equal(
+    readlinkSync(copilotSkill),
+    relative(join(home, ".copilot", "skills"), agentsSkill),
+  );
+
+  const glob = JSON.parse(readFileSync(join(home, ".balakit", "installed.json"), "utf8"));
+  assert.ok(glob.skills.includes("dissect"));
+  assert.ok(glob.agents.includes("copilot"));
+  assert.ok(glob.surfaces.includes("~/.copilot/skills"));
+
+  const doctorOk = run(["doctor"]);
+  assert.equal(doctorOk.status, 0, out(doctorOk));
+  assert.match(out(doctorOk), /Copilot user skills/);
+
+  rmSync(join(home, ".copilot", "skills"), { recursive: true, force: true });
+  const doctorFail = run(["doctor"]);
+  assert.equal(doctorFail.status, 1, out(doctorFail));
+  assert.match(out(doctorFail), /~\/\.copilot\/skills is missing/);
+  assert.match(out(doctorFail), /npx balakit update --scope user/);
+
+  const healed = run(["update", "-y", "--scope", "user"]);
+  assert.equal(healed.status, 0, out(healed));
+  assert.ok(lstatSync(copilotSkill).isSymbolicLink(), "update should restore Copilot skill links");
+
+  const rm = run(["remove", "dissect", "-y", "--scope", "user"]);
+  assert.equal(rm.status, 0, out(rm));
+  assert.equal(existsSync(copilotSkill), false);
+});
+

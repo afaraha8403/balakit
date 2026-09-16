@@ -1,6 +1,6 @@
 {
   "name": "balakit",
-  "version": "1.20.0",
+  "version": "1.20.1",
   "description": "Standing rules and named playbooks for AI coding agents. One command installs AGENTS.md-first rules and engineering skills.",
   "license": "MIT",
   "homepage": "https://github.com/afaraha8403/balakit#readme",

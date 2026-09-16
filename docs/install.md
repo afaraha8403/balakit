@@ -16,7 +16,7 @@ That is standing rules plus default engineering skills, in this repository. Prev
 
 Guided menus: `npx balakit` with no `-y`.
 
-After install: reload the agent window, then `npx balakit doctor`. Doctor is kit health (manifest drift, leftover Mental names, Cursor `plugins/local`). Mental health is `mental doctor` in the [Mental CLI](https://github.com/afaraha8403/mental).
+After install: reload the agent window, then `npx balakit doctor`. Doctor is kit health (manifest drift, leftover Mental names, Cursor `plugins/local`, Copilot `~/.copilot/skills` when Copilot is a selected user agent). Mental health is `mental doctor` in the [Mental CLI](https://github.com/afaraha8403/mental).
 
 Full commands: [CLI](cli.md).
 
@@ -80,7 +80,7 @@ Prefer `npx balakit add dissect` so the kit manifest stays in sync.
 | --- | --- | --- |
 | Manifest | `.balakit/installed.json` | `~/.balakit/installed.json` |
 | Standing | `AGENTS.md` + `CLAUDE.md` managed blocks; `.cursor/rules/*.mdc` | `~/.cursor/rules/*.mdc`; `~/.claude/CLAUDE.md`; `~/.codex/AGENTS.md`; `~/.config/opencode/AGENTS.md` |
-| Skills | skills.sh into the repo; Cursor also gets `.cursor/skills` → `.agents/skills` | skills.sh `-g`; Claude Code often symlinks `~/.claude/skills` to `~/.agents/skills` |
+| Skills | skills.sh into the repo; Cursor also gets `.cursor/skills` → `.agents/skills` | skills.sh `-g`; Claude Code often symlinks `~/.claude/skills` to `~/.agents/skills`. User-scope Copilot is a kit post-pass: symlink `~/.copilot/skills/<name>` → `~/.agents/skills/<name>` (not “skills.sh might create it if `~/.copilot` exists”). If `/` still hides personal skills after that dest is populated, that is a VS Code Copilot gap — file it upstream; do not copy the pack into every repo. |
 | Plugins | not copied | every folder under `plugins/` → `~/.cursor/plugins/local/` |
 
 `add` **reconciles** with the matching manifest so later adds never shrink the managed block.

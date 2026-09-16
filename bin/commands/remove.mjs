@@ -21,6 +21,7 @@ import {
 } from "../lib/manifest.mjs";
 import { hasManagedBlock } from "../lib/render.mjs";
 import { unlinkCursorProjectSkills } from "../lib/cursor-native.mjs";
+import { unlinkCopilotUserSkills } from "../lib/copilot-native.mjs";
 
 /**
  * @param {{ names: string[], dryRun?: boolean, yes?: boolean, scope?: "project"|"user" }} opts
@@ -133,6 +134,11 @@ export async function cmdRemove(opts) {
         if (scope === "project") {
           const unlinked = unlinkCursorProjectSkills(skillNames, { dryRun: opts.dryRun });
           if (unlinked.length) p.note(unlinked.join("\n"), "Removed Cursor skill links");
+        }
+        if (scope === "user") {
+          const unlinked = unlinkCopilotUserSkills(skillNames, { dryRun: opts.dryRun });
+          if (unlinked.removed.length) p.note(unlinked.removed.join("\n"), "Removed Copilot skill links");
+          if (unlinked.notes.length) p.note(unlinked.notes.join("\n"), "Copilot skill links");
         }
       }
     }

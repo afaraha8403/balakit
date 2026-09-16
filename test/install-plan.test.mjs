@@ -84,6 +84,35 @@ const sampleTesting = {
   raw: "---\nalwaysApply: true\n---\n# Testing\n\nWrite real tests.\n",
 };
 
+test("buildInstallPlan user+copilot records ~/.copilot/skills surface", () => {
+  const plan = buildInstallPlan({
+    ruleNames: [],
+    skillNames: ["dissect"],
+    allRules: [sampleAlways],
+    agents: ["copilot"],
+    reconcile: false,
+    scope: "user",
+    cwd,
+    home,
+  });
+  assert.equal(plan.scope, "user");
+  assert.ok(plan.surfaces.includes("~/.copilot/skills"));
+});
+
+test("buildInstallPlan user+cursor skills omit Copilot dest", () => {
+  const plan = buildInstallPlan({
+    ruleNames: [],
+    skillNames: ["dissect"],
+    allRules: [sampleAlways],
+    agents: ["cursor"],
+    reconcile: false,
+    scope: "user",
+    cwd,
+    home,
+  });
+  assert.equal(plan.surfaces.includes("~/.copilot/skills"), false);
+});
+
 test("buildInstallPlan user scope reconciles against global manifest", () => {
   recordInstall("global", { rules: ["base"] }, { cwd, home });
   const plan = buildInstallPlan({

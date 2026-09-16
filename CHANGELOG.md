@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.20.1]
+
+### Fixes
+- User-scope Copilot installs now symlink `~/.copilot/skills/<name>` → `~/.agents/skills/<name>`. `add` / `update` / `remove` keep that tree in lockstep; `doctor` fails when Copilot is a selected user agent and those links are missing.
+
 ## [v1.20.0]
 
 ### Changes
