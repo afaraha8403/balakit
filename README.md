@@ -93,8 +93,8 @@ Ask the agent by name. One sentence each. Full pages: [Skills](docs/skills.md).
 | Audit what already exists | [`dissect`](docs/skills.md#dissect) | Red-teams an existing service, schema, or plan |
 | Compare approaches before building | [`deep-deliberation`](docs/skills.md#deep-deliberation) | Checkpointed option comparison |
 | A durable, file-level plan | [`inception`](docs/skills.md#inception) | Writes the plan and stops. Recommends `execute` |
-| Other models' takes, no writes | [`opinion`](docs/skills.md#opinion) | Distinct model families answer. This chat does not edit |
-| Other models research, then do the work | [`execute`](docs/skills.md#execute) | Same fan-out, then this chat implements |
+| Parallel takes, no writes | [`opinion`](docs/skills.md#opinion) | Current model by default; auto-pick for other families. This chat does not edit |
+| Workers research, then do the work | [`execute`](docs/skills.md#execute) | Same fan-out, then this chat implements |
 
 `dissect`, `deep-deliberation`, and `inception` share `--circuit` (skip waits) and `--autopilot` (take recommended choices). On `inception`, circuit still **stops at the plan**. Only `--autopilot` runs `execute`.
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.20.0]
+
+### Changes
+- `opinion` / `execute`: picker defaults to Current model for all workers; the same family may occupy more than one slot; spawn identifiers stay out of questions and chat (family aliases only). Auto-pick still uses distinct families.
+- `inception`: pulled `opinion` is no longer skipped just because only one family can spawn (Current-for-all still works).
+
 ## [v1.19.1]
 
 ### Features

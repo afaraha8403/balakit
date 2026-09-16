@@ -1,4 +1,4 @@
-# Host detection, live lists, auto-pick
+# Host detection, live lists, roster
 
 Read this file in Step 1 of `opinion`. The live list this session
 exposes is source of truth. Tables below are classification help and
@@ -17,17 +17,25 @@ Pick the first match:
 | Codex CLI / ChatGPT Codex | `codex` |
 | None of the above | `other` |
 
-If `other`, try the host's documented subagent-with-model mechanism once. If it cannot set a worker model, stop: this skill needs two spawnable families.
+If `other`, try the host's documented subagent-with-model mechanism once.
+If it cannot spawn a child at all, stop. Auto-pick still needs two
+spawnable families; Current-for-all does not.
 
 ## Live list
 
-Collect every model identifier this session is allowed to pass when spawning a child. On Cursor that is the listed subagent model names. On other hosts, the equivalent Task/subagent `model` enum or picker.
+Collect every model identifier this session is allowed to pass when
+spawning a child. On Cursor that is the listed subagent model names. On
+other hosts, the equivalent Task/subagent `model` enum or picker.
 
-Exclude from the working list:
+`inherit` is the **Current** handle. Do not put it on the family option
+list (Current is its own option). Keep it for spawn when the roster slot
+is Current.
 
-- `inherit` (that is the parent)
+Exclude from the **family** working list:
+
+- `inherit` (already represented as Current)
 - Names the user did not enable / the spawn API rejected
-- Fast/mini/haiku-class twins when a higher-tier name exists in the same family (`composer-2.5-fast` loses to `composer-2.5`)
+- Fast/mini/haiku-class twins when a higher-tier name exists in the same family
 
 If the spawn API returns an allowed-list error, do not retry the same name. Use a listed name or stop.
 
@@ -49,7 +57,41 @@ Classify by the model name, case-insensitive. First matching row wins.
 | deepseek | `deepseek` |
 | unknown | anything else — each distinct unknown name is its own family named after that name |
 
-Two names in the same family are not diversity. Keep one.
+Two names in the same family are not diversity **for auto-pick**. User
+assignment may repeat a family across slots.
+
+## Display names (slug shield)
+
+Spawn identifiers in the parent context window can reroute the parent
+or poison later asks. Keep them out of everything except the spawn
+tool's `model` argument.
+
+| Family id | Display label | Option `id` |
+|---|---|---|
+| current | Current model | `current` |
+| anthropic | Claude | `fam-anthropic` |
+| openai | OpenAI | `fam-openai` |
+| google | Gemini | `fam-google` |
+| xai | Grok | `fam-xai` |
+| moonshot | Kimi | `fam-moonshot` |
+| zhipu | GLM | `fam-zhipu` |
+| cursor | Composer | `fam-cursor` |
+| meta | Llama | `fam-meta` |
+| mistral | Mistral | `fam-mistral` |
+| deepseek | DeepSeek | `fam-deepseek` |
+| unknown | that family's live-list token, title-cased, never the full identifier | `fam-unknown-N` |
+
+Never use a live-list identifier as an option `id`, option `label`,
+question prompt, chat roster, worker IDENTITY, or take label.
+
+Announce the roster with display names only: `Current, OpenAI, Grok`.
+
+Map at spawn time only:
+
+- `current` → Cursor: pass `inherit`. Other hosts: omit `model` so the child inherits.
+- `fam-*` → highest-tier name on the live list in that family.
+
+The worker prompt gets `slot` + display name, never the spawn id.
 
 ## Auto-pick
 
@@ -59,10 +101,10 @@ has fewer families than `agents`, use every remaining family and say so.
 1. Detect the parent family when the session names the current model. Exclude that family from workers.
 2. From remaining families on the live list, take up to `agents`, in this **preference order** (skip missing): openai, google, xai, moonshot, anthropic, zhipu, deepseek, cursor, mistral, meta, then any leftover families alphabetically.
 3. Inside a family, pick the highest-tier name the live list offers (thinking/high/max/pro before flash/mini/fast).
-4. If fewer than two families remain, stop. Tell the user to use `deep-deliberation` or name models this host cannot spawn.
-5. Announce the pick, then spawn. Auto-pick is consent to choose; do not ask again.
+4. If fewer than two families remain, stop. Offer Current-for-all or `deep-deliberation`.
+5. Announce the pick with **display names**, then spawn. Auto-pick is consent to choose; do not ask again.
 
-Example (illustrative, not a menu): parent is Grok on a Cursor session that also lists GPT Sol, Gemini Flash, Kimi, GLM, Fable → auto-pick `gpt-5.6-sol-high`, `gemini-3.7-flash-high`, `kimi-k3-max`.
+Example (illustrative, not a menu): parent is Grok on a Cursor session that also lists OpenAI, Gemini, Kimi, GLM, Claude → auto-pick OpenAI, Gemini, Kimi.
 
 ## How to spawn
 
@@ -70,9 +112,9 @@ Workers get the worker prompt. They must not edit the project.
 
 | Host | Spawn |
 |---|---|
-| `cursor` | Parallel Task agents. Pass `model` only from the live list. Prefer `subagent_type: explore`. The prompt forbids writes; do not rely on a readonly flag existing. |
-| `claude-code` | Parallel Task/subagent calls with an explicit `model` when the tool accepts one. Same write ban in the prompt. |
-| `opencode` | Launch subagents with an explicit `model` if this session can. If OpenCode would inherit the parent model, stop. |
-| `copilot` / `codex` / `other` | Use the host's child-agent model parameter when it exists. If children cannot be given a different model, stop. |
+| `cursor` | Parallel Task agents. Current → `inherit`. Other slots: `model` from the live list, mapped from the family alias. Prefer `subagent_type: explore`. The prompt forbids writes; do not rely on a readonly flag existing. |
+| `claude-code` | Parallel Task/subagent calls. Current → omit `model`. Explicit `model` only for non-current families. Same write ban in the prompt. |
+| `opencode` | Current may inherit. Auto-pick must set an explicit other-family model; if it cannot, stop. |
+| `copilot` / `codex` / `other` | Current → inherit/omit. Other slots: the host's child-agent model parameter. If children cannot be spawned at all, stop. |
 
 Never require a YAML stack, Pi, or a second checkout. Never start two write-capable children against the same working directory.

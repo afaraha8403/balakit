@@ -11,7 +11,7 @@ description: >-
 user-invocable: true
 disable-model-invocation: true
 invocation-type: manual
-version: "1.0.0"
+version: "1.1.0"
 author: "Ali Farahat"
 tags: ["planning", "orchestration", "inception"]
 when_to_use: |
@@ -56,7 +56,7 @@ drops back to interactive.
 |---|---|---|
 | `interactive` | Ask. Clarify. Wait. | Write plan. **Stop.** Recommend `execute`. |
 | `--circuit` | Auto-accept recommended. `PACE_LOG`. | Write plan. **Stop.** Recommend `execute`. No extra ask. |
-| `--autopilot` | Auto-accept. `PACE_LOG`. | Write plan. **Run `execute`** (auto-pick roster). |
+| `--autopilot` | Auto-accept. `PACE_LOG`. | Write plan. **Run `execute`** (auto-pick distinct families; execute's interactive default is Current-for-all). |
 
 This skill shares `--circuit` / `--autopilot` grammar with `dissect` and
 `deep-deliberation`. The **final gate differs**: circuit silent-stops. Only

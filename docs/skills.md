@@ -76,15 +76,15 @@ If Plan Mode is on, `--autopilot` degrades to circuit (Plan Mode cannot implemen
 
 ### `opinion`
 
-Asks other **model families** on this harness the same question. Returns labeled takes. Nobody writes project files.
+Asks workers on this harness the same question. Returns labeled takes. Nobody writes project files.
 
-Optional `--agents N` (default 3, min 2, max 5). Distinct families only. If this host cannot spawn two families, use `deep-deliberation` instead.
+Optional `--agents N` (default 3, min 2, max 5). Default roster is the **current model on every slot**. Auto-pick still uses distinct families. Assigning per worker may repeat a family. Spawn identifiers stay out of the question UI (family aliases only).
 
 **Say:** `/opinion should we split this package`
 
 ### `execute`
 
-Same multi-model fan-out as `opinion`, then **this chat** does the work. Workers stay read-only. No `--agents` flag: the skill infers 2 or 3 from the job.
+Same fan-out as `opinion`, then **this chat** does the work. Workers stay read-only. No `--agents` flag: the skill infers 2 or 3 from the job. Same picker: Current-for-all first, then auto-pick, then per-slot assign.
 
 If you want the plan first, run `inception`. If nobody should write, run `opinion`. If one agent should just build, use `kit-workflows`.
 

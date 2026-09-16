@@ -14,7 +14,7 @@ Pointers are one level deep: this file → that `SKILL.md`. Do not chain.
 | `design-rationale` | A weird existing shape might be load-bearing. Changing it needs why. | No historical “why” question. `skip: no rationale question`. |
 | `subsystem-walkthrough` | The runtime model is wrong or missing and the plan would be fiction. | The walkthrough would not change a unit. `skip: runtime already known`. |
 | `deep-deliberation` | A consequential fork with two viable approaches. Cost of choosing wrong beats the cost of deliberating. | No fork, or the canvas already picked. `skip: no fork`. |
-| `opinion` | High-stakes disagreement; other model families should answer; nobody writes. | One family only, or the question is mechanical. `skip: no cross-model need`. |
+| `opinion` | High-stakes disagreement; parallel takes should answer; nobody writes. | The question is mechanical. `skip: no parallel-take need`. |
 | `proving-change-safety` | Name the safety facts the later build must prove (do not run the prove from Inception). | No merge-risk seam yet. `skip: no safety fact to name`. |
 | `documentation-writer` | The plan’s outcome is a docs surface (Diátaxis). | Implementation plan, not a docs request. `skip: not a docs deliverable`. |
 
