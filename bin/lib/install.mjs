@@ -1,6 +1,8 @@
 /**
  * Plan-first install orchestration for init / add / interactive / update.
  */
+import { homedir } from "node:os";
+import { resolve } from "node:path";
 import * as p from "@clack/prompts";
 import { bundledSkillsFor } from "./catalog.mjs";
 import {
@@ -22,6 +24,21 @@ import { recordInstall, readManifest, projectManifestPath, globalManifestPath } 
 import { linkCursorProjectSkills, copyCursorLocalPlugins } from "./cursor-native.mjs";
 
 /** @typedef {"project"|"user"} InstallScope */
+
+/**
+ * True when cwd is the user home directory (npx from `~` would write AGENTS.md there).
+ * @param {string} [cwd]
+ * @param {string} [home]
+ */
+export function isHomeCwd(cwd = process.cwd(), home = homedir()) {
+  return resolve(cwd) === resolve(home);
+}
+
+/**
+ * Copy for refusing a project-scope install that would land in `$HOME`.
+ */
+export const HOME_PROJECT_INIT =
+  "Refusing project init in your home directory. cd into a git repo, or pass --scope user. A leftover ~/node_modules/balakit also makes `npx balakit` run that old copy — use npx balakit@latest.";
 
 /**
  * Resolve agent ids: explicit flag, else auto-detect.

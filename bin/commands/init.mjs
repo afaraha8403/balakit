@@ -4,7 +4,7 @@
 import * as p from "@clack/prompts";
 import { CMD, VERSION, TEAM_INIT_RULES, defaultInitSkills } from "../lib/pkg.mjs";
 import { loadRules, loadSkills } from "../lib/catalog.mjs";
-import { buildInstallPlan, runInstallPlan } from "../lib/install.mjs";
+import { buildInstallPlan, runInstallPlan, isHomeCwd, HOME_PROJECT_INIT } from "../lib/install.mjs";
 import { cmdInteractive } from "./interactive.mjs";
 
 /**
@@ -19,6 +19,13 @@ import { cmdInteractive } from "./interactive.mjs";
 export async function cmdInit(opts = {}) {
   if (!opts.yes && !opts.dryRun) {
     return cmdInteractive(opts);
+  }
+
+  if (opts.scope !== "user" && isHomeCwd()) {
+    p.intro(`${CMD} v${VERSION} — init (project)`);
+    p.log.error(HOME_PROJECT_INIT);
+    p.outro("Nothing written.");
+    return 1;
   }
 
   const allRules = loadRules();

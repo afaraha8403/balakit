@@ -1,6 +1,6 @@
 {
   "name": "balakit",
-  "version": "1.19.0",
+  "version": "1.19.1",
   "description": "Standing rules and named playbooks for AI coding agents. One command installs AGENTS.md-first rules and engineering skills.",
   "license": "MIT",
   "homepage": "https://github.com/afaraha8403/balakit#readme",
@@ -23,7 +23,8 @@
     ".claude-plugin",
     ".agents/plugins",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "assets"
   ],
   "scripts": {
     "test": "node --test --test-concurrency=1",

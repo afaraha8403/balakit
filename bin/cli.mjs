@@ -56,7 +56,7 @@ export {
   globalManifestPath,
   migrateManifest,
 } from "./lib/manifest.mjs";
-export { buildInstallPlan, runInstallPlan, planSelection } from "./lib/install.mjs";
+export { buildInstallPlan, runInstallPlan, planSelection, isHomeCwd, HOME_PROJECT_INIT } from "./lib/install.mjs";
 export { MENTAL_MOVED, MENTAL_REPO } from "./lib/mental-moved.mjs";
 
 async function main() {

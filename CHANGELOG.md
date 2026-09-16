@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.19.1]
+
+### Features
+- README shows the BalaKit mark from `assets/balakit.svg`.
+
+### Fixes
+- `npx balakit init` from `$HOME` now refuses a project install (that path was picking a leftover `~/node_modules/balakit` and writing `AGENTS.md` into home). Use `npx balakit@latest` from a repo, or `--scope user`.
+
+### Changes
+- Quick start and install docs use `npx balakit@latest` and say to run it in the project directory.
+
 ## [v1.19.0]
 
 ### Features

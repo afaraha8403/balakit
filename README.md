@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/balakit.svg" alt="BalaKit" width="180" height="180">
+</p>
+
 <h1 align="center">BalaKit</h1>
 
 <p align="center"><strong>Standing rules and named playbooks for AI coding agents.</strong></p>
@@ -32,17 +36,19 @@ It is not a personality pack and not a sticky chat mode. Mental continuity lives
 Requires [Node.js](https://nodejs.org/) 18 or newer.
 
 ```bash
-npx balakit init -y
+npx balakit@latest init -y
 ```
+
+Run that **in the project directory**, not in `$HOME`. `npx balakit` without `@latest` will use a local `node_modules/balakit` or a global install if one exists, which can be months old.
 
 That writes standing rules and the default engineering skills into **this repository**. Reload the agent window. Then ask by skill name: "walk through how auth works" or `/inception add a CSV export`.
 
 Preview first with `--dry-run`. Skip the skills and keep only rules with `--rules-only`. Install the same kit for every project on this machine with `--scope user`:
 
 ```bash
-npx balakit init --dry-run
-npx balakit init --rules-only -y
-npx balakit init --scope user -y
+npx balakit@latest init --dry-run
+npx balakit@latest init --rules-only -y
+npx balakit@latest init --scope user -y
 ```
 
 User scope also copies Cursor plugins to `~/.cursor/plugins/local/`. Check the kit with `npx balakit doctor` (that is not `mental doctor`).
@@ -143,8 +149,8 @@ Default `init` installs these five. They are always on.
 
 ```bash
 npx balakit                         # guided setup
-npx balakit init -y                 # this repo: rules + engineering skills
-npx balakit init --scope user -y    # this machine + Cursor plugins
+npx balakit@latest init -y          # this repo: rules + engineering skills
+npx balakit@latest init --scope user -y
 npx balakit init --rules-only -y    # standing rules only
 npx balakit add dissect --scope user
 npx balakit list

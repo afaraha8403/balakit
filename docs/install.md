@@ -6,10 +6,10 @@ Do not `/add-plugin` the repository root. This repo is a marketplace of several 
 
 ## CLI (recommended)
 
-Requires [Node.js](https://nodejs.org/) 18 or newer.
+Requires [Node.js](https://nodejs.org/) 18 or newer. Run this **in the project directory**, not in `$HOME`.
 
 ```bash
-npx balakit init -y
+npx balakit@latest init -y
 ```
 
 That is standing rules plus default engineering skills, in this repository. Preview with `--dry-run`. Rules only: `--rules-only`. This machine: `--scope user`.

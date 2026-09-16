@@ -8,6 +8,8 @@ import {
   buildInstallPlan,
   runInstallPlan,
   describeSelectedTools,
+  isHomeCwd,
+  HOME_PROJECT_INIT,
 } from "../lib/install.mjs";
 import { detectAgents, AGENT_IDS, getCapability } from "../lib/agents.mjs";
 
@@ -55,6 +57,12 @@ export async function cmdInteractive(opts = {}) {
       return 1;
     }
     intent = picked;
+  }
+
+  if (intent !== "user" && isHomeCwd()) {
+    p.log.error(HOME_PROJECT_INIT);
+    p.outro("Nothing written.");
+    return 1;
   }
 
   let agentIds = opts.agents?.length ? opts.agents : detectAgents();

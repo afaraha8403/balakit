@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import {
   buildInstallPlan,
@@ -30,6 +31,7 @@ import {
   MENTAL_MOVED,
   defaultInitSkills,
   TEAM_INIT_SKILLS,
+  isHomeCwd,
 } from "../bin/cli.mjs";
 import { loadRules } from "../bin/lib/catalog.mjs";
 import { hasManagedBlock } from "../bin/lib/render.mjs";
@@ -239,4 +241,21 @@ test("defaultInitSkills honors --rules-only and packaged catalog", () => {
   assert.ok(TEAM_INIT_SKILLS.includes("opinion"));
   assert.ok(TEAM_INIT_SKILLS.includes("execute"));
   assert.ok(TEAM_INIT_SKILLS.includes("inception"));
+});
+
+test("isHomeCwd is true only when cwd is the home directory", () => {
+  assert.equal(isHomeCwd("/home/ali", "/home/ali"), true);
+  assert.equal(isHomeCwd("/tmp/project", "/home/ali"), false);
+});
+
+test("project init refuses when cwd is homedir", () => {
+  const cli = fileURLToPath(new URL("../bin/cli.mjs", import.meta.url));
+  const result = spawnSync(process.execPath, [cli, "init", "-y"], {
+    cwd: home,
+    env: { ...process.env, HOME: home },
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1);
+  assert.match(`${result.stdout}${result.stderr}`, /home directory/);
+  assert.equal(existsSync(join(home, "AGENTS.md")), false);
 });

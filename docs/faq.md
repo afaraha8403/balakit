@@ -2,6 +2,20 @@
 
 Short answers for install and loading problems. Commands: [CLI](cli.md). What each skill does: [Skills](skills.md).
 
+## Why did `npx balakit` print an old version?
+
+npm `latest` is current (see [npmjs.com/package/balakit](https://www.npmjs.com/package/balakit)). `npx balakit` without `@latest` uses, in order: `./node_modules/balakit`, then a global `balakit` on PATH, then a cached download. A leftover `~/package.json` that depends on `balakit@^1.13.0` makes every `npx` from `$HOME` run 1.13.0.
+
+Fix:
+
+```bash
+cd /path/to/your/project
+npx balakit@latest -v
+npx balakit@latest init -y
+```
+
+To refresh a global install: `npm i -g balakit@latest`. Do not run project `init` in `$HOME` (that writes `AGENTS.md` next to your personal files). Use `--scope user` for a machine-wide kit.
+
 ## Project or user?
 
 This repository only: `--scope project` (default). Every project on this PC: `--scope user`. User scope also copies Cursor plugins to `~/.cursor/plugins/local/`.
