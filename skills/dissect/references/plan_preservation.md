@@ -4,7 +4,9 @@ Load this file when **any** of these is true, **before any write**:
 
 - The session is in **Cursor Plan Mode**
 - The session is in **Claude Plan Mode**
+- The session is in OpenCode **plan** agent, Codex **Plan**, or Copilot **Plan**
 - `/dissect` (or equivalent) is aimed at an existing plan file
+- The target is `.balakit/plans/*.md` (Inception Agent-mode fallback)
 - A plan document is already open as the session's document of record
 
 Dissect still audits whatever the target is. This file only governs **how
@@ -27,7 +29,7 @@ Record:
 
 ```
 source_plan: <absolute path | session plan file>
-host_plan_mode: cursor | claude | none
+host_plan_mode: cursor | claude | opencode | copilot | codex | none
 ```
 
 If the user did not name another target and Plan Mode is active, `source_plan`
@@ -96,7 +98,12 @@ not `ExitPlanMode` in order to replace the plan. Do not write a duplicate plan
 into the project "for safety."
 
 **Plan file as `/dissect` target (any host).** Same rules on that path, even
-if Plan Mode is off.
+if Plan Mode is off. Includes `.balakit/plans/*.md`.
+
+**OpenCode / Codex / Copilot Plan.** Patch the live host artifact only
+(chat block, `~/.opencode/plan`, `$CODEX_HOME/plans`, Copilot session
+`plan.md`, or VS `.copilot/plans/`). Do not create `.balakit/plans/` as a
+second copy while that mode is on.
 
 ## Worked example
 

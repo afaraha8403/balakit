@@ -9,7 +9,7 @@ description: >-
   README. Not commit-message lint — changelog.mdc owns changelog headings.
 user-invocable: true
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 tags: ["documentation", "technical-writing", "markdown", "research-first", "diataxis"]
 when_to_use: |
@@ -56,7 +56,9 @@ Read relevant files. Delegate broad mapping to explore when available.
 
 *Exit:* you can list every file/API/feature the docs must cover.
 🛑 Do not proceed to Research until the user confirms the scope (or you are
-explicitly operating solo and the scope is unambiguous).
+explicitly operating solo and the scope is unambiguous). Ask with the host's
+structured question tool. Prompt in plain English. Last option:
+`Say this in plain English` (meta: rephrase + example, do not advance).
 
 ## Phase 2 — Research
 
@@ -73,7 +75,9 @@ Name the Diátaxis mode. Headings, audience, prerequisites. BLUF: lead each
 section with the direct answer in 40–60 words.
 
 *Exit:* skeleton approved.
-🛑 Present the outline. Do not draft until confirmed.
+🛑 Present the outline. Do not draft until confirmed. Ask with the host's
+structured question tool. Prompt in plain English. Last option:
+`Say this in plain English` (meta: rephrase + example, do not advance).
 
 ## Phase 4 — Draft
 

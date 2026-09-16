@@ -4,12 +4,13 @@ description: >-
   Design a rigorous, auditable playbook when no narrower skill fits: a large
   migration, multi-part change, or work a human will review after stepping away.
   Apply when no playbook matches, the work is a migration, or they will be
-  gone while the work runs. Use deep-deliberation to choose among options
-  without implementing. Use kit-workflows for a known bug-fix, feature, or
-  refactor. Use blinded-eval to prove a skill change.
+  gone while the work runs. Use inception when the deliverable is the plan.
+  Use deep-deliberation to choose among options without implementing. Use
+  kit-workflows for a known bug-fix, feature, or refactor. Use blinded-eval
+  to prove a skill change.
 user-invocable: true
 disable-model-invocation: true
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 tags: ["playbook", "migration", "hypothesis"]
 when_to_use: |
@@ -18,6 +19,7 @@ when_to_use: |
   - The work is a large migration or multi-part change with a falsifiable done-check.
   DO NOT USE WHEN:
   - The decision is "which approach" with no implementation (use deep-deliberation).
+  - The deliverable is the plan, not the work (use inception).
   - The task is a known bug-fix, feature, or refactor (use kit-workflows).
 ---
 

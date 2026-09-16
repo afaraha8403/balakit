@@ -3,12 +3,33 @@
 Use these structures exactly. Fill every section; write `None` when a section
 has no content. Do not replace them with an unstructured narrative.
 
+Always set `mode:` in `DELIBERATION_STATE` (`interactive` | `circuit` |
+`autopilot`).
+
+When `mode` is `circuit` or `autopilot` and this is **not** the final
+checkpoint: `next_action` is the next stage, not a wait. Replace the
+`## Checkpoint N` ask with a `## PACE_LOG` of the auto-accepted choice.
+
+When `mode` is `circuit` at Checkpoint 3: keep the ask (plain question:
+go ahead with this recommendation?).
+
+When `mode` is `autopilot` at Checkpoint 3: `next_action` is the proceed
+action (start implementing the recommendation). Replace `## Checkpoint 3`
+with a `## PACE_LOG` that records the auto-accepted recommendation, then
+execute. Change `## Next step` from "Do not execute it" to the action you
+are about to take.
+
+When `mode` is `interactive` at Checkpoint 3: after `## Checkpoint 3`, append
+the interactive final footer from the skill **verbatim**. It must be the last
+thing in the message. Omit the footer when `mode` is `circuit` or `autopilot`.
+
 ## Stage 1 — Frame and shortlist
 
 ```markdown
 DELIBERATION_STATE
 stage: 1
 checkpoint: 1
+mode: interactive | circuit | autopilot
 shortlist: A,B
 delegate_results: 0/0
 next_action: Wait for the user's Checkpoint 1 decision.
@@ -52,7 +73,17 @@ next_action: Wait for the user's Checkpoint 1 decision.
 - Evidence most likely to change this shortlist: [...]
 
 ## Checkpoint 1
-[Ask the user to approve, revise, restart, or end the pipeline.]
+Lead with one sentence a product owner could repeat. Then fire the
+host's structured question (plain question). Do not replace this template
+with the question.
+
+prompt: I'll compare "[A short name]" vs "[B short name]". Is that the right choice to decide?
+options:
+- Yes, compare those two (Recommended)
+- Swap or rewrite an option
+- Change what we're optimizing for
+- This is obvious now — stop
+- Say this in plain English
 ```
 
 ## Stage 2 — Evidence tournament
@@ -61,6 +92,7 @@ next_action: Wait for the user's Checkpoint 1 decision.
 DELIBERATION_STATE
 stage: 2
 checkpoint: 2
+mode: interactive | circuit | autopilot
 shortlist: A,B
 delegate_results: [returned]/[launched]
 next_action: Wait for the user's Checkpoint 2 decision.
@@ -93,7 +125,16 @@ next_action: Wait for the user's Checkpoint 2 decision.
 - Return to Stage 1 required: yes | no
 
 ## Checkpoint 2
-[Ask the user to proceed, revise, reopen Stage 1, or end the pipeline.]
+Lead with one sentence a product owner could repeat. Then fire the
+host's structured question (plain question).
+
+prompt: Both options still stand. Ready for me to pick a winner?
+options:
+- Yes, pick a winner (Recommended)
+- Change an option and re-check
+- Start over with a different fork
+- Stop here
+- Say this in plain English
 ```
 
 ## Final recommendation
@@ -102,6 +143,7 @@ next_action: Wait for the user's Checkpoint 2 decision.
 DELIBERATION_STATE
 stage: 3
 checkpoint: 3
+mode: interactive | circuit | autopilot
 shortlist: A,B
 delegate_results: [returned]/[launched]
 next_action: Wait for the user's Checkpoint 3 decision.
@@ -146,6 +188,23 @@ the most important uncertainty.]
 [One action appropriate to the session's current capabilities. Do not execute it.]
 
 ## Checkpoint 3
-[Ask the user to approve, revise, choose an alternative, or request a separate
-planning/implementation action.]
+Lead with one sentence a product owner could repeat. Then fire the
+host's structured question (plain question).
+
+prompt: I recommend "[chosen]": [one-line why]. Make that the decision?
+options:
+- Yes, go with that (Recommended)
+- Pick the other option
+- Change something first
+- Plan or build it next
+- Say this in plain English
+
+⚡ **Skip the waits next time**
+
+This run was **interactive** — a stop at every checkpoint. Same skill, two other paces:
+
+- `--circuit` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
+- `--autopilot` — take every recommended choice, including the last, and proceed without waiting.
+
+`/deep-deliberation --circuit <decision>` · `/deep-deliberation --autopilot <decision>`
 ```

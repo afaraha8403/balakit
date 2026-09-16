@@ -11,7 +11,7 @@ Each plugin installs separately (Cursor marketplace or Agent Plugins clients).
 | `balakit-marketing` | Agent Plugins + Cursor | — | marketing-psychology, startup-marketing-brain |
 | `balakit-media` | Agent Plugins + Cursor | — | media-gen |
 | `balakit-nlm` | Agent Plugins + Cursor | — | nlm-skill |
-| `balakit-engineering` | Agent Plugins + Cursor | — | authoring-skills-and-rules, blinded-eval, cloakbrowser-fallback, deep-deliberation, design-rationale, dissect, documentation-writer, generating-app-verify, kit-workflows, proving-change-safety, refreshing-app-verify, release-deploy, subsystem-walkthrough, unmatched-workflow |
+| `balakit-engineering` | Agent Plugins + Cursor | — | authoring-skills-and-rules, blinded-eval, cloakbrowser-fallback, deep-deliberation, design-rationale, dissect, documentation-writer, generating-app-verify, inception, kit-workflows, opinion, execute, proving-change-safety, refreshing-app-verify, release-deploy, subsystem-walkthrough, unmatched-workflow |
 
 Regenerate: `node scripts/build-plugins.mjs` (also run by `./sync.sh`).
 

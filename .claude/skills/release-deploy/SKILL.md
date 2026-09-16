@@ -9,7 +9,7 @@ description: >-
   and write a project-specific config under projects/.
 user-invocable: true
 disable-model-invocation: false
-version: "1.0.0"
+version: "1.1.0"
 author: "Ali Farahat"
 tags: ["release", "deploy", "semver", "github", "changelog", "beta", "production"]
 when_to_use: |

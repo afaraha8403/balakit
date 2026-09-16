@@ -5,7 +5,7 @@ description: >-
   OpenCode, Codex, and GitHub Copilot. Covers frontmatter, file layout,
   activation, mirroring, and craft: progressive disclosure, Apply-when
   descriptions, leading words, playbook steps copied into todos, skip
-  reasons, and the deletion test.
+  reasons, the deletion test, and user-facing questions in plain English.
   Apply when the user asks to write, scaffold, refactor, port, or review a
   Skill, Cursor rule (.mdc), AGENTS.md, copilot-instructions, or prompt file
   — or to make one Skill/rule work across multiple agents. Use blinded-eval
@@ -13,7 +13,7 @@ description: >-
   an existing system, not to author a skill.
 user-invocable: true
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 tags: ["meta", "skills", "rules", "authoring", "cross-platform", "claude-code", "cursor", "opencode", "codex", "copilot"]
 when_to_use: |
@@ -39,7 +39,8 @@ when_to_use: |
 
 > **Leading words:** progressive disclosure, context pointer, token budget,
 > Apply-when description, playbook todos, skip reason, leading words,
-> phase separation, encode lessons in structure, deletion test.
+> phase separation, encode lessons in structure, deletion test,
+> plain question.
 
 A practitioner's guide to writing and maintaining the two artifact families that
 steer coding agents — **Skills** (on-demand, procedural capabilities) and
@@ -213,6 +214,23 @@ is a style wrapper; keep `generalPurpose` when you want model diversity.
   the deletion test: if the agent would still do the right thing without it, cut it.
 - **Sediment** — stale instructions left by previous authors. Audit and prune.
 
+### 9. User-facing questions are for the human
+The skill body talks to the agent. Checkpoints talk to the human. A product
+owner must be able to pick an option without knowing the skill's jargon.
+
+When a Skill asks a real choice:
+
+- Use the host's structured question tool (Cursor `AskQuestion`, Claude Code
+  `AskUserQuestion`, OpenCode equivalent). Numbered text fallback if missing.
+- Do not replace the checkpoint report with the question. Report first
+  (plain-terms lead, then detail), then the question, then stop.
+- Prompt: one sentence of the choice, in product language. Jargon stays above.
+- Labels: short, concrete, first is `(Recommended)`, last is always
+  `Say this in plain English`.
+- That last option is a meta question: do not advance. Rephrase + one
+  example of what each real option means here, then re-ask.
+- One question at a time. Free-text always overrides.
+
 ---
 
 ## Workflow — 4 phases (creating or updating)
@@ -230,7 +248,9 @@ the agent from rushing to draft before the scope is locked.
 
 🛑 **Checkpoint:** State the classification, invocation flag, and platform list
 in one sentence. Do not proceed to Draft until the user confirms (or you are
-explicitly operating solo and the scope is unambiguous).
+explicitly operating solo and the scope is unambiguous). Ask with the host's
+structured question tool. Prompt in plain English. Last option:
+`Say this in plain English` (meta: rephrase + example, do not advance).
 
 ### Phase 2 — Draft
 
@@ -306,6 +326,9 @@ The 4 phases apply, with these additions:
       `n/a:`; a reply contract exists.
 - [ ] Behavior-changing drafts ran blinded-eval, or an explicit `skip:` for
       formatting-only.
+- [ ] User-facing questions (if any) are **plain questions**: host structured
+      question tool, product-language prompt, last option
+      `Say this in plain English`.
 
 ---
 

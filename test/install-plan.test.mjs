@@ -236,4 +236,7 @@ test("defaultInitSkills honors --rules-only and packaged catalog", () => {
   assert.deepEqual(defaultInitSkills([{ name: "dissect" }]), ["dissect"]);
   assert.ok(TEAM_INIT_SKILLS.includes("dissect"));
   assert.ok(TEAM_INIT_SKILLS.includes("kit-workflows"));
+  assert.ok(TEAM_INIT_SKILLS.includes("opinion"));
+  assert.ok(TEAM_INIT_SKILLS.includes("execute"));
+  assert.ok(TEAM_INIT_SKILLS.includes("inception"));
 });

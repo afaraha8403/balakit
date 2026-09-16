@@ -6,13 +6,15 @@ description: >-
   boundary) against ground truth from multiple sources at once, red-teams each
   verdict devil's-advocate style, and arrives at the minimal-build optimization
   plan. Runs as a staged pipeline with human checkpoints and parallel read-only
-  sub-agents so each investigation stays laser-focused. Use when the user invokes
-  /dissect, or asks to audit / optimize / challenge / "tear apart" an existing
-  system, schema, or plan. If the session is in Cursor or Claude Plan Mode,
-  update the existing plan in place — never rewrite it.
+  sub-agents so each investigation stays laser-focused. Optional --circuit skips
+  intermediate checkpoint waits and asks at the final recommendation; --autopilot
+  takes recommended choices and proceeds. Use when the user invokes /dissect, or
+  asks to audit / optimize / challenge / "tear apart" an existing system, schema,
+  or plan. If the session is in Cursor or Claude Plan Mode, update the existing
+  plan in place — never rewrite it. Use inception to author a new plan.
 user-invocable: true
 disable-model-invocation: false
-version: "2.3.0"
+version: "2.6.0"
 author: "Ali Farahat"
 tags: ["dissect", "audit", "red-team", "minimal-build", "refactor", "ground-truth", "orchestration"]
 when_to_use: |
@@ -32,8 +34,9 @@ when_to_use: |
     without replacing the document.
 
   DO NOT USE WHEN:
-  - The thing does not exist yet and you are choosing an approach to BUILD. That is
-    forward-looking design — use the companion `deep-deliberation` skill instead.
+  - The thing does not exist yet and you need a detailed work-breakdown plan.
+    That is `inception`. If you only need to pick among approaches, use
+    `deep-deliberation`.
   - The task is a quick lookup or a one-line fix with an obvious answer.
   - You only have intent (a plan) with no code/DB/runtime to verify against AND no
     way to get ground truth — dissect's power comes from live evidence; flag the gap.
@@ -43,20 +46,23 @@ when_to_use: |
 
 > **Leading words:** dissect, ground truth, entity-level, minimal-build,
 > red-team, evidence-backed, stub detection, naming audit, fold test,
-> phase separation, patch in place.
+> phase separation, patch in place, circuit, autopilot, plain question.
 
 Systematically interrogate and optimize an existing service, written plan, or
 system. The goal is not to rubber-stamp the current design — it is to arrive at
 the **minimal-build plan** that correctly meets the requirements, by challenging
 every assumption with live evidence and an adversarial review panel.
 
-**Trigger:** `/dissect <target>` where `<target>` is a service name, plan file
-path, codebase area, or free-form description. If omitted, ask.
+**Trigger:** `/dissect [--circuit|--autopilot] <target>` where `<target>` is a
+service name, plan file path, codebase area, or free-form description. If
+omitted, ask. Pace flags are optional; default is interactive (stop at every
+checkpoint).
 
 `dissect` is the backward-looking counterpart to `deep-deliberation`. They share
 DNA — parallel read-only sub-agents, devil's-advocate red-teaming, human
-checkpoints, evidence over intent — but point in opposite directions:
-deliberation designs what to build; dissect audits what already exists.
+checkpoints, evidence over intent, and the same `--circuit` / `--autopilot`
+grammar — but point in opposite directions: deliberation designs what to build;
+dissect audits what already exists.
 
 ---
 
@@ -65,6 +71,77 @@ deliberation designs what to build; dissect audits what already exists.
 ```text
 $ARGUMENTS
 ```
+
+Parse a pace flag from arguments **before** treating the rest as `<target>`:
+`--circuit`, `--autopilot`, `--auto` (alias of `--autopilot`). Strip the flag
+from the target string. If both circuit and autopilot appear, autopilot wins.
+
+---
+
+## Pace modes (optional)
+
+Default is **interactive**: stop and wait at every checkpoint.
+
+The user must opt in **this invocation** — a flag above, or an explicit phrase
+(`circuit`, `autopilot`, `take recommended`, `circuit the rest`,
+`autopilot the rest`). Do not infer from urgency, "just audit this", or a
+desire to move fast. Mid-run, the same phrases switch mode from the current
+checkpoint. `stop circuit` / `stop autopilot` drops back to interactive.
+
+| Mode | Intermediate checkpoints (1–2) | Final checkpoint (3) |
+|---|---|---|
+| `interactive` | Stop and wait | Stop and wait. Do not proceed until they ask |
+| `--circuit` | Auto-accept the recommended choice; log and continue | Stop. Ask whether to go ahead with the final recommendation |
+| `--autopilot` | Auto-accept; log and continue | Auto-accept. Treat the recommendation as the way to proceed |
+
+**Skip the wait, not the work.** Stages, evidence, red-team, and the naming
+audit still run. Emit a compact `PACE_LOG` of every auto-accepted choice.
+
+**Cannot proceed:** if there is no unique recommendation (tie, empty shortlist,
+pipeline wants to go backward), stop and ask even on autopilot.
+
+**Proceed** (autopilot, or circuit after the user says go ahead):
+
+- Plan Mode / existing plan file: apply the surgical patch map. Do not
+  implement code unless they also asked to implement.
+- Otherwise: start executing the recommended ToT / execution branch.
+
+Discrepancies still surface (principle 9). Circuit holds them for the final
+ask. Autopilot logs the recommended resolution in `PACE_LOG` and the report;
+never drop them.
+
+**Interactive final footer.** On Checkpoint 3 only, when this run is
+interactive, append the block below **verbatim as the last thing in the
+message** (after the Checkpoint 3 ask). Omit it under `--circuit` /
+`--autopilot`. Do not paraphrase. Do not place it earlier.
+
+```markdown
+⚡ **Skip the waits next time**
+
+This run was **interactive** — a stop at every checkpoint. Same skill, two other paces:
+
+- `--circuit` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
+- `--autopilot` — take every recommended choice, including the last, and proceed without waiting.
+
+`/dissect --circuit <target>` · `/dissect --autopilot <target>`
+```
+
+---
+
+## User questions (plain question)
+
+The report may be technical. The **ask** must not be.
+
+Same turn as the checkpoint message: host structured question tool
+(Cursor `AskQuestion`, Claude Code `AskUserQuestion`, OpenCode equivalent).
+No tool → numbered list. Do not replace the report. Then stop.
+
+Prompt: one sentence, product language. Labels ≤40 chars. First ends
+`(Recommended)`. Last is always `Say this in plain English` (meta: do not
+advance; rephrase + one example of what each real option means here; re-ask).
+Second pick: a simpler analogy. Free-text overrides. Per-option
+descriptions: one plain sentence if the host supports them. Any ask to
+the human (including cannot-proceed) follows this contract.
 
 ---
 
@@ -91,7 +168,9 @@ $ARGUMENTS
    that declares "VERDICT: DROP" unprompted is overstepping. Synthesis happens in
    the main context where all evidence is held together.
 9. **Escalate discrepancies, don't resolve them silently.** If code says X and the
-   plan says Y, surface both at the checkpoint and let the human decide.
+   plan says Y, surface both. Interactive: wait at the checkpoint. `--circuit`:
+   hold them for the final ask. `--autopilot`: log the recommended resolution
+   in `PACE_LOG` and the report; never drop them.
 10. **Patch in place — never rewrite the live plan.** If the session is in Cursor
     Plan Mode or Claude Plan Mode, or the target is an existing plan document,
     the source plan is the document of record. Dissect it, then surgically
@@ -135,7 +214,8 @@ Progress:
 
 > **Right-size the pipeline.** This is heavy. For a small target (a handful of
 > entities, one file) collapse Stages 0–2 into a single pass and skip the parallel
-> fan-out — but never skip the naming audit and never skip Checkpoint 1.
+> fan-out — but never skip the naming audit. Checkpoint 1 **wait** is skippable
+> only under `--circuit` / `--autopilot`.
 
 ---
 
@@ -164,10 +244,24 @@ document**. Record its path. Read
 any write.
 
 ### 🛑 Checkpoint 1
-Present the naming table and your proposed scope boundary (what this target owns
-vs merely reads). Ask the human to confirm corrected names and scope before
-proceeding. A mismatch here changes the verdicts in every later stage. Do not
-proceed until confirmed.
+Lead with one sentence a product owner could repeat (what you found, what's
+in vs out of scope). Then the naming table and proposed scope boundary (what
+this target owns vs merely reads).
+
+Interactive: structured question per **User questions**, then stop.
+
+```text
+prompt: Some names don't match what they actually store. Use the corrected names for the rest of this review?
+options:
+- Yes, use the corrected names (Recommended)
+- Keep the original names
+- Change what we're reviewing first
+- Say this in plain English
+```
+
+`--circuit` / `--autopilot`: log the proposed names and scope as auto-accepted
+(`PACE_LOG`) and continue. A mismatch here changes the verdicts in every later
+stage.
 
 ---
 
@@ -225,9 +319,22 @@ For entity <X>:
 ```
 
 ### 🛑 Checkpoint 2
-Present per-entity verdicts as a table (Entity | Proposed verdict | Evidence).
-Ask the human to confirm, override, or request more evidence before the
-system-level stage. Wait for the answer.
+Lead with one sentence a product owner could repeat. Then the per-entity
+verdicts table (Entity | Proposed verdict | Evidence).
+
+Interactive: structured question per **User questions**, then stop.
+
+```text
+prompt: For each piece I recommend keep it, combine it, remove it, or move it. Look right?
+options:
+- Looks right, keep going (Recommended)
+- I want to change some of those
+- Look closer at one of them
+- Say this in plain English
+```
+
+`--circuit` / `--autopilot`: log the proposed verdicts as auto-accepted and
+continue.
 
 ---
 
@@ -337,12 +444,29 @@ identified gaps land in the plan — they are added, not used as a reason to
 rewrite.
 
 ### 🛑 Checkpoint 3
-Present the report led by a plain-terms summary (for the product owner) followed by
-the technical detail (for the engineer), with the recommended ToT branch and
-ranked alternatives. If a live plan is being patched, also present the patch map.
-Ask the human which branch to execute (and, if patching, to confirm the map).
-Do not start implementing unless they ask. Do not touch the plan file until they
-confirm.
+Lead with one sentence a product owner could repeat. Then the technical
+detail (recommended ToT branch and ranked alternatives). If a live plan is
+being patched, also present the patch map.
+
+Interactive / `--circuit`: structured question per **User questions**, then
+stop. Name the recommended branch in the prompt in product language, not
+taxonomy.
+
+```text
+prompt: I recommend we do “[short name]”: [one-line why]. Go with that?
+options:
+- Yes, do that (Recommended)
+- Do the other option instead
+- Don't start yet
+- Say this in plain English
+```
+
+- **Interactive:** do not start implementing unless they ask. Do not touch
+  the plan file until they confirm. End the message with the interactive
+  final footer (Pace modes) — last block, verbatim.
+- **`--circuit`:** if they say no, stay at this checkpoint.
+- **`--autopilot`**, or **circuit after they say go ahead:** proceed as defined
+  under Pace modes.
 
 ---
 
@@ -368,7 +492,8 @@ Quick reference:
 - **Read-only only.** All dissection agents use `subagent_type: "explore"`. No
   write access. Do NOT pass a `model` — sub-agents inherit the parent model.
 - **Agents return raw evidence, not verdicts.** Synthesis is the orchestrator's
-  job. Escalate discrepancies to the checkpoint; never resolve them silently.
+  job. Escalate discrepancies to the checkpoint (or `PACE_LOG` / final ask
+  under pace modes); never drop them.
 
 ---
 
@@ -398,7 +523,11 @@ Quick reference:
 - Every DEFER/ON-DEMAND names the requirement that justifies the seam (or its
   absence).
 - Row count appears only as liveness context, never as a reason.
-- Lead with plain-terms summaries, then technical detail. Write both.
+- Lead with plain-terms summaries, then technical detail. Write both. The
+  structured question at each checkpoint is a **plain question** (User
+  questions); jargon stays in the report, not in the prompt or labels.
+- Interactive Checkpoint 3: end with the pace-mode footer from Pace modes
+  (verbatim, last block). Omit under `--circuit` / `--autopilot`.
 
 ## References
 

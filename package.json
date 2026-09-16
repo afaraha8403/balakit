@@ -1,7 +1,7 @@
 {
   "name": "balakit",
-  "version": "1.18.0",
-  "description": "Opinionated rules and skills kit for AI coding agents — guided capability-aware install, AGENTS.md-first rules, skills via skills.sh, domain Agent/Cursor plugins.",
+  "version": "1.19.0",
+  "description": "Standing rules and named playbooks for AI coding agents. One command installs AGENTS.md-first rules and engineering skills.",
   "license": "MIT",
   "homepage": "https://github.com/afaraha8403/balakit#readme",
   "repository": {

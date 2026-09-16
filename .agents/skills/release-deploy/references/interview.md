@@ -4,6 +4,8 @@ Run this **once per repository** the first time the user asks to release (beta o
 
 Goal: capture how *this* project ships so later releases are mechanical. Keep questions short. Skip anything already obvious from the repo (workflows, `wrangler.toml`, Electron/Tauri configs, etc.) — confirm instead of re-asking.
 
+Use the host's structured question tool when a choice is real (not a yes/no the repo already answered). Prompt in plain English. Last option is always `Say this in plain English` (meta: rephrase + example, do not advance). Numbered text fallback if the tool is missing.
+
 After answers, write `projects/<repo-slug>.md` using [project.template.md](project.template.md). Tell the user the path and that they can edit it anytime.
 
 ## Repo slug

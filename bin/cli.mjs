@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * balakit — opinionated rules & skills kit installer.
+ * balakit: installer for standing rules and named skills.
  *
  * Rules install AGENTS.md-first (project). Skills are delegated to skills.sh.
  */

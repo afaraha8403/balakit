@@ -260,7 +260,7 @@ function buildPlugin(plugin) {
 function writeMarketplace() {
   const owner = MARKETPLACE_OWNER;
   const description =
-    "Opinionated rules and skills for AI coding agents, packaged as installable domain plugins.";
+    "Standing rules and named playbooks for AI coding agents, packaged as installable domain plugins.";
   const entries = PLUGINS.map((plugin) => ({
     name: plugin.name,
     source: plugin.name,

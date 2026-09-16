@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.19.0]
+
+### Features
+- `inception`: long-running detailed plan. Native host Plan Mode if on; else `.balakit/plans/<slug>.md`. Default interactive; `--circuit` silent-stops at the plan; `--autopilot` runs `execute` (degrades in Plan Mode). Loosely composes specialists; recommends `execute`.
+- `opinion`: ask other model families on this harness; labeled takes; no writes. Optional `--agents N` (default 3, min 2, max 5). Host-aware picker with auto-pick.
+- `execute`: same fan-out, then this chat does the work. Infers 2 or 3 agents from the job. Not a Pi fusion-harness clone.
+- `dissect` v2.4.0 and `deep-deliberation` v2.2.0: optional `--circuit` skips intermediate checkpoint waits and asks at the final recommendation; `--autopilot` takes recommended choices and proceeds without waiting. Interactive runs end Checkpoint 3 with a footer advertising both flags.
+
+### Changes
+- README is a landing page (what BalaKit is, quick start, one-line skill map) with docs pages for skills, install, CLI, and FAQ.
+- `dissect` v2.5.0 and `deep-deliberation` v2.3.0: checkpoint asks use the host's structured question tool in plain English. Last option is always `Say this in plain English`, which rephrases with an example instead of advancing.
+- `dissect` v2.6.0: sibling pointer to `inception`; plan preservation also covers `.balakit/plans/` and OpenCode / Codex / Copilot Plan artifacts.
+- `execute` v1.2.0: sibling pointer to `inception` (produce the plan first).
+- `deep-deliberation` v2.4.0 and `unmatched-workflow` v1.3.0: point at `inception` when the deliverable is the plan.
+- `authoring-skills-and-rules` v1.3.0: user-facing questions are a different audience than the skill body (product language + simplify option).
+- `opinion` / `execute` v1.1.0, `documentation-writer` v1.3.0, and `release-deploy` v1.1.0: the same simplify option on their human asks.
+
 ## [v1.18.0]
 
 ### Features

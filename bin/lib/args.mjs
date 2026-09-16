@@ -8,7 +8,7 @@ import { MENTAL_MOVED, MENTAL_REPO } from "./mental-moved.mjs";
 
 export function usage() {
   const rules = loadRules();
-  return `${CMD} v${VERSION} — opinionated rules & skills kit
+  return `${CMD} v${VERSION}: standing rules and named skills for coding agents
 
 Usage:
   npx ${CMD}                         Guided setup (plan → review → apply)
