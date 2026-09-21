@@ -38,7 +38,7 @@ Matches the task to one playbook: bug fix, named-data-shape feature, behavior-pr
 
 Audits something that **already exists**: a service, schema, codebase area, or written plan. Red-teams each entity and returns a minimal-build plan.
 
-Default is interactive (asks at checkpoints). `--circuit` skips mid-run waits and asks at the final recommendation. `--autopilot` takes recommended choices and continues.
+Default is interactive (asks at checkpoints). `--brake` skips mid-run waits and asks at the final recommendation. `--autopilot` takes recommended choices and continues. `--circuit` is an alias of `--brake`.
 
 Do not use this to author a new plan from a blank request. That is `inception`.
 
@@ -48,7 +48,7 @@ Do not use this to author a new plan from a blank request. That is `inception`.
 
 Compares approaches **before** you build. Checkpointed. Use it when several options are viable and a wrong choice is expensive.
 
-Same `--circuit` / `--autopilot` flags as `dissect`. Autopilot here may proceed to implement. If you want a work-breakdown plan, use `inception`.
+Same `--brake` / `--autopilot` flags as `dissect` (`--circuit` is an alias of `--brake`). Autopilot here may proceed to implement. If you want a work-breakdown plan, use `inception`.
 
 **Say:** `/deep-deliberation Postgres vs SQLite for this worker`
 
@@ -61,10 +61,10 @@ If the host Plan Mode canvas is on, it writes there. If not, it writes `.balakit
 | Flag | Mid-plan waits | At the plan |
 | --- | --- | --- |
 | (default) | Asks when blocked | Writes the plan. Stops. Recommends `execute` |
-| `--circuit` | Auto-accepts recommended | Writes the plan. Stops. No extra ask |
+| `--brake` | Auto-accepts recommended | Writes the plan. Stops. No extra ask |
 | `--autopilot` | Auto-accepts recommended | Writes the plan, then runs `execute` |
 
-If Plan Mode is on, `--autopilot` degrades to circuit (Plan Mode cannot implement). Accept the plan, leave Plan Mode, then `/execute`.
+If Plan Mode is on, `--autopilot` degrades to brake (Plan Mode cannot implement). Accept the plan, leave Plan Mode, then `/execute`.
 
 **Say:** `/inception add team-level API keys`
 
@@ -198,10 +198,10 @@ NotebookLM CLI (`nlm`) and MCP: notebooks, sources, audio/video/slides, research
 | Flag | Meaning |
 | --- | --- |
 | (none) | Interactive. Ask when blocked. |
-| `--circuit` | Skip mid-run waits. Still do the work. |
+| `--brake` | Skip mid-run waits. Still do the work. `--circuit` is an alias. |
 | `--autopilot` | Take recommended choices and continue. |
 
-On `inception`, circuit silent-stops at the plan. Only `--autopilot` runs `execute`.
+On `inception`, brake silent-stops at the plan. Only `--autopilot` runs `execute`.
 
 Checkpoints inspect live tools and call the harness Question UI (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) in plain English (max 4 options). Report prose appears before the blocking tool call. The last option is always `Say this in plain English`, which rephrases with an example instead of advancing.
 

@@ -60,7 +60,7 @@ No menus: pass `-y`. Guided setup: `npx balakit` with no flags.
 After `init`, plan without hunting the skills table:
 
 - `/inception <request>` asks when blocked. In Agent mode it writes `.balakit/plans/<slug>.md`.
-- `/inception --circuit <request>` skips waits and stops at the plan.
+- `/inception --brake <request>` skips waits and stops at the plan.
 - `/inception --autopilot <request>` writes the plan, then runs `execute` (degrades if Plan Mode is on).
 
 Full contract: [inception](docs/skills.md#inception).
@@ -95,7 +95,7 @@ Ask the agent by name. One sentence each. Full pages: [Skills](docs/skills.md).
 | Workers research, then build (or `--opinion` read-only) | [`execute`](docs/skills.md#execute) | Parallel takes across worker slots (`--opinion` stops before edits) |
 | Make it ready for real users | [`trl`](docs/skills.md#trl) | Scores a TRL 1–9 per area with a blind agent panel, then builds toward the next level |
 
-`dissect`, `deep-deliberation`, and `inception` share `--circuit` (skip waits) and `--autopilot` (take recommended choices). On `inception`, circuit still **stops at the plan**. Only `--autopilot` runs `execute`. Interactive checkpoints call each harness's native Question UI (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) with at most 4 options and `Say this in plain English` last.
+`dissect`, `deep-deliberation`, and `inception` share `--brake` (skip waits) and `--autopilot` (take recommended choices). `--circuit` still works (alias of `--brake`). On `inception`, brake still **stops at the plan**. Only `--autopilot` runs `execute`. Interactive checkpoints call each harness's native Question UI (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) with at most 4 options and `Say this in plain English` last.
 
 ### Prove behavior
 

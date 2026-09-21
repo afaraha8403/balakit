@@ -6,7 +6,7 @@ description: >-
   boundary) against ground truth from multiple sources at once, red-teams each
   verdict devil's-advocate style, and arrives at the minimal-build optimization
   plan. Runs as a staged pipeline with human checkpoints and parallel read-only
-  sub-agents so each investigation stays laser-focused. Optional --circuit skips
+  sub-agents so each investigation stays laser-focused. Optional --brake skips
   intermediate checkpoint waits and asks at the final recommendation; --autopilot
   takes recommended choices and proceeds. Use when the user invokes /dissect, or
   asks to audit / optimize / challenge / "tear apart" an existing system, schema,
@@ -14,7 +14,7 @@ description: >-
   plan in place — never rewrite it. Use inception to author a new plan.
 user-invocable: true
 disable-model-invocation: true
-version: "2.7.0"
+version: "2.8.0"
 author: "Ali Farahat"
 tags: ["dissect", "audit", "red-team", "minimal-build", "refactor", "ground-truth", "orchestration"]
 ---
@@ -23,23 +23,24 @@ tags: ["dissect", "audit", "red-team", "minimal-build", "refactor", "ground-trut
 
 > **Leading words:** dissect, ground truth, entity-level, minimal-build,
 > red-team, evidence-backed, stub detection, naming audit, fold test,
-> phase separation, patch in place, circuit, autopilot, plain question.
+> phase separation, patch in place, brake, autopilot, plain question.
 
 Systematically interrogate and optimize an existing service, written plan, or
 system. The goal is not to rubber-stamp the current design — it is to arrive at
 the **minimal-build plan** that correctly meets the requirements, by challenging
 every assumption with live evidence and an adversarial review panel.
 
-**Trigger:** `/dissect [--circuit|--autopilot] <target>` where `<target>` is a
+**Trigger:** `/dissect [--brake|--autopilot] <target>` where `<target>` is a
 service name, plan file path, codebase area, or free-form description. If
 omitted, ask. Pace flags are optional; default is interactive (stop at every
 checkpoint).
 
 `dissect` is the backward-looking counterpart to `deep-deliberation`. They share
 DNA — parallel read-only sub-agents, devil's-advocate red-teaming, human
-checkpoints, evidence over intent, and the same `--circuit` / `--autopilot`
+checkpoints, evidence over intent, and the same `--brake` / `--autopilot`
 grammar — but point in opposite directions: deliberation designs what to build;
-dissect audits what already exists.
+dissect audits what already exists. `--circuit` remains a supported alias of
+`--brake`.
 
 ---
 
@@ -50,8 +51,10 @@ $ARGUMENTS
 ```
 
 Parse a pace flag from arguments **before** treating the rest as `<target>`:
-`--circuit`, `--autopilot`, `--auto` (alias of `--autopilot`). Strip the flag
-from the target string. If both circuit and autopilot appear, autopilot wins.
+`--brake`, `--circuit` (alias of `--brake`), `--autopilot`, `--auto` (alias of
+`--autopilot`). Strip the flag from the target string. Canonical name is
+**brake**. `--circuit` and the word `circuit` mean brake. If both brake and
+autopilot appear, autopilot wins. Reconstructing state: `circuit` → `brake`.
 
 ---
 
@@ -60,15 +63,15 @@ from the target string. If both circuit and autopilot appear, autopilot wins.
 Default is **interactive**: stop and wait at every checkpoint.
 
 The user must opt in **this invocation** — a flag above, or an explicit phrase
-(`circuit`, `autopilot`, `take recommended`, `circuit the rest`,
-`autopilot the rest`). Do not infer from urgency, "just audit this", or a
+(`brake`, `circuit`, `autopilot`, `take recommended`, `brake the rest`,
+`circuit the rest`, `autopilot the rest`). Do not infer from urgency, "just audit this", or a
 desire to move fast. Mid-run, the same phrases switch mode from the current
-checkpoint. `stop circuit` / `stop autopilot` drops back to interactive.
+checkpoint. `stop brake` / `stop circuit` / `stop autopilot` drops back to interactive.
 
 | Mode | Intermediate checkpoints (1–2) | Final checkpoint (3) |
 |---|---|---|
 | `interactive` | Stop and wait | Stop and wait. Do not proceed until they ask |
-| `--circuit` | Auto-accept the recommended choice; log and continue | Stop. Ask whether to go ahead with the final recommendation |
+| `--brake` | Auto-accept the recommended choice; log and continue | Stop. Ask whether to go ahead with the final recommendation |
 | `--autopilot` | Auto-accept; log and continue | Auto-accept. Treat the recommendation as the way to proceed |
 
 **Skip the wait, not the work.** Stages, evidence, red-team, and the naming
@@ -77,30 +80,30 @@ audit still run. Emit a compact `PACE_LOG` of every auto-accepted choice.
 **Cannot proceed:** if there is no unique recommendation (tie, empty shortlist,
 pipeline wants to go backward), stop and ask even on autopilot.
 
-**Proceed** (autopilot, or circuit after the user says go ahead):
+**Proceed** (autopilot, or brake after the user says go ahead):
 
 - Plan Mode / existing plan file: apply the surgical patch map. Do not
   implement code unless they also asked to implement.
 - Otherwise: start executing the recommended ToT / execution branch.
 
-Discrepancies still surface (principle 9). Circuit holds them for the final
+Discrepancies still surface (principle 9). Brake holds them for the final
 ask. Autopilot logs the recommended resolution in `PACE_LOG` and the report;
 never drop them.
 
 **Interactive final footer.** On Checkpoint 3 only, when this run is
 interactive, append the block below **verbatim at the end of the Stage 4
 markdown report, right BEFORE invoking the blocking Checkpoint 3 question tool**.
-Omit it under `--circuit` / `--autopilot`. Do not paraphrase.
+Omit it under `--brake` / `--autopilot`. Do not paraphrase.
 
 ```markdown
 ⚡ **Skip the waits next time**
 
 This run was **interactive** — a stop at every checkpoint. Same skill, two other paces:
 
-- `--circuit` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
+- `--brake` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
 - `--autopilot` — take every recommended choice, including the last, and proceed without waiting.
 
-`/dissect --circuit <target>` · `/dissect --autopilot <target>`
+`/dissect --brake <target>` · `/dissect --autopilot <target>`
 ```
 
 ---
@@ -139,7 +142,7 @@ In the **same turn** after emitting the stage report markdown: inspect your live
    that declares "VERDICT: DROP" unprompted is overstepping. Synthesis happens in
    the main context where all evidence is held together.
 9. **Escalate discrepancies, don't resolve them silently.** If code says X and the
-   plan says Y, surface both. Interactive: wait at the checkpoint. `--circuit`:
+   plan says Y, surface both. Interactive: wait at the checkpoint. `--brake`:
    hold them for the final ask. `--autopilot`: log the recommended resolution
    in `PACE_LOG` and the report; never drop them.
 10. **Patch in place — never rewrite the live plan.** If the session is in Cursor
@@ -186,7 +189,7 @@ Progress:
 > **Right-size the pipeline.** This is heavy. For a small target (a handful of
 > entities, one file) collapse Stages 0–2 into a single pass and skip the parallel
 > fan-out — but never skip the naming audit. Checkpoint 1 **wait** is skippable
-> only under `--circuit` / `--autopilot`.
+> only under `--brake` / `--autopilot`.
 
 ---
 
@@ -227,7 +230,7 @@ Interactive: invoke the host's native question tool (`header: "Checkpoint 1"`, *
   3. `Change what we're reviewing first`
   4. `Say this in plain English`
 
-`--circuit` / `--autopilot`: log the proposed names and scope as auto-accepted
+`--brake` / `--autopilot`: log the proposed names and scope as auto-accepted
 (`PACE_LOG`) and continue. A mismatch here changes the verdicts in every later
 stage.
 
@@ -298,7 +301,7 @@ Interactive: invoke the host's native question tool (`header: "Checkpoint 2"`, *
   3. `Inspect one piece closer`
   4. `Say this in plain English`
 
-`--circuit` / `--autopilot`: log the proposed verdicts as auto-accepted and
+`--brake` / `--autopilot`: log the proposed verdicts as auto-accepted and
 continue.
 
 ---
@@ -384,8 +387,8 @@ If the session is in Cursor or Claude Plan Mode, or the target is an existing pl
 Lead with one plain-English sentence a product owner could repeat, followed by the Stage 4 report (and patch map if patching a plan).
 
 - **Interactive:** append the `⚡ Skip the waits next time` footer verbatim at the end of the markdown report, **then** invoke the host's native question tool (`header: "Checkpoint 3"`, **4 options**) and stop. Do not implement or edit the plan file until confirmed.
-- **`--circuit`:** omit the interactive footer, invoke the Checkpoint 3 native question tool, and stop.
-- **`--autopilot`**, or **circuit after confirmation:** proceed as defined under Pace modes.
+- **`--brake`:** omit the interactive footer, invoke the Checkpoint 3 native question tool, and stop.
+- **`--autopilot`**, or **brake after confirmation:** proceed as defined under Pace modes.
 
 Checkpoint 3 question (`header: "Checkpoint 3"`, **4 options**):
 - **Question:** `I recommend "[short branch name]": [one-line why]. Go with that?`

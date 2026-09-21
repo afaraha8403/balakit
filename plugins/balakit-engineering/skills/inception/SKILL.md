@@ -3,14 +3,14 @@ name: inception
 description: >-
   Produces a durable, file-level implementation plan by loosely composing
   Balakit specialists. Stops before code except --autopilot, which then runs
-  execute. Default interactive; --circuit skips mid-plan waits and silent-stops
+  execute. Default interactive; --brake skips mid-plan waits and silent-stops
   at the plan. Apply when the user invokes inception or /inception, or wants a
   long-running detailed plan. If host Plan Mode is on, write into that native
   plan. If not, write .balakit/plans/<slug>.md. Use dissect to audit an existing
   plan. Use deep-deliberation to pick among approaches. Use execute to implement.
 user-invocable: true
 disable-model-invocation: true
-version: "1.3.0"
+version: "1.4.0"
 author: "Ali Farahat"
 tags: ["planning", "orchestration", "inception"]
 ---
@@ -18,7 +18,7 @@ tags: ["planning", "orchestration", "inception"]
 # Inception
 
 > **Leading words:** host canvas, one canvas, specialist catalog, depth bar,
-> skip the wait not the work, circuit, autopilot.
+> skip the wait not the work, brake, autopilot.
 
 Inception authors a plan. It does not implement — except `--autopilot`, which
 writes the plan then runs `execute` in this chat.
@@ -30,28 +30,31 @@ $ARGUMENTS
 ```
 
 Parse a pace flag **before** treating the rest as the request:
-`--circuit`, `--autopilot`, `--auto` (alias of `--autopilot`). Strip the flag
-from the request text. If both circuit and autopilot appear, autopilot wins.
+`--brake`, `--circuit` (alias of `--brake`), `--autopilot`, `--auto` (alias of
+`--autopilot`). Strip the flag from the request text. Canonical name is
+**brake**. `--circuit` and the word `circuit` mean brake. If both brake and
+autopilot appear, autopilot wins. Reconstructing state: `circuit` → `brake`.
 
 ## Pace modes (optional)
 
 Default is **interactive**: ask when blocked or the choice is costly.
 
 The user must opt in **this invocation** — a flag above, or an explicit phrase
-(`circuit`, `autopilot`, `take recommended`, `circuit the rest`,
-`autopilot the rest`). Do not infer from urgency. Mid-run, the same phrases
-switch mode from the current checkpoint. `stop circuit` / `stop autopilot`
+(`brake`, `circuit`, `autopilot`, `take recommended`, `brake the rest`,
+`circuit the rest`, `autopilot the rest`). Do not infer from urgency. Mid-run, the same phrases
+switch mode from the current checkpoint. `stop brake` / `stop circuit` / `stop autopilot`
 drops back to interactive.
 
 | Mode | Mid-plan waits | At the plan |
 |---|---|---|
 | `interactive` | Ask. Clarify. Wait. | Write plan. **Stop.** Recommend `execute`. |
-| `--circuit` | Auto-accept recommended. `PACE_LOG`. | Write plan. **Stop.** Recommend `execute`. No extra ask. |
+| `--brake` | Auto-accept recommended. `PACE_LOG`. | Write plan. **Stop.** Recommend `execute`. No extra ask. |
 | `--autopilot` | Auto-accept. `PACE_LOG`. | Write plan. **Run `execute`** (auto-pick distinct families; execute's interactive default is Current-for-all). |
 
-This skill shares `--circuit` / `--autopilot` grammar with `dissect` and
-`deep-deliberation`. The **final gate differs**: circuit silent-stops. Only
-autopilot crosses into `execute`.
+This skill shares `--brake` / `--autopilot` grammar with `dissect` and
+`deep-deliberation`. `--circuit` remains a supported alias of `--brake`. The
+**final gate differs**: brake silent-stops. Only autopilot crosses into
+`execute`.
 
 **Skip the wait, not the work.** Specialists still run when they apply. Emit a
 compact `PACE_LOG` of every auto-accepted choice.
@@ -60,7 +63,7 @@ compact `PACE_LOG` of every auto-accepted choice.
 Stop and ask even on autopilot.
 
 **Plan Mode vs autopilot:** host Plan Mode cannot implement. Do not
-`SwitchMode` / `ExitPlanMode` to run `execute`. Degrade to circuit.
+`SwitchMode` / `ExitPlanMode` to run `execute`. Degrade to brake.
 `skip: plan-mode` in `PACE_LOG`. Tell them to accept / Build / leave Plan Mode,
 then `/execute`.
 
@@ -83,7 +86,7 @@ Start every pipeline response with this block and update it mechanically:
 ```text
 INCEPTION_STATE
 stage: frame | specialists | write | done
-pace: interactive | circuit | autopilot
+pace: interactive | brake | autopilot
 host: cursor | claude-code | opencode | copilot | codex | other
 plan_mode: on | off
 canvas: unset | <path or host-uri>
@@ -102,7 +105,7 @@ Copy these steps into the todo list verbatim. Skip with `skip: <reason>`.
 3. Frame: outcome, constraints, non-goals, named data shape if it is already knowable. Interactive: ask only when blocked or the choice is costly.
 4. Pull specialists from [references/specialists.md](references/specialists.md). Each unused row stays in the list with `skip: <reason>`.
 5. Write the plan onto the canvas. Meet [references/depth-bar.md](references/depth-bar.md). Host-native format when Plan Mode is on.
-6. Interactive / `--circuit`: stop. Recommend `execute`. `--autopilot`: if `plan_mode: on`, degrade (`skip: plan-mode`); else run `execute` with auto-pick roster.
+6. Interactive / `--brake`: stop. Recommend `execute`. `--autopilot`: if `plan_mode: on`, degrade (`skip: plan-mode`); else run `execute` with auto-pick roster.
 
 ## Canvas
 
@@ -133,7 +136,7 @@ Fall back to a numbered plain-text list only when zero question tools are declar
 - Custom path → they name it (or enter it in the widget's free-text field). Refuse `.balakit/installed.json`, `skills/`,
   and a second file when a host plan is already live.
 
-`--circuit` / `--autopilot`: skip the ask. Default `.balakit/plans/<slug>.md`.
+`--brake` / `--autopilot`: skip the ask. Default `.balakit/plans/<slug>.md`.
 
 Mental `--against` points at the canvas path. Do not copy the plan into Mental.
 
@@ -141,16 +144,16 @@ Mental `--against` points at the canvas path. Do not copy the plan into Mental.
 
 ```text
 Playbook: inception
-pace: interactive | circuit | autopilot
+pace: interactive | brake | autopilot
 canvas: <path or host-uri>
 specialists: <pulled>, skipped: <name (reason)>, …
 ```
 
-Then: the plan lives at `canvas`. Interactive and circuit recommend `execute`
+Then: the plan lives at `canvas`. Interactive and brake recommend `execute`
 next (not exclusive: `kit-workflows` — including `playbooks/custom.md` — may still consume
 it). Autopilot continues into `execute` unless `skip: plan-mode`.
 
-Interactive final footer, last block, verbatim. Omit under `--circuit` /
+Interactive final footer, last block, verbatim. Omit under `--brake` /
 `--autopilot`. Do not paraphrase.
 
 ```markdown
@@ -158,10 +161,10 @@ Interactive final footer, last block, verbatim. Omit under `--circuit` /
 
 This run was **interactive** — questions when blocked. Same skill, two other paces:
 
-- `--circuit` — skip mid-plan waits, write the plan, stop. Recommend execute. No extra ask.
-- `--autopilot` — skip waits, write the plan, run execute (auto-pick). Degrades to circuit if Plan Mode is on.
+- `--brake` — skip mid-plan waits, write the plan, stop. Recommend execute. No extra ask.
+- `--autopilot` — skip waits, write the plan, run execute (auto-pick). Degrades to brake if Plan Mode is on.
 
-`/inception --circuit <request>` · `/inception --autopilot <request>`
+`/inception --brake <request>` · `/inception --autopilot <request>`
 ```
 
 ## References

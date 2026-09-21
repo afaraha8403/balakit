@@ -2,7 +2,7 @@
 name: deep-deliberation
 description: >-
   Runs a checkpoint-gated decision process for consequential, forward-looking
-  design choices. Optional --circuit skips intermediate checkpoint waits and
+  design choices. Optional --brake skips intermediate checkpoint waits and
   asks at the final recommendation; --autopilot takes recommended choices and
   proceeds to implement. Use only when the user explicitly invokes
   deep-deliberation to compare approaches, challenge assumptions, and reach an
@@ -10,7 +10,7 @@ description: >-
   Use dissect instead to audit an existing system or written plan.
 user-invocable: true
 disable-model-invocation: true
-version: "2.5.0"
+version: "2.6.0"
 author: "Ali Farahat"
 tags: ["decision-making", "red-team", "evidence", "orchestration"]
 ---
@@ -19,7 +19,7 @@ tags: ["decision-making", "red-team", "evidence", "orchestration"]
 
 > **Leading words:** option tree, evidence tournament, reversibility,
 > adversarial review, premortem, uncertainty, checkpoint, ground truth,
-> circuit, autopilot, plain question.
+> brake, autopilot, plain question.
 
 Deep Deliberation frames a consequential decision, compares viable alternatives,
 tests them against evidence, and adjudicates unresolved risks. The pipeline
@@ -33,23 +33,25 @@ $ARGUMENTS
 ```
 
 Parse a pace flag from arguments **before** treating the rest as the decision:
-`--circuit`, `--autopilot`, `--auto` (alias of `--autopilot`). Strip the flag
-from the decision text. If both circuit and autopilot appear, autopilot wins.
+`--brake`, `--circuit` (alias of `--brake`), `--autopilot`, `--auto` (alias of
+`--autopilot`). Strip the flag from the decision text. Canonical name is
+**brake**. `--circuit` and the word `circuit` mean brake. If both brake and
+autopilot appear, autopilot wins. Reconstructing state: `circuit` → `brake`.
 
 ## Pace modes (optional)
 
 Default is **interactive**: stop and wait at every checkpoint.
 
 The user must opt in **this invocation** — a flag above, or an explicit phrase
-(`circuit`, `autopilot`, `take recommended`, `circuit the rest`,
-`autopilot the rest`). Do not infer from urgency. Mid-run, the same phrases
-switch mode from the current checkpoint. `stop circuit` / `stop autopilot`
+(`brake`, `circuit`, `autopilot`, `take recommended`, `brake the rest`,
+`circuit the rest`, `autopilot the rest`). Do not infer from urgency. Mid-run, the same phrases
+switch mode from the current checkpoint. `stop brake` / `stop circuit` / `stop autopilot`
 drops back to interactive.
 
 | Mode | Intermediate checkpoints (1–2) | Final checkpoint (3) |
 |---|---|---|
 | `interactive` | Stop and wait | Stop and wait. Do not implement until a separate ask |
-| `--circuit` | Auto-accept the recommended choice; log and continue | Stop. Ask whether to go ahead with the final recommendation |
+| `--brake` | Auto-accept the recommended choice; log and continue | Stop. Ask whether to go ahead with the final recommendation |
 | `--autopilot` | Auto-accept; log and continue | Auto-accept. Treat the recommendation as the way to proceed |
 
 **Skip the wait, not the work.** Stages, evidence tournament, and adjudication
@@ -59,27 +61,28 @@ still run. Emit a compact `PACE_LOG` of every auto-accepted choice.
 invalidated, return to Stage 1 required, degraded delegates below minimum),
 stop and ask even on autopilot.
 
-**Proceed** (autopilot, or circuit after the user says go ahead): accept the
+**Proceed** (autopilot, or brake after the user says go ahead): accept the
 recommendation as the decision and start implementing it. That is the way
 forward. The decision record is still emitted first.
 
-This skill shares `--circuit` / `--autopilot` grammar with `dissect`.
+This skill shares `--brake` / `--autopilot` grammar with `dissect`.
+`--circuit` remains a supported alias of `--brake`.
 
 **Interactive final footer.** On Checkpoint 3 only, when this run is
 interactive, append the block below **verbatim at the very end of the Final
 markdown report, right BEFORE invoking the blocking Checkpoint 3 question tool**
 (so the user sees the report + footer immediately above the graphical question
-widget). Omit it under `--circuit` / `--autopilot`. Do not paraphrase.
+widget). Omit it under `--brake` / `--autopilot`. Do not paraphrase.
 
 ```markdown
 ⚡ **Skip the waits next time**
 
 This run was **interactive** — a stop at every checkpoint. Same skill, two other paces:
 
-- `--circuit` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
+- `--brake` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
 - `--autopilot` — take every recommended choice, including the last, and proceed without waiting.
 
-`/deep-deliberation --circuit <decision>` · `/deep-deliberation --autopilot <decision>`
+`/deep-deliberation --brake <decision>` · `/deep-deliberation --autopilot <decision>`
 ```
 
 ## User questions (Native Question UI)
@@ -105,7 +108,7 @@ In the **same turn** after emitting the complete stage report markdown: inspect 
 - Treat isolated delegates as separate contexts, not independent authorities.
 - Never invent missing delegate findings or unsupported evidence.
 - Interactive: stop after every checkpoint; continue only after the user
-  explicitly responds. `--circuit` / `--autopilot`: skip waits as in Pace modes.
+  explicitly responds. `--brake` / `--autopilot`: skip waits as in Pace modes.
 - The user may revise, restart, or end the pipeline at any checkpoint.
 - A meta question (including `Say this in plain English`) does not
   advance the state; rephrase, re-ask, remain at the current checkpoint.
@@ -118,7 +121,7 @@ Start every pipeline response with this block and update it mechanically:
 DELIBERATION_STATE
 stage: 1 | 2 | 3
 checkpoint: none | 1 | 2 | 3
-mode: interactive | circuit | autopilot
+mode: interactive | brake | autopilot
 shortlist: unset | A,B
 delegate_results: 0/N
 next_action: one action only
@@ -132,18 +135,18 @@ completed template and ask a **plain question** before advancing.
 1. **Stage 1 — Frame and shortlist:** define the decision, generate 3–5
    approaches, and shortlist the strongest two.
 2. **Checkpoint 1:** user approves the framing and shortlist (auto-accepted
-   under `--circuit` / `--autopilot`).
+   under `--brake` / `--autopilot`).
 3. **Stage 2 — Evidence tournament:** 3–5 focused reviewers compare both
    shortlisted approaches using a normalized evidence contract.
 4. **Checkpoint 2:** user reviews findings and unresolved disputes
-   (auto-accepted under `--circuit` / `--autopilot`).
+   (auto-accepted under `--brake` / `--autopilot`).
 5. **Stage 3 — Adjudication:** targeted evidence review and premortem produce the
    final recommendation.
-6. **Checkpoint 3:** interactive waits; `--circuit` asks whether to go ahead;
+6. **Checkpoint 3:** interactive waits; `--brake` asks whether to go ahead;
    `--autopilot` proceeds.
 
 No implementation follows automatically unless `--autopilot` is on, or the user
-says go ahead at the circuit ask.
+says go ahead at the brake ask.
 
 ## Stage 1 — Frame and shortlist
 
@@ -158,7 +161,7 @@ written, recommend `dissect` instead.
 If two cheap throwaway sketches would settle the fork, offer that **prototype
 off-ramp** before Stage 1: scratch dir, no pipeline, observe the behavior,
 then resume here with evidence. Skip with `skip: shape already concrete` or
-`skip: pace mode` under `--circuit` / `--autopilot`. Interactive off-ramp
+`skip: pace mode` under `--brake` / `--autopilot`. Interactive off-ramp
 ask via the native question tool (`header: "Quick spike"`):
 
 - **Question:** `Two quick throwaway sketches might settle this faster than a full comparison. Try that first?`
@@ -190,7 +193,7 @@ sketch when the same workaround repeats.
 
 Read [references/output_templates.md](references/output_templates.md), emit the
 complete Stage 1 template, set `checkpoint: 1`. Interactive: stop.
-`--circuit` / `--autopilot`: log the shortlist as auto-accepted and continue to
+`--brake` / `--autopilot`: log the shortlist as auto-accepted and continue to
 Stage 2.
 
 Checkpoint 1 choices (interactive) — invoke the host's native question tool (`header: "Checkpoint 1"`, **4 options**):
@@ -250,7 +253,7 @@ A blocker without evidence is `unverified`, not fatal.
 
 Read [references/output_templates.md](references/output_templates.md), emit the
 complete Stage 2 template, set `checkpoint: 2`. Interactive: stop.
-`--circuit` / `--autopilot`: log the synthesis as auto-accepted and continue to
+`--brake` / `--autopilot`: log the synthesis as auto-accepted and continue to
 Stage 3, unless `Return to Stage 1 required: yes` (then stop even on autopilot).
 
 Checkpoint 2 choices (interactive) — invoke the host's native question tool (`header: "Checkpoint 2"`, **4 options**):
@@ -295,10 +298,10 @@ Read [references/output_templates.md](references/output_templates.md), emit the
 complete Final template, set `checkpoint: 3`.
 
 - **Interactive:** append the interactive final footer verbatim at the end of the markdown report, **then** invoke the Checkpoint 3 native question tool and stop. Do not implement until confirmed.
-- **`--circuit`:** omit the interactive footer, invoke the Checkpoint 3 native question tool, and stop. If they say no, stay at this checkpoint.
-- **`--autopilot`**, or **circuit after they say go ahead:** proceed — accept the recommendation and start implementing it.
+- **`--brake`:** omit the interactive footer, invoke the Checkpoint 3 native question tool, and stop. If they say no, stay at this checkpoint.
+- **`--autopilot`**, or **brake after they say go ahead:** proceed — accept the recommendation and start implementing it.
 
-Checkpoint 3 choices (interactive / circuit) — invoke the host's native question tool (`header: "Checkpoint 3"`, **4 options**):
+Checkpoint 3 choices (interactive / brake) — invoke the host's native question tool (`header: "Checkpoint 3"`, **4 options**):
 
 - **Question:** `I recommend "[chosen]": [one-line why]. Make that the decision?`
 - **Options (4):**
@@ -327,7 +330,7 @@ Before declaring the pipeline complete, verify:
 - Material disagreements remain visible.
 - The recommendation states what evidence would overturn it.
 - No implementation occurred before Checkpoint 3 was accepted (interactive /
-  circuit wait) or auto-accepted (`--autopilot`).
+  brake wait) or auto-accepted (`--autopilot`).
 - Interactive Checkpoint 3 included the pace-mode footer at the end of the markdown report right before invoking the Checkpoint 3 question tool.
 
 ## References

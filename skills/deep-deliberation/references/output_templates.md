@@ -3,14 +3,14 @@
 Use these structures exactly. Fill every section; write `None` when a section
 has no content. Do not replace them with an unstructured narrative.
 
-Always set `mode:` in `DELIBERATION_STATE` (`interactive` | `circuit` |
-`autopilot`).
+Always set `mode:` in `DELIBERATION_STATE` (`interactive` | `brake` |
+`autopilot`). A reconstructed `circuit` is `brake`.
 
-When `mode` is `circuit` or `autopilot` and this is **not** the final
+When `mode` is `brake` or `autopilot` and this is **not** the final
 checkpoint: `next_action` is the next stage, not a wait. Replace the
 `## Checkpoint N` ask with a `## PACE_LOG` of the auto-accepted choice.
 
-When `mode` is `circuit` at Checkpoint 3: keep the ask (plain question:
+When `mode` is `brake` at Checkpoint 3: keep the ask (plain question:
 go ahead with this recommendation?).
 
 When `mode` is `autopilot` at Checkpoint 3: `next_action` is the proceed
@@ -21,7 +21,7 @@ are about to take.
 
 When `mode` is `interactive` at Checkpoint 3: append the interactive final
 footer from `SKILL.md` **verbatim** at the very end of the Final markdown
-report, and **then** invoke the host's native structured question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`). Omit the footer when `mode` is `circuit` or `autopilot`. Never print raw `prompt:` / `options:` YAML inside the markdown report!
+report, and **then** invoke the host's native structured question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`). Omit the footer when `mode` is `brake` or `autopilot`. Never print raw `prompt:` / `options:` YAML inside the markdown report!
 
 ## Stage 1 — Frame and shortlist
 
@@ -29,7 +29,7 @@ report, and **then** invoke the host's native structured question tool (`AskUser
 DELIBERATION_STATE
 stage: 1
 checkpoint: 1
-mode: interactive | circuit | autopilot
+mode: interactive | brake | autopilot
 shortlist: A,B
 delegate_results: 0/0
 next_action: Wait for the user's Checkpoint 1 decision.
@@ -84,7 +84,7 @@ Immediately after emitting the Stage 1 markdown above (when `mode` is `interacti
 DELIBERATION_STATE
 stage: 2
 checkpoint: 2
-mode: interactive | circuit | autopilot
+mode: interactive | brake | autopilot
 shortlist: A,B
 delegate_results: [returned]/[launched]
 next_action: Wait for the user's Checkpoint 2 decision.
@@ -128,7 +128,7 @@ Immediately after emitting the Stage 2 markdown above (when `mode` is `interacti
 DELIBERATION_STATE
 stage: 3
 checkpoint: 3
-mode: interactive | circuit | autopilot
+mode: interactive | brake | autopilot
 shortlist: A,B
 delegate_results: [returned]/[launched]
 next_action: Wait for the user's Checkpoint 3 decision.
@@ -179,12 +179,12 @@ the most important uncertainty.]
 
 This run was **interactive** — a stop at every checkpoint. Same skill, two other paces:
 
-- `--circuit` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
+- `--brake` — take the recommended choices through the middle checkpoints, then stop at the final recommendation and ask before proceeding.
 - `--autopilot` — take every recommended choice, including the last, and proceed without waiting.
 
-`/deep-deliberation --circuit <decision>` · `/deep-deliberation --autopilot <decision>`
+`/deep-deliberation --brake <decision>` · `/deep-deliberation --autopilot <decision>`
 ```
 
-*(Omit the `⚡ Skip the waits next time` block above when `mode` is `circuit` or `autopilot`.)*
+*(Omit the `⚡ Skip the waits next time` block above when `mode` is `brake` or `autopilot`.)*
 
-Immediately after emitting the Final markdown above (when `mode` is `interactive` or `circuit`), invoke the host's native question tool (`header: "Checkpoint 3"`, 4 options: `Yes, go with that (Recommended)` / `Pick the other option` / `Revise something first` / `Say this in plain English`). Never echo `prompt:`/`options:` YAML as prose.
+Immediately after emitting the Final markdown above (when `mode` is `interactive` or `brake`), invoke the host's native question tool (`header: "Checkpoint 3"`, 4 options: `Yes, go with that (Recommended)` / `Pick the other option` / `Revise something first` / `Say this in plain English`). Never echo `prompt:`/`options:` YAML as prose.

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changes
+- Pace skills (`dissect`, `deep-deliberation`, `inception`) advertise `--brake` instead of `--circuit`. `--circuit` still works as an alias of `--brake`.
+
 ## [v1.22.2]
 
 ### Fixes
