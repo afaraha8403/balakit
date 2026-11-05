@@ -270,6 +270,7 @@ test("defaultInitSkills honors --rules-only and packaged catalog", () => {
   assert.ok(TEAM_INIT_SKILLS.includes("opinion"));
   assert.ok(TEAM_INIT_SKILLS.includes("execute"));
   assert.ok(TEAM_INIT_SKILLS.includes("inception"));
+  assert.ok(TEAM_INIT_SKILLS.includes("trl"));
 });
 
 test("isHomeCwd is true only when cwd is the home directory", () => {

@@ -95,6 +95,7 @@ Ask the agent by name. One sentence each. Full pages: [Skills](docs/skills.md).
 | A durable, file-level plan | [`inception`](docs/skills.md#inception) | Writes the plan and stops. Recommends `execute` |
 | Parallel takes, no writes | [`opinion`](docs/skills.md#opinion) | Current model by default; auto-pick for other families. This chat does not edit |
 | Workers research, then do the work | [`execute`](docs/skills.md#execute) | Same fan-out, then this chat implements |
+| Make it ready for real users | [`trl`](docs/skills.md#trl) | Scores a TRL 1–9 per area with a blind agent panel, then builds toward the next level |
 
 `dissect`, `deep-deliberation`, and `inception` share `--circuit` (skip waits) and `--autopilot` (take recommended choices). On `inception`, circuit still **stops at the plan**. Only `--autopilot` runs `execute`.
 

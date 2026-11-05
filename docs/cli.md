@@ -61,7 +61,7 @@ Not included: `seo-ai-search` (add it when you need it). Alias: `global` → `ba
 
 ```text
 subsystem-walkthrough, design-rationale, proving-change-safety, kit-workflows,
-unmatched-workflow, dissect, deep-deliberation, inception, opinion, execute,
+unmatched-workflow, dissect, deep-deliberation, inception, opinion, execute, trl,
 generating-app-verify, refreshing-app-verify, blinded-eval,
 authoring-skills-and-rules, documentation-writer, release-deploy
 ```

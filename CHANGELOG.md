@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+- New `trl` skill scores a software Technology Readiness Level (1–9) for an app, a feature, or a narrow improvement, and raises it in a loop. Every cycle a fresh blind panel of three low-context assessor agents scores each area of the software, from core logic through infra, UI/UX, accessibility, security, and docs. The builder then writes the next level's exit criteria as failing checks and builds until they pass. Levels 7–9 are reachable before launch, and each score carries a provenance label (`staged` vs `field`). Installed by default with `init`, and shipped in the `balakit-engineering` plugin.
+
 ## [v1.20.1]
 
 ### Fixes

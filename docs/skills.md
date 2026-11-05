@@ -90,6 +90,25 @@ If you want the plan first, run `inception`. If nobody should write, run `opinio
 
 **Say:** `/execute this canvas` or `/execute add the CSV export`
 
+### `trl`
+
+Scores a software Technology Readiness Level (TRL 1–9) and raises it in a loop. It works on a whole app, one feature, or a narrow improvement. Each in-scope area gets its own score: core logic, data, interfaces, UI/UX, accessibility, performance, security and privacy, infra, observability, reliability, and docs. The overall TRL is the **lowest** area.
+
+Every cycle, three fresh assessor agents score from a thin slice of context. One reads only the repo, one audits the evidence list and re-runs claims, and one hunts for the first level that fails. They never see the target, the builder's own score, or earlier verdicts. The builder then writes the next level's exit criteria as failing checks and builds until they pass.
+
+Levels 7–9 are reachable before launch with evidence from a production-equivalent environment. Scores carry a provenance label (`TRL 8 · staged` vs `TRL 9 · field`). Deploys, paid resources, real accounts, and messages to people always ask first.
+
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--target N` | `8` (launch-ready) | Stop when every area reaches N |
+| `--cycles N` | `5` | Max assess → build cycles (1–12) |
+| `--assess-only` | off | Score and list gaps. No project edits |
+| `--circuit` | off | Skip the baseline checkpoint. Outward-facing asks still happen |
+
+The ledger and evidence list live in `.balakit/trl/<slug>/`.
+
+**Say:** `/trl the CSV export --target 7` or `/trl --assess-only`
+
 ## Prove behavior
 
 These ship with default `init`.

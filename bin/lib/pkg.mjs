@@ -85,6 +85,7 @@ export const TEAM_INIT_SKILLS = Object.freeze([
   "inception",
   "opinion",
   "execute",
+  "trl",
   "generating-app-verify",
   "refreshing-app-verify",
   "blinded-eval",

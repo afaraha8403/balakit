@@ -56,7 +56,7 @@ Yes. `--agents cursor,claude-code,opencode` (or `all`). Only verified skills.sh 
 
 ## Skills installed but the agent never uses them
 
-Ask by name (`/inception`, "use kit-workflows", "dissect the billing service"). Several skills are **manual** (`disable-model-invocation: true`): `inception`, `opinion`, `execute`, `blinded-eval`, `generating-app-verify`, `refreshing-app-verify`, `unmatched-workflow`, `deep-deliberation`, `cloakbrowser-fallback`. The agent will not auto-start those.
+Ask by name (`/inception`, "use kit-workflows", "dissect the billing service"). Several skills are **manual** (`disable-model-invocation: true`): `inception`, `opinion`, `execute`, `trl`, `blinded-eval`, `generating-app-verify`, `refreshing-app-verify`, `unmatched-workflow`, `deep-deliberation`, `cloakbrowser-fallback`. The agent will not auto-start those.
 
 ## I used `npx skills add` and `balakit status` looks empty
 

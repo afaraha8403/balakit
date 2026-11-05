@@ -80,7 +80,7 @@ export const PLUGINS = [
   {
     name: "balakit-engineering",
     description:
-      "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, verification, blinded eval, deliberation, inception, opinion, execute, dissect, docs, release, and stealth browser fallback.",
+      "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, verification, blinded eval, deliberation, inception, opinion, execute, TRL readiness loop, dissect, docs, release, and stealth browser fallback.",
     keywords: [
       "engineering",
       "dissect",
@@ -108,6 +108,7 @@ export const PLUGINS = [
       "refreshing-app-verify",
       "release-deploy",
       "subsystem-walkthrough",
+      "trl",
       "unmatched-workflow",
     ],
   },
