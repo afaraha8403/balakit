@@ -89,7 +89,11 @@ export const AGENTS = [
     agentSkills: "delegated",
     rulesConfidence: "verified",
     source: "https://docs.github.com/en/copilot/concepts/agents/about-agent-skills",
-    detect: (cwd) => existsSync(join(cwd, ".github")),
+    // A bare .github folder is in nearly every GitHub repo; look for Copilot's own files.
+    detect: (cwd, home) =>
+      ["copilot-instructions.md", "instructions", "prompts", "agents", "skills"].some((f) =>
+        existsSync(join(cwd, ".github", f)),
+      ) || existsSync(join(home, ".copilot")),
   },
   {
     id: "cline",
@@ -283,6 +287,16 @@ export function getCapability(id) {
 }
 
 /**
+ * Agents whose folders exist here or in home. Empty when none are found.
+ * @param {string} [cwd]
+ * @param {string} [home]
+ * @returns {string[]}
+ */
+export function detectedAgents(cwd = process.cwd(), home = homedir()) {
+  return AGENTS.filter((a) => a.detect(cwd, home)).map((a) => a.id);
+}
+
+/**
  * Detect which agents appear installed. Falls back to a useful default set.
  * Detection is a recommendation only — never sole authority for writers.
  * @param {string} [cwd]
@@ -290,7 +304,7 @@ export function getCapability(id) {
  * @returns {string[]}
  */
 export function detectAgents(cwd = process.cwd(), home = homedir()) {
-  const found = AGENTS.filter((a) => a.detect(cwd, home)).map((a) => a.id);
+  const found = detectedAgents(cwd, home);
   if (found.length) return found;
   return [...DEFAULT_AGENT_IDS];
 }
@@ -315,11 +329,13 @@ export function skillsUnsupportedAgents(agentIds) {
  * Human-readable capability summary lines for status/list.
  * @param {string[]} [detected]
  */
-export function formatCapabilityMatrix(detected = detectAgents()) {
+export function formatCapabilityMatrix(detected = detectedAgents()) {
   const det = new Set(detected);
-  return AGENTS.map((a) => {
+  const rows = AGENTS.map((a) => {
     const mark = det.has(a.id) ? "*" : " ";
     const skills = a.skillsShId ? `skills=${a.agentSkills}` : "skills=unsupported";
     return `${mark} ${a.id.padEnd(12)} rules=${a.rulesConfidence.padEnd(10)} ${skills} standing=${a.standing}`;
   });
+  if (!det.size) rows.push(`(none detected — without --agents, a first install targets ${DEFAULT_AGENT_IDS.join(", ")})`);
+  return rows;
 }

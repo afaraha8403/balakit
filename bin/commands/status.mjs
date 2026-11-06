@@ -9,102 +9,128 @@ import { CMD, VERSION } from "../lib/pkg.mjs";
 import { printList } from "../lib/args.mjs";
 import {
   readManifest,
-  recordInstall,
   projectManifestPath,
   globalManifestPath,
   isCorruptManifest,
 } from "../lib/manifest.mjs";
 import { hasManagedBlock } from "../lib/render.mjs";
-import { loadRules } from "../lib/catalog.mjs";
+import { loadRules, loadSkills } from "../lib/catalog.mjs";
 import { buildInstallPlan, runInstallPlan } from "../lib/install.mjs";
-import { skillsUpdateCommand, runSkillsCmd } from "../lib/skills-bridge.mjs";
-import { detectAgents, formatCapabilityMatrix } from "../lib/agents.mjs";
+import { verifyScope } from "../lib/verify.mjs";
+import { AGENTS, detectedAgents, formatCapabilityMatrix } from "../lib/agents.mjs";
 import { MENTAL_REPO } from "../lib/mental-moved.mjs";
 import { listCursorLocalPlugins } from "../lib/cursor-native.mjs";
-import {
-  shouldLinkCopilotUserSkills,
-  linkCopilotUserSkills,
-  missingCopilotUserSkills,
-} from "../lib/copilot-native.mjs";
+import { missingCopilotUserSkills } from "../lib/copilot-native.mjs";
 
-export function cmdList() {
-  printList();
+/** `list`: catalog and tool matrix. */
+export function cmdList({ json = false } = {}) {
+  if (!json) {
+    printList();
+    return 0;
+  }
+  const detected = new Set(detectedAgents());
+  console.log(
+    JSON.stringify(
+      {
+        version: VERSION,
+        rules: loadRules().map((r) => ({ name: r.name, description: r.description, alwaysApply: r.always, globs: r.globs || null })),
+        skills: loadSkills().map((x) => ({ name: x.name, description: x.description })),
+        tools: AGENTS.map((a) => ({
+          id: a.id,
+          label: a.label,
+          skills: Boolean(a.skillsShId),
+          standing: a.standing,
+          detected: detected.has(a.id),
+        })),
+      },
+      null,
+      2,
+    ),
+  );
   return 0;
 }
 
 /**
- * Kit health: manifest integrity, AGENTS/CLAUDE drift, leftover Mental, plugins/local,
- * Copilot user-skill dest when Copilot is a selected user agent.
+ * Kit health data for both scopes: manifests vs disk, Cursor plugins/local,
+ * and the Copilot user-skill dest.
+ * @returns {{ issues: string[], warnings: string[], notes: string[], summary: string[], reports: import("../lib/verify.mjs").ScopeReport[], plugins: string[] }}
  */
-export function cmdDoctor({ cwd = process.cwd(), home = homedir() } = {}) {
-  const issues = [];
-  const notes = [];
+export function doctorReport({ cwd = process.cwd(), home = homedir() } = {}) {
   const proj = readManifest(projectManifestPath(cwd));
   const glob = readManifest(globalManifestPath(home));
+  const reports = [verifyScope("project", { cwd, home }), verifyScope("user", { cwd, home })];
+  const issues = reports.flatMap((r) => r.findings.filter((f) => f.level === "issue").map((f) => f.text));
+  const warnings = reports.flatMap((r) => r.findings.filter((f) => f.level === "warn").map((f) => f.text));
+  const notes = [];
+  const summary = [];
 
-  console.log(`${CMD} v${VERSION} — doctor\n`);
-
-  if (isCorruptManifest(proj)) {
-    issues.push("Project manifest is corrupt (.balakit/installed.json)");
-  }
-  if (isCorruptManifest(glob)) {
-    issues.push("User manifest is corrupt (~/.balakit/installed.json)");
-  }
-
-  const liveAgents = hasManagedBlock(join(cwd, "AGENTS.md"));
-  const liveClaude = hasManagedBlock(join(cwd, "CLAUDE.md"));
-  const teamRules = (proj.rules || []).filter((n) => n !== "mental");
-
-  if ((liveAgents || liveClaude) && !teamRules.length && !proj.rules.length) {
-    issues.push("Live managed block in AGENTS.md/CLAUDE.md but empty project manifest");
-  }
-  if (teamRules.length && !liveAgents && !liveClaude) {
-    issues.push("Project manifest lists rules but no managed AGENTS.md/CLAUDE.md block");
+  for (const r of reports) {
+    const m = r.manifest;
+    if (!m.rules.length && !m.skills.length) continue;
+    const total = r.skills.present.length + r.skills.missing.length;
+    summary.push(
+      `${r.scope === "user" ? "User" : "Project"}: ${m.rules.length} rule(s), skills ${r.skills.present.length}/${total} present, tools: ${m.agents.join(", ") || "(none recorded)"}`,
+    );
   }
 
-  if (
-    proj.rules.includes("mental") ||
-    glob.rules.includes("mental") ||
-    proj.skills.includes("mental") ||
-    glob.skills.includes("mental")
-  ) {
+  if ([proj.rules, glob.rules, proj.skills, glob.skills].some((l) => l.includes("mental"))) {
     notes.push(`Ledger still lists mental. Balakit no longer ships it. Run mental doctor — ${MENTAL_REPO}`);
-  }
-
-  const localPlugins = listCursorLocalPlugins(home);
-  console.log("Cursor plugins/local:");
-  if (localPlugins.length) {
-    console.log(`  ${localPlugins.join(", ")}`);
-  } else {
-    console.log("  (none)");
   }
 
   if ((glob.agents || []).includes("copilot") && (glob.skills || []).length) {
     const missing = missingCopilotUserSkills(glob.skills, { home });
-    console.log("Copilot user skills (~/.copilot/skills):");
     if (missing.length) {
-      console.log(`  missing: ${missing.join(", ")}`);
       issues.push(
-        `User manifest lists skills and agent copilot, but ~/.copilot/skills is missing: ${missing.join(", ")}. Rerun \`npx balakit update --scope user\`.`,
+        `User manifest lists skills and agent copilot, but ~/.copilot/skills is missing: ${missing.join(", ")}. Rerun \`npx ${CMD} update --scope user\`.`,
       );
-    } else {
-      console.log(`  ${glob.skills.join(", ")}`);
     }
   }
 
-  if (notes.length) {
-    console.log("\nNotes:");
-    for (const n of notes) console.log(`  ${n}`);
+  return { issues, warnings, notes, summary, reports, plugins: listCursorLocalPlugins(home) };
+}
+
+/**
+ * `doctor`: print kit health. Exit 1 on any issue; warnings alone exit 0.
+ * @param {{ cwd?: string, home?: string, json?: boolean }} [opts]
+ */
+export function cmdDoctor({ cwd = process.cwd(), home = homedir(), json = false } = {}) {
+  const d = doctorReport({ cwd, home });
+  const code = d.issues.length ? 1 : 0;
+
+  if (json) {
+    console.log(
+      JSON.stringify(
+        {
+          ok: code === 0,
+          issues: d.issues,
+          warnings: d.warnings,
+          notes: d.notes,
+          cursorPlugins: d.plugins,
+          scopes: d.reports.map((r) => ({ scope: r.scope, skills: r.skills, brokenLinks: r.brokenLinks, tools: r.manifest.agents })),
+        },
+        null,
+        2,
+      ),
+    );
+    return code;
   }
 
-  if (issues.length) {
-    console.log("\nIssues:");
-    for (const i of issues) console.log(`  ✖ ${i}`);
-    console.log(`\nMental health lives in ${MENTAL_REPO} (\`mental doctor\`).`);
-    return 1;
+  console.log(`${CMD} v${VERSION} — doctor\n`);
+  for (const line of d.summary) console.log(line);
+  if (d.plugins.length) console.log(`Cursor plugins/local: ${d.plugins.join(", ")}`);
+  const section = (title, items, mark) => {
+    if (!items.length) return;
+    console.log(`\n${title}:`);
+    for (const i of items) console.log(`  ${mark}${i}`);
+  };
+  section("Notes", d.notes, "");
+  section("Warnings", d.warnings, "⚠ ");
+  section("Issues", d.issues, "✖ ");
+  if (code) {
+    console.log(`\nFix: npx ${CMD} update   (Mental health: \`mental doctor\`, ${MENTAL_REPO})`);
+    return code;
   }
-
-  console.log("\nKit looks healthy.");
+  console.log(`\nKit looks healthy${d.warnings.length ? " (see warnings)" : ""}.`);
   console.log(`Mental health lives in ${MENTAL_REPO} (\`mental doctor\`).`);
   return 0;
 }
@@ -113,7 +139,24 @@ function mark(path) {
   return existsSync(path) ? "✓" : "·";
 }
 
-export function cmdStatus() {
+function printSkillCounts(report, dir) {
+  const { present, missing } = report.skills;
+  const total = present.length + missing.length;
+  if (!total) return;
+  console.log(`  ${missing.length ? "✖" : "✓"} ${dir}: ${present.length}/${total} recorded skills present${missing.length ? ` (missing: ${missing.join(", ")})` : ""}`);
+  if (report.brokenLinks.length) console.log(`  ✖ broken links: ${report.brokenLinks.join(", ")}`);
+}
+
+export function cmdStatus({ json = false } = {}) {
+  if (json) {
+    const scopes = ["project", "user"].map((scope) => {
+      const r = verifyScope(scope);
+      const { _corrupt, ...manifest } = r.manifest;
+      return { scope, corrupt: Boolean(_corrupt), manifest, skills: r.skills, brokenLinks: r.brokenLinks, findings: r.findings };
+    });
+    console.log(JSON.stringify({ version: VERSION, scopes, detectedTools: detectedAgents() }, null, 2));
+    return 0;
+  }
   const proj = readManifest(projectManifestPath());
   const glob = readManifest(globalManifestPath());
   const cwd = process.cwd();
@@ -142,10 +185,10 @@ export function cmdStatus() {
   console.log(`  AGENTS.md  ${liveAgents ? "✓ balakit block" : "· none"}`);
   console.log(`  CLAUDE.md  ${liveClaude ? "✓ balakit block" : "· none"}`);
 
-  console.log("\nProject Cursor surfaces:");
+  const projReport = verifyScope("project", { cwd, home });
+  console.log("\nProject files on disk:");
   console.log(`  ${mark(join(cwd, ".cursor", "rules"))} .cursor/rules`);
-  console.log(`  ${mark(join(cwd, ".cursor", "skills"))} .cursor/skills`);
-  console.log(`  ${mark(join(cwd, ".agents", "skills"))} .agents/skills`);
+  printSkillCounts(projReport, ".agents/skills");
 
   const teamRules = proj.rules.filter((n) => n !== "mental");
   if ((liveAgents || liveClaude) && !teamRules.length && !proj.rules.length) {
@@ -169,6 +212,7 @@ export function cmdStatus() {
   }
 
   console.log("\nHome surfaces:");
+  printSkillCounts(verifyScope("user", { cwd, home }), "~/.agents/skills");
   console.log(`  ${mark(join(home, ".cursor", "rules"))} ~/.cursor/rules`);
   console.log(`  ${mark(join(home, ".cursor", "skills"))} ~/.cursor/skills`);
   const localPlugins = listCursorLocalPlugins(home);
@@ -187,13 +231,15 @@ export function cmdStatus() {
   }
 
   console.log("\nCapability matrix (* = detected):");
-  console.log(`  ${formatCapabilityMatrix(detectAgents()).join("\n  ")}`);
+  console.log(`  ${formatCapabilityMatrix().join("\n  ")}`);
   return 0;
 }
 
 /**
- * Re-install everything recorded in manifests (except Mental — moved out).
- * @param {{ dryRun?: boolean, yes?: boolean, agents?: string[], scope?: "project"|"user" }} opts
+ * Re-install everything recorded in manifests from this package (except
+ * Mental — moved out). Reinstalling, rather than asking skills.sh to update
+ * in place, also restores skills that were deleted and relinks tool folders.
+ * @param {{ dryRun?: boolean, yes?: boolean, agents?: string[], scope?: "project"|"user", force?: boolean, cursorPlugins?: boolean }} opts
  */
 export async function cmdUpdate(opts = {}) {
   const allRules = loadRules();
@@ -204,77 +250,37 @@ export async function cmdUpdate(opts = {}) {
   p.intro(`${CMD} v${VERSION} — update${opts.dryRun ? "  [dry-run]" : ""}`);
 
   const jobs = [];
-  if (!forced || forced === "project") {
-    const ruleNames = proj.rules.filter((n) => n !== "mental");
-    const skillNames = proj.skills.filter((s) => s !== "mental");
+  for (const [scope, m] of [["project", proj], ["user", glob]]) {
+    if (forced && forced !== scope) continue;
+    const ruleNames = m.rules.filter((n) => n !== "mental");
+    const skillNames = [...new Set(m.skills.filter((s) => s !== "mental"))];
     if (ruleNames.length || skillNames.length) {
-      jobs.push({ scope: "project", ruleNames, skillNames, agents: opts.agents ?? proj.agents });
-    }
-  }
-  if (!forced || forced === "user") {
-    const ruleNames = glob.rules.filter((n) => n !== "mental");
-    const skillNames = glob.skills.filter((s) => s !== "mental");
-    if (ruleNames.length || skillNames.length) {
-      jobs.push({ scope: "user", ruleNames, skillNames, agents: opts.agents ?? glob.agents });
+      jobs.push({ scope, ruleNames, skillNames, agents: opts.agents ?? (m.agents.length ? m.agents : undefined) });
     }
   }
 
   if (!jobs.length) {
-    p.log.warn("Nothing recorded in manifests. Run `balakit init` or `balakit add` first.");
+    p.log.warn(`Nothing recorded in manifests. Run \`${CMD} init\` or \`${CMD} add\` first.`);
     p.outro("Nothing to update.");
     return 0;
   }
 
   let failed = false;
-
   for (const job of jobs) {
-    if (job.ruleNames.length) {
-      const plan = buildInstallPlan({
-        ruleNames: job.ruleNames,
-        skillNames: [],
-        allRules,
-        agents: job.agents,
-        reconcile: true,
-        scope: job.scope,
-      });
-      plan.skills = [];
-      const result = await runInstallPlan(plan, {
-        dryRun: opts.dryRun,
-        yes: opts.yes,
-      });
-      if (result?.cancelled) return 1;
-      if (!result?.ok) failed = true;
-    }
-
-    if (job.skillNames.length) {
-      const cmd = skillsUpdateCommand([...new Set(job.skillNames)], job.scope === "user" ? "global" : "project");
-      if (opts.dryRun) {
-        p.log.step(`Would update ${job.scope} skills:\n${cmd}`);
-      } else {
-        p.log.step(`Updating ${job.scope} skills via skills.sh:\n${cmd}`);
-        const result = runSkillsCmd(cmd);
-        if (!result.ok) {
-          p.log.error("skills.sh update did not complete. Try manually:");
-          p.log.message(cmd);
-          failed = true;
-        }
-      }
-      if (shouldLinkCopilotUserSkills(job.scope, job.agents, job.skillNames)) {
-        const linked = linkCopilotUserSkills(job.skillNames, { dryRun: opts.dryRun });
-        if (linked.written.length) {
-          p.note(
-            linked.written.join("\n"),
-            opts.dryRun ? "Would link Copilot skills" : "Copilot skill links",
-          );
-        }
-        if (linked.notes.length) p.note(linked.notes.join("\n"), "Copilot skill links");
-        if (!opts.dryRun && linked.written.length) {
-          recordInstall("global", { surfaces: ["~/.copilot/skills"] });
-        }
-      }
-    }
+    const plan = buildInstallPlan({
+      ruleNames: job.ruleNames,
+      skillNames: job.skillNames,
+      allRules,
+      agents: job.agents,
+      reconcile: true,
+      scope: job.scope,
+      cursorPlugins: opts.cursorPlugins,
+    });
+    const result = await runInstallPlan(plan, { dryRun: opts.dryRun, yes: opts.yes, force: opts.force });
+    if (result?.cancelled) return result.noTty ? 2 : 1;
+    if (!result?.ok) failed = true;
   }
 
-  p.outro(opts.dryRun ? "Dry-run complete." : failed ? "Finished with errors." : "Updated.");
+  p.outro(opts.dryRun ? "Dry-run complete." : failed ? "Finished with errors — see above." : "Updated.");
   return failed ? 1 : 0;
 }

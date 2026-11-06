@@ -16,13 +16,13 @@ alwaysApply: true
 | CHANGELOG heading | `## [vX.Y.Z]` (or without `v`) | `## [v1.14.0]` |
 | npm | that same `package.json` version | `balakit@1.14.0` (`latest`) or dist-tag `beta` |
 
-Plugin / marketplace `version` fields lockstep with `package.json`. Skill `SKILL.md` `version:` does not. Bump `package.json` only, then `./sync.sh`. Never hand-edit generated plugin versions.
+Generated version fields (plugin or marketplace manifests, lockfiles) follow `package.json`. Bump `package.json` only, then run the project's generate or sync step. Never hand-edit generated versions.
 
 ## Order
 
 1. Cut CHANGELOG `[Unreleased]` into `## [vX.Y.Z]`.
 2. Set `package.json` `"version"` to `X.Y.Z` (no `v`).
-3. `./sync.sh` then `npm test` and `node scripts/check-lockstep.mjs --rebuild --git`.
+3. Run the project's generate or sync step (if any), then its tests and any version-consistency check.
 4. Commit. Tag that commit: `git tag -a vX.Y.Z -m "vX.Y.Z"`.
 5. Push the tag only after the commit is on the release branch. The `v*` workflow creates the GitHub Release and runs `npm publish`. Do **not** also `gh release create` or `npm publish` locally — that duplicates the tag and can publish a different version than the tag.
 

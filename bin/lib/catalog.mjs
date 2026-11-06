@@ -3,7 +3,7 @@
  */
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, basename } from "node:path";
-import { RULES_DIR, SKILLS_DIR, RULE_BUNDLED_SKILLS } from "./pkg.mjs";
+import { RULES_DIR, SKILLS_DIR, RULE_BUNDLED_SKILLS, canonicalizeRuleName } from "./pkg.mjs";
 
 /**
  * Parse one .mdc rule into frontmatter fields, raw text, and body.
@@ -80,3 +80,25 @@ export function bundledSkillsFor(ruleNames) {
 
 /** Truncate a string for display. */
 export const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+/**
+ * Sort CLI names into known rules and skills.
+ * @param {string[]} names
+ * @param {Array<{name: string}>} allRules
+ * @param {Array<{name: string}>} allSkills
+ * @returns {{ ruleNames: string[], skillNames: string[], unknown: string[] }}
+ */
+export function classifyNames(names, allRules, allSkills) {
+  const ruleSet = new Set(allRules.map((r) => r.name));
+  const skillSet = new Set(allSkills.map((s) => s.name));
+  const ruleNames = [];
+  const skillNames = [];
+  const unknown = [];
+  for (const n of names) {
+    const rule = canonicalizeRuleName(n);
+    if (ruleSet.has(rule)) ruleNames.push(rule);
+    else if (skillSet.has(n)) skillNames.push(n);
+    else unknown.push(n);
+  }
+  return { ruleNames, skillNames, unknown };
+}

@@ -12,9 +12,11 @@ Requires [Node.js](https://nodejs.org/) 18 or newer. Run this **in the project d
 npx balakit@latest init -y
 ```
 
-That is standing rules plus default engineering skills, in this repository. Preview with `--dry-run`. Rules only: `--rules-only`. This machine: `--scope user`.
+That is standing rules plus default engineering skills, in this repository. Preview every file with `--dry-run`. Choose tools with `--agents claude-code,cursor`. Rules only: `--rules-only`. This machine: `--scope user`. Specific pieces: `npx balakit init base dissect -y`.
 
-Guided menus: `npx balakit` with no `-y`.
+Guided setup: `npx balakit` with no `-y`. It asks scope, then tools (with what each one receives), then what to install, then shows every file before writing. Re-running it in an installed repo offers **Refresh what's installed**.
+
+Skills come from the balakit package you ran, not from GitHub, so they work offline and match the rules' version. Skills need Node 22.20 or newer; rules work on Node 18.
 
 After install: reload the agent window, then `npx balakit doctor`. Doctor is kit health (manifest drift, leftover Mental names, Cursor `plugins/local`, Copilot `~/.copilot/skills` when Copilot is a selected user agent). Mental health is `mental doctor` in the [Mental CLI](https://github.com/afaraha8403/mental).
 
@@ -64,7 +66,7 @@ Index of generated trees: [plugins/README.md](../plugins/README.md).
 
 ## skills.sh fallback
 
-Clients with no plugin loader, or a single extra skill, can use [skills.sh](https://skills.sh/) ([vercel-labs/skills](https://github.com/vercel-labs/skills)). The BalaKit CLI already does this, pinned to `skills@1.5.25`.
+Clients with no plugin loader, or a single extra skill, can use [skills.sh](https://skills.sh/) ([vercel-labs/skills](https://github.com/vercel-labs/skills)) directly. The BalaKit CLI bundles `skills@1.5.25` and installs from its own package; the commands below pull from GitHub instead.
 
 ```bash
 npx skills add afaraha8403/balakit
@@ -81,7 +83,7 @@ Prefer `npx balakit add dissect` so the kit manifest stays in sync.
 | Manifest | `.balakit/installed.json` | `~/.balakit/installed.json` |
 | Standing | `AGENTS.md` + `CLAUDE.md` managed blocks; `.cursor/rules/*.mdc` | `~/.cursor/rules/*.mdc`; `~/.claude/CLAUDE.md`; `~/.codex/AGENTS.md`; `~/.config/opencode/AGENTS.md` |
 | Skills | skills.sh into the repo; Cursor also gets `.cursor/skills` → `.agents/skills` | skills.sh `-g`; Claude Code often symlinks `~/.claude/skills` to `~/.agents/skills`. User-scope Copilot is a kit post-pass: symlink `~/.copilot/skills/<name>` → `~/.agents/skills/<name>` (not “skills.sh might create it if `~/.copilot` exists”). If `/` still hides personal skills after that dest is populated, that is a VS Code Copilot gap — file it upstream; do not copy the pack into every repo. |
-| Plugins | not copied | every folder under `plugins/` → `~/.cursor/plugins/local/` |
+| Plugins | not copied | opt-in with `--cursor-plugins` (or the wizard question): every folder under `plugins/` → `~/.cursor/plugins/local/`. `remove --cursor-plugins` deletes them |
 
 `add` **reconciles** with the matching manifest so later adds never shrink the managed block.
 
@@ -89,7 +91,7 @@ Prefer `npx balakit add dissect` so the kit manifest stays in sync.
 
 | Agent | Skills (project) | Skills (user) | Standing (project) | Standing (user) |
 | --- | --- | --- | --- | --- |
-| Cursor | `.cursor/skills` **and** `.agents/skills` | `~/.cursor/skills` **and** `~/.agents/skills` | `.cursor/rules/*.mdc` + `AGENTS.md` | `~/.cursor/rules/*.mdc`. Plugins: `~/.cursor/plugins/local/` |
+| Cursor | `.cursor/skills` **and** `.agents/skills` | `~/.agents/skills` (skills.sh treats Cursor as a shared-folder reader) | `.cursor/rules/*.mdc` + `AGENTS.md` | `~/.cursor/rules/*.mdc`. Plugins (opt-in): `~/.cursor/plugins/local/` |
 | Claude Code | `.claude/skills` | `~/.claude/skills` | `CLAUDE.md`; scoped `.claude/rules` | `~/.claude/CLAUDE.md` |
 | Codex | `.agents/skills` | `~/.agents/skills`; skills.sh `-g` may also use `~/.codex/skills` | `AGENTS.md` | `~/.codex/AGENTS.md` |
 | OpenCode | `.opencode/skills` (+ `.agents` / `.claude`) | `~/.agents/skills`; also `~/.config/opencode/skills` | `AGENTS.md` | `~/.config/opencode/AGENTS.md` |
@@ -97,7 +99,9 @@ Prefer `npx balakit add dissect` so the kit manifest stays in sync.
 
 Optional agents (Cline, Kilo, Windsurf, Gemini CLI, Roo, Zed, Amp, Continue, Junie, Amazon Q / Kiro): skills.sh where the id is verified; standing = `AGENTS.md` if that client reads it. Continue and Amazon Q have `standing: none` in the CLI matrix (skills can still install).
 
-`balakit list` and `balakit status` print the capability matrix (`*` = detected). Detection is a hint, not a guarantee. If nothing is detected, the CLI defaults to `cursor`, `claude-code`, and `codex`.
+Each picked tool gets only its own files. The table is in [CLI → Which tools get which files](cli.md#which-tools-get-which-files).
+
+`balakit list` and `balakit status` print the capability matrix (`*` = detected). Detection only seeds the first install. If nothing is detected, a first install uses `cursor`, `claude-code` and `codex`. Later runs use the tools recorded in the manifest. Copilot counts as detected only when Copilot's own files exist (`.github/copilot-instructions.md`, `.github/instructions`, `.github/prompts`, …, or `~/.copilot`), not for any repo with `.github/`.
 
 ## Compatibility snapshot
 

@@ -1,84 +1,32 @@
 // End-to-end: spawn the real CLI against an isolated cwd + HOME.
 // Catches the consumer bugs: no always-on .mdc, no user-home writes,
-// skills.sh never got -g, plugins never copied to ~/.cursor/plugins/local,
+// skills never got -g, plugins never copied to ~/.cursor/plugins/local,
 // and .cursor/skills never linked after a project skill install.
 //
-// Real skills.sh is not invoked. A stub `npx` on PATH pretends it succeeded
-// and writes the directories skills.sh would (network-free).
+// Skills go through the real bundled skills CLI with this package as a local
+// source, so these runs are offline and exercise the same path users get.
 
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import {
-  mkdtempSync,
-  writeFileSync,
-  chmodSync,
-  existsSync,
-  readFileSync,
-  lstatSync,
-  readlinkSync,
-  rmSync,
-} from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, lstatSync, readlinkSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, delimiter, relative } from "node:path";
+import { join, relative } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const CLI = fileURLToPath(new URL("../bin/cli.mjs", import.meta.url));
 
-const NPX_STUB = `#!/usr/bin/env node
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-
-const args = process.argv.slice(2);
-const skills = [];
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === "-s") skills.push(args[++i]);
-}
-const global = args.includes("-g");
-const isSkills = args.some((a) => a === "skills" || String(a).startsWith("skills@"));
-const isAdd = args.includes("add");
-const isRemove = args.includes("remove");
-const isUpdate = args.includes("update");
-
-if (isSkills && isAdd) {
-  const home = process.env.HOME;
-  const cwd = process.cwd();
-  for (const name of skills) {
-    const dest = global
-      ? join(home, ".agents", "skills", name)
-      : join(cwd, ".agents", "skills", name);
-    mkdirSync(dest, { recursive: true });
-    writeFileSync(join(dest, "SKILL.md"), "# " + name + "\\n");
-    if (global) {
-      const cursorDest = join(home, ".cursor", "skills", name);
-      mkdirSync(cursorDest, { recursive: true });
-      writeFileSync(join(cursorDest, "SKILL.md"), "# " + name + "\\n");
-    }
-  }
-  process.exit(0);
-}
-if (isSkills && (isRemove || isUpdate)) process.exit(0);
-process.stderr.write("stub npx: unexpected " + args.join(" ") + "\\n");
-process.exit(1);
-`;
-
 let cwd;
 let home;
-let stubDir;
 
 beforeEach(() => {
   cwd = mkdtempSync(join(tmpdir(), "balakit-e2e-proj-"));
   home = mkdtempSync(join(tmpdir(), "balakit-e2e-home-"));
-  stubDir = mkdtempSync(join(tmpdir(), "balakit-e2e-stub-"));
-  const npx = join(stubDir, "npx");
-  writeFileSync(npx, NPX_STUB);
-  chmodSync(npx, 0o755);
 });
 
 afterEach(() => {
   rmSync(cwd, { recursive: true, force: true });
   rmSync(home, { recursive: true, force: true });
-  rmSync(stubDir, { recursive: true, force: true });
 });
 
 function run(args) {
@@ -92,7 +40,6 @@ function run(args) {
       CI: "1",
       NO_COLOR: "1",
       FORCE_COLOR: "0",
-      PATH: `${stubDir}${delimiter}${process.env.PATH}`,
     },
   });
 }
@@ -106,7 +53,7 @@ test("e2e: project init writes AGENTS.md, always-on .mdc, and project manifest â
   assert.equal(r.status, 0, out(r));
 
   assert.ok(existsSync(join(cwd, "AGENTS.md")));
-  assert.ok(existsSync(join(cwd, "CLAUDE.md")));
+  assert.equal(existsSync(join(cwd, "CLAUDE.md")), false, "Claude Code was not picked");
   assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Meta-Principle/);
   for (const name of ["base", "testing", "comments", "changelog", "release"]) {
     assert.ok(existsSync(join(cwd, ".cursor", "rules", `${name}.mdc`)), name);
@@ -124,18 +71,27 @@ test("e2e: project init writes AGENTS.md, always-on .mdc, and project manifest â
   assert.equal(existsSync(join(cwd, ".github", "instructions")), false);
 });
 
-test("e2e: user init writes home rules, OpenCode AGENTS.md, and copies plugins/local", () => {
-  const r = run(["init", "-y", "--scope", "user", "--agents", "cursor"]);
+test("e2e: user init writes only the picked tools' home files; plugin packs are opt-in", () => {
+  const r = run(["init", "-y", "--scope", "user", "--agents", "cursor,opencode"]);
   assert.equal(r.status, 0, out(r));
 
   assert.ok(existsSync(join(home, ".cursor", "rules", "base.mdc")));
-  assert.ok(existsSync(join(home, ".claude", "CLAUDE.md")));
-  assert.ok(existsSync(join(home, ".codex", "AGENTS.md")));
   assert.ok(existsSync(join(home, ".config", "opencode", "AGENTS.md")));
+  assert.equal(existsSync(join(home, ".claude")), false, "Claude Code was not picked");
+  assert.equal(existsSync(join(home, ".codex")), false, "Codex was not picked");
   assert.ok(existsSync(join(home, ".balakit", "installed.json")));
+  assert.equal(existsSync(join(home, ".cursor", "plugins", "local")), false);
+
+  const withPlugins = run(["update", "-y", "--scope", "user", "--cursor-plugins"]);
+  assert.equal(withPlugins.status, 0, out(withPlugins));
   assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-core")));
   assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-seo-skills")));
-  assert.ok(existsSync(join(home, ".cursor", "skills", "dissect", "SKILL.md")));
+  const again = run(["update", "-y", "--scope", "user"]);
+  assert.match(out(again), /Cursor local plugins/, "an opted-in copy stays maintained");
+  const rm = run(["remove", "--cursor-plugins", "-y"]);
+  assert.equal(rm.status, 0, out(rm));
+  assert.equal(existsSync(join(home, ".cursor", "plugins", "local", "balakit-core")), false);
+  assert.ok(existsSync(join(home, ".agents", "skills", "dissect", "SKILL.md")));
 
   assert.equal(existsSync(join(cwd, "AGENTS.md")), false);
   assert.equal(existsSync(join(cwd, ".balakit", "installed.json")), false);
@@ -163,20 +119,20 @@ test("e2e: add seo-ai-search writes Claude and Copilot twins without shrinking a
   assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Universal SEO|AI Search/);
 });
 
-test("e2e: project skill add uses stub skills.sh then links .cursor/skills", () => {
+test("e2e: project skill add installs from the package then links .cursor/skills", () => {
   const r = run(["add", "dissect", "-y", "--agents", "cursor"]);
   assert.equal(r.status, 0, out(r));
 
   const agentsSkill = join(cwd, ".agents", "skills", "dissect", "SKILL.md");
   const cursorSkill = join(cwd, ".cursor", "skills", "dissect");
-  assert.ok(existsSync(agentsSkill), "stub should land in .agents/skills");
+  assert.ok(existsSync(agentsSkill), "skills CLI should land in .agents/skills");
   assert.ok(existsSync(join(cursorSkill, "SKILL.md")), "CLI should link or copy .cursor/skills/dissect");
   const manifest = JSON.parse(readFileSync(join(cwd, ".balakit", "installed.json"), "utf8"));
   assert.ok(manifest.skills.includes("dissect"));
   assert.equal(existsSync(join(home, ".cursor", "plugins", "local")), false);
 });
 
-test("e2e: user skill add passes -g (dry-run) and copies plugins on apply", () => {
+test("e2e: user skill add passes -g (dry-run) and installs user-wide", () => {
   const preview = run(["add", "dissect", "--dry-run", "--scope", "user", "--agents", "cursor"]);
   assert.equal(preview.status, 0, out(preview));
   assert.match(out(preview), /(^|\s)-g(\s|$)/);
@@ -186,8 +142,8 @@ test("e2e: user skill add passes -g (dry-run) and copies plugins on apply", () =
 
   const r = run(["add", "dissect", "-y", "--scope", "user", "--agents", "cursor"]);
   assert.equal(r.status, 0, out(r));
-  assert.ok(existsSync(join(home, ".cursor", "skills", "dissect", "SKILL.md")));
-  assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-core")));
+  assert.ok(existsSync(join(home, ".agents", "skills", "dissect", "SKILL.md")));
+  assert.equal(existsSync(join(home, ".cursor", "plugins", "local")), false);
   const glob = JSON.parse(readFileSync(join(home, ".balakit", "installed.json"), "utf8"));
   assert.ok(glob.skills.includes("dissect"));
   assert.equal(existsSync(join(home, ".copilot", "skills", "dissect")), false);
@@ -234,7 +190,7 @@ test("e2e: user skill add with copilot links ~/.copilot/skills; remove drops the
 
   const agentsSkill = join(home, ".agents", "skills", "dissect");
   const copilotSkill = join(home, ".copilot", "skills", "dissect");
-  assert.ok(existsSync(join(agentsSkill, "SKILL.md")), "stub should land in ~/.agents/skills");
+  assert.ok(existsSync(join(agentsSkill, "SKILL.md")), "skills CLI should land in ~/.agents/skills");
   assert.ok(lstatSync(copilotSkill).isSymbolicLink(), "CLI should symlink ~/.copilot/skills/dissect");
   assert.equal(
     readlinkSync(copilotSkill),
@@ -248,7 +204,7 @@ test("e2e: user skill add with copilot links ~/.copilot/skills; remove drops the
 
   const doctorOk = run(["doctor"]);
   assert.equal(doctorOk.status, 0, out(doctorOk));
-  assert.match(out(doctorOk), /Copilot user skills/);
+  assert.match(out(doctorOk), /Kit looks healthy/);
 
   rmSync(join(home, ".copilot", "skills"), { recursive: true, force: true });
   const doctorFail = run(["doctor"]);
@@ -265,3 +221,142 @@ test("e2e: user skill add with copilot links ~/.copilot/skills; remove drops the
   assert.equal(existsSync(copilotSkill), false);
 });
 
+
+test("e2e: a prompt with no terminal exits 2 and writes nothing", () => {
+  const r = run(["add", "base"]);
+  assert.equal(r.status, 2, out(r));
+  assert.match(out(r), /no interactive terminal/);
+  assert.equal(existsSync(join(cwd, "AGENTS.md")), false);
+  const wizard = run([]);
+  assert.equal(wizard.status, 2, out(wizard));
+});
+
+test("e2e: a mistyped command errors instead of opening the wizard", () => {
+  const r = run(["stauts"]);
+  assert.equal(r.status, 1, out(r));
+  assert.match(out(r), /Unknown command: stauts â€” did you mean `balakit status`\?/);
+  assert.doesNotMatch(out(r), /guided setup/);
+});
+
+test("e2e: init keeps a Cursor rule the user wrote; --force replaces it with a .bak", () => {
+  const mdc = join(cwd, ".cursor", "rules", "base.mdc");
+  mkdirSync(join(cwd, ".cursor", "rules"), { recursive: true });
+  writeFileSync(mdc, "team rule\n");
+  const r = run(["init", "-y", "--rules-only", "--agents", "cursor"]);
+  assert.equal(r.status, 0, out(r));
+  assert.equal(readFileSync(mdc, "utf8"), "team rule\n");
+  assert.match(out(r), /Kept 1 file\(s\) you changed/);
+
+  const forced = run(["update", "-y", "--force"]);
+  assert.equal(forced.status, 0, out(forced));
+  assert.equal(readFileSync(`${mdc}.bak`, "utf8"), "team rule\n");
+  assert.match(readFileSync(mdc, "utf8"), /alwaysApply: true/);
+});
+
+test("e2e: doctor catches a deleted skill and rule file; update repairs both", () => {
+  assert.equal(run(["init", "-y", "--agents", "cursor,claude-code"]).status, 0);
+  assert.equal(run(["doctor"]).status, 0);
+
+  rmSync(join(cwd, ".agents", "skills", "dissect"), { recursive: true, force: true });
+  rmSync(join(cwd, ".cursor", "rules", "testing.mdc"));
+  const sick = run(["doctor"]);
+  assert.equal(sick.status, 1, out(sick));
+  assert.match(out(sick), /missing from \.agents\/skills: dissect/);
+  assert.match(out(sick), /Missing \.cursor\/rules\/testing\.mdc/);
+  assert.match(out(sick), /Broken skill link\(s\): \.claude\/skills\/dissect/);
+
+  const fixed = run(["update", "-y"]);
+  assert.equal(fixed.status, 0, out(fixed));
+  assert.ok(existsSync(join(cwd, ".agents", "skills", "dissect", "SKILL.md")));
+  assert.ok(existsSync(join(cwd, ".cursor", "rules", "testing.mdc")));
+  const healthy = run(["doctor"]);
+  assert.equal(healthy.status, 0, out(healthy));
+});
+
+test("e2e: doctor warns (exit 0) when the managed block was edited by hand", () => {
+  assert.equal(run(["init", "-y", "--rules-only", "--agents", "cursor"]).status, 0);
+  const file = join(cwd, "AGENTS.md");
+  writeFileSync(file, readFileSync(file, "utf8").replace("Meta-Principle", "Meta Principle (edited)"));
+  const r = run(["doctor"]);
+  assert.equal(r.status, 0, out(r));
+  assert.match(out(r), /AGENTS\.md block differs from this balakit version/);
+});
+
+test("e2e: a failed skills run does not remember the failed tools", () => {
+  const r = run(["add", "dissect", "-y", "--agents", "aider"]);
+  assert.equal(r.status, 1, out(r));
+  assert.match(out(r), /None of the selected tools can receive skills/);
+  const file = join(cwd, ".balakit", "installed.json");
+  if (existsSync(file)) {
+    const m = JSON.parse(readFileSync(file, "utf8"));
+    assert.equal(m.agents.includes("aider"), false);
+  }
+});
+
+test("e2e: update with no --scope refreshes the user scope too", () => {
+  assert.equal(run(["add", "dissect", "-y", "--scope", "user", "--agents", "claude-code"]).status, 0);
+  // With Claude Code as the only tool, skills.sh copies straight into ~/.claude/skills.
+  const skill = join(home, ".claude", "skills", "dissect");
+  assert.ok(existsSync(join(skill, "SKILL.md")));
+  rmSync(skill, { recursive: true, force: true });
+  const sick = run(["doctor"]);
+  assert.equal(sick.status, 1, out(sick));
+  const r = run(["update", "-y"]);
+  assert.equal(r.status, 0, out(r));
+  assert.ok(existsSync(join(skill, "SKILL.md")));
+});
+
+test("e2e: --agents claude-code writes CLAUDE.md only â€” no AGENTS.md or .cursor", () => {
+  const r = run(["init", "-y", "--rules-only", "--agents", "claude-code"]);
+  assert.equal(r.status, 0, out(r));
+  assert.ok(existsSync(join(cwd, "CLAUDE.md")));
+  assert.equal(existsSync(join(cwd, "AGENTS.md")), false);
+  assert.equal(existsSync(join(cwd, ".cursor")), false);
+});
+
+test("e2e: later runs use the recorded tools, not whatever is detected", () => {
+  assert.equal(run(["init", "-y", "--rules-only", "--agents", "claude-code"]).status, 0);
+  mkdirSync(join(cwd, ".cursor"));
+  const r = run(["add", "testing", "-y"]);
+  assert.equal(r.status, 0, out(r));
+  assert.match(out(r), /Tools: Claude Code\s+\(as recorded last time\)/);
+  assert.equal(existsSync(join(cwd, ".cursor", "rules")), false);
+});
+
+test("e2e: init with names installs only those", () => {
+  const r = run(["init", "base", "dissect", "-y", "--agents", "cursor"]);
+  assert.equal(r.status, 0, out(r));
+  const m = JSON.parse(readFileSync(join(cwd, ".balakit", "installed.json"), "utf8"));
+  assert.deepEqual(m.rules, ["base"]);
+  assert.deepEqual(m.skills, ["dissect"]);
+});
+
+test("e2e: a bare .github folder does not count as Copilot", () => {
+  mkdirSync(join(cwd, ".github", "workflows"), { recursive: true });
+  const r = run(["list"]);
+  assert.doesNotMatch(out(r), /^\s*\* copilot/m);
+});
+
+test("e2e: help <command> and <command> --help print that command's help", () => {
+  for (const args of [["help", "init"], ["init", "--help"]]) {
+    const r = run(args);
+    assert.equal(r.status, 0, out(r));
+    assert.match(r.stdout, /^Usage: balakit init \[names\.\.\.\]/);
+  }
+});
+
+test("e2e: doctor, status and list --json are parseable and match disk", () => {
+  assert.equal(run(["init", "-y", "--agents", "claude-code"]).status, 0);
+  rmSync(join(cwd, ".claude", "skills", "dissect"), { recursive: true, force: true });
+  const d = run(["doctor", "--json"]);
+  assert.equal(d.status, 1);
+  const doc = JSON.parse(d.stdout);
+  assert.equal(doc.ok, false);
+  assert.ok(doc.scopes.find((x) => x.scope === "project").skills.missing.includes("dissect") || doc.issues.some((i) => i.includes("dissect")));
+
+  const st = JSON.parse(run(["status", "--json"]).stdout);
+  assert.deepEqual(st.scopes.find((x) => x.scope === "project").manifest.agents, ["claude-code"]);
+  const ls = JSON.parse(run(["list", "--json"]).stdout);
+  assert.ok(ls.skills.some((x) => x.name === "trl"));
+  assert.ok(ls.tools.some((x) => x.id === "copilot" && x.skills));
+});

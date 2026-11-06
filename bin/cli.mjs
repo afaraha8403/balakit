@@ -4,9 +4,9 @@
  *
  * Rules install AGENTS.md-first (project). Skills are delegated to skills.sh.
  */
-import { VERSION } from "./lib/pkg.mjs";
+import { VERSION, CMD } from "./lib/pkg.mjs";
 import { isCliEntry } from "./lib/entry.mjs";
-import { parseArgv, usage } from "./lib/args.mjs";
+import { parseArgv, usage, commandHelp } from "./lib/args.mjs";
 import { cmdInit } from "./commands/init.mjs";
 import { cmdAdd } from "./commands/add.mjs";
 import { cmdRemove } from "./commands/remove.mjs";
@@ -16,7 +16,6 @@ import { cmdInteractive } from "./commands/interactive.mjs";
 export { renderRulesBlock, renderRepoStandingDocs, mergeManaged, removeManaged, demote } from "./lib/render.mjs";
 export { parseRule, skillDescription, bundledSkillsFor, loadRules, loadSkills } from "./lib/catalog.mjs";
 export {
-  skillsCommand,
   skillsAddCommand,
   skillsRemoveCommand,
   resolveSkillsShTargets,
@@ -66,7 +65,7 @@ async function main() {
   } catch (e) {
     console.error(e.message);
     if (!String(e.message).includes("Mental has moved")) {
-      console.log("\n" + usage());
+      console.error(`Run \`${CMD} --help\` for usage.`);
     }
     process.exit(1);
   }
@@ -77,27 +76,36 @@ async function main() {
     yes: args.yes,
     scope: args.scope,
     rulesOnly: args.rulesOnly,
+    force: args.force,
+    cursorPlugins: args.cursorPlugins,
   };
+
+  // A prompt whose input closes (piped or detached stdin) leaves its promise
+  // unresolved; Node then drains the loop and would exit 0 with nothing done.
+  process.once("beforeExit", () => {
+    console.error("Input closed before setup finished. Nothing more was written. Re-run with -y to skip prompts.");
+    process.exit(2);
+  });
 
   let code = 0;
   switch (args.command) {
     case "help":
-      console.log(usage());
+      console.log(args.names[0] ? commandHelp(args.names[0]) : usage());
       break;
     case "version":
       console.log(VERSION);
       break;
     case "list":
-      code = cmdList();
+      code = cmdList({ json: args.json });
       break;
     case "doctor":
-      code = cmdDoctor();
+      code = cmdDoctor({ json: args.json });
       break;
     case "status":
-      code = cmdStatus();
+      code = cmdStatus({ json: args.json });
       break;
     case "init":
-      code = await cmdInit(common);
+      code = await cmdInit({ ...common, names: args.names });
       break;
     case "add":
       code = await cmdAdd({ ...common, names: args.names });
@@ -106,7 +114,7 @@ async function main() {
       code = await cmdRemove({ ...common, names: args.names });
       break;
     case "update":
-      code = await cmdUpdate({ dryRun: args.dryRun, yes: args.yes, agents: args.agents, scope: args.scope });
+      code = await cmdUpdate({ ...common, rulesOnly: undefined });
       break;
     case null:
       code = await cmdInteractive(common);

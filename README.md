@@ -51,7 +51,7 @@ npx balakit@latest init --rules-only -y
 npx balakit@latest init --scope user -y
 ```
 
-User scope also copies Cursor plugins to `~/.cursor/plugins/local/`. Check the kit with `npx balakit doctor` (that is not `mental doctor`).
+Pick tools with `--agents claude-code,cursor`; each tool gets only its own files. Cursor plugin packs are opt-in with `--cursor-plugins`. Check the kit with `npx balakit doctor` (that is not `mental doctor`).
 
 No menus: pass `-y`. Guided setup: `npx balakit` with no flags.
 
@@ -166,7 +166,7 @@ npm install -g balakit
 balakit init -y
 ```
 
-`--agents <ids|all>` selects [skills.sh](https://skills.sh/) targets (default: detect). `--personal` and `--mental-*` print a URL and exit. Full flag list: [CLI](docs/cli.md).
+`--agents <ids|all>` picks the tools to install for (default: the tools recorded last time, else detect). `--personal` and `--mental-*` print a URL and exit. Full flag list: [CLI](docs/cli.md).
 
 ## Native plugins
 
@@ -195,9 +195,9 @@ Per-client notes and filesystem destinations: [Install](docs/install.md).
 ```text
 Install BalaKit from https://github.com/afaraha8403/balakit (npm package: balakit).
 
-Run: npx balakit@latest init --scope <project|user> -y
-That writes standing rules (AGENTS.md / CLAUDE.md / .mdc) and default engineering skills.
-User scope also copies Cursor plugins to ~/.cursor/plugins/local/.
+Run: npx balakit@latest init --scope <project|user> --agents <this client's id> -y
+(ids: cursor, claude-code, codex, opencode, copilot, … — see npx balakit@latest list)
+That writes standing rules (AGENTS.md / CLAUDE.md / .mdc) and default engineering skills for that client only.
 
 Optional extras (native plugin when this client can; otherwise skip):
   Cursor: add marketplace https://github.com/afaraha8403/balakit — do not /add-plugin the repo root.

@@ -106,7 +106,7 @@ export function defaultInitSkills(catalog, { rulesOnly = false } = {}) {
 }
 
 /** Manifest schema version for ownership ledger. */
-export const MANIFEST_SCHEMA = 2;
+export const MANIFEST_SCHEMA = 3;
 
 /** Reverse map: skill name → rules that bundle it. */
 export const SKILL_BUNDLED_BY = Object.entries(RULE_BUNDLED_SKILLS).reduce(

@@ -18,13 +18,17 @@ To refresh a global install: `npm i -g balakit@latest`. Do not run project `init
 
 ## Project or user?
 
-This repository only: `--scope project` (default). Every project on this PC: `--scope user`. User scope also copies Cursor plugins to `~/.cursor/plugins/local/`.
+This repository only: `--scope project` (default). Every project on this PC: `--scope user`. User scope copies Cursor plugin packs to `~/.cursor/plugins/local/` only when you add `--cursor-plugins` or answer yes in the guided setup.
 
 ## Why didn’t skills show up after `init`?
 
 Default `init` installs engineering skills plus standing rules. `--rules-only` skips skills. Marketing, SEO, media, NotebookLM, and `cloakbrowser-fallback` still need `npx balakit add …` or a native plugin.
 
 Reload the agent window after a skill or plugin install. Cursor does not pick up `~/.cursor/plugins/local/` until reload.
+
+Then run `npx balakit doctor`. It checks every recorded skill and link on disk. If something is missing, `npx balakit update` reinstalls it from the package.
+
+Skills need Node 22.20 or newer (the bundled skills.sh CLI requires it). On older Node, `init` installs the rules and says that skills were skipped.
 
 ## Does native plugin install replace the CLI?
 
@@ -40,15 +44,23 @@ Same OpenAI plugins. ChatGPT is the Plugins tab (web/desktop). Codex CLI is `cod
 
 ## OpenCode (or Cline, Windsurf, …) has no plugin install
 
-Skip native plugins. `npx balakit init` installs standing rules and engineering skills via skills.sh. Add more with `npx balakit add … --agents opencode`.
+Skip native plugins. `npx balakit init --agents opencode -y` installs standing rules and engineering skills for that tool. Skills come from the balakit package you ran (via a bundled skills.sh), so no GitHub download is needed. Add more with `npx balakit add …`; later runs reuse the recorded tools.
 
 ## Cursor: Customize → User Rules is empty
 
-That UI is Cursor account settings, not files. The CLI writes `~/.cursor/rules/*.mdc` and `~/.cursor/plugins/local/`. Reload the window.
+That UI is Cursor account settings, not files. The CLI writes `~/.cursor/rules/*.mdc` (and `~/.cursor/plugins/local/` with `--cursor-plugins`). Reload the window.
 
 ## Can I mix agents?
 
-Yes. `--agents cursor,claude-code,opencode` (or `all`). Only verified skills.sh ids are passed as `-a`. See the id table in [CLI](cli.md#agent-ids).
+Yes. `--agents cursor,claude-code,opencode` (or `all`). Each tool gets only its own files. See [which tools get which files](cli.md#which-tools-get-which-files) and the [id table](cli.md#agent-ids). `init --agents` sets the list; `add --agents` adds to it.
+
+## I edited a rule file and `update` didn't overwrite it
+
+That's on purpose. Balakit keeps rule files you changed, and `doctor` lists them as warnings. Run `npx balakit update --force` to replace them; your version is saved next to the file as `.bak`.
+
+## A script or agent ran `npx balakit add …` and it exited 2
+
+A step needed an answer, but there was no terminal to ask in. Add `-y` to accept the plan shown, or `--dry-run` to preview it.
 
 ## `doctor` printed a Mental URL
 

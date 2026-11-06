@@ -38,7 +38,7 @@ test("resolveSkillsShTargets skips agents with no skillsShId", () => {
 
 test("skillsAddCommand pins skills CLI and only emits verified -a ids", () => {
   const cmd = skillsAddCommand(["dissect"], ["cursor", "amazon-q", "aider"], "project");
-  assert.match(cmd, /npx -y skills@/);
+  assert.match(cmd, /^skills@[\d.]+ add <balakit package> /);
   assert.match(cmd, /-a cursor/);
   assert.match(cmd, /-a kiro-cli/);
   assert.doesNotMatch(cmd, /-a aider/);
@@ -46,8 +46,7 @@ test("skillsAddCommand pins skills CLI and only emits verified -a ids", () => {
 });
 
 test(
-  "live smoke: verified skills.sh agent ids accepted by npx skills",
-  { skip: process.env.BALAKIT_LIVE_SKILLS !== "1" },
+  "smoke: bundled skills CLI accepts every verified agent id (offline, local source)",
   () => {
     const r = smokeSkillsShAgents(SKILLS_SH_VERIFIED_IDS);
     assert.equal(

@@ -123,8 +123,8 @@ test("removeManaged strips block; delete file when empty", () => {
 });
 
 test("removeTeamRules rewrites remaining rules", () => {
-  installTeamRules([sampleAlways, sampleScoped], { cwd });
-  removeTeamRules([sampleScoped], [sampleAlways], { cwd });
+  const { files } = installTeamRules([sampleAlways, sampleScoped], { cwd });
+  removeTeamRules([sampleScoped], [sampleAlways], { cwd, guard: { files, legacy: false, force: false } });
   assert.equal(existsSync(join(cwd, ".cursor", "rules", "seo-ai-search.mdc")), false);
   assert.ok(existsSync(join(cwd, ".cursor", "rules", "base.mdc")));
   assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Do the right thing/);
@@ -139,7 +139,7 @@ test("installTeamRules writes always-on rules to .cursor/rules/*.mdc", () => {
 });
 
 test("installTeamRules writes Claude and Copilot twins for scoped rules", async () => {
-  const { writeScopedTwins, renderClaudeRule, renderCopilotInstructions } = await import(
+  const { renderClaudeRule, renderCopilotInstructions } = await import(
     "../bin/lib/rule-adapters.mjs"
   );
   installTeamRules([sampleScoped], { cwd, agents: ["claude-code", "copilot"] });
@@ -149,8 +149,8 @@ test("installTeamRules writes Claude and Copilot twins for scoped rules", async 
   assert.ok(existsSync(copilot));
   assert.match(readFileSync(claude, "utf8"), /^paths:/m);
   assert.match(readFileSync(copilot, "utf8"), /applyTo:/);
-  const twins = writeScopedTwins(sampleScoped, { cwd, agents: ["claude-code"], dryRun: true });
-  assert.ok(twins.written.length);
+  const preview = installTeamRules([sampleScoped], { cwd, agents: ["claude-code"], dryRun: true });
+  assert.ok(preview.written.some((w) => w.endsWith("seo-ai-search.md")));
   assert.match(renderClaudeRule(sampleScoped), /paths:/);
   assert.match(renderCopilotInstructions(sampleScoped), /applyTo:/);
 });
@@ -169,20 +169,33 @@ test("installPersonalRules writes user-level targets", () => {
 });
 
 test("removePersonalRules clears global dummy files", () => {
-  installPersonalRules([sampleNotes], { home });
-  removePersonalRules([sampleNotes], [], { home });
+  const { files } = installPersonalRules([sampleNotes], { home });
+  removePersonalRules([sampleNotes], [], { home, guard: { files, legacy: false, force: false } });
   assert.equal(existsSync(join(home, ".cursor", "rules", "notes.mdc")), false);
   assert.equal(hasManagedBlock(join(home, ".claude", "CLAUDE.md")), false);
 });
 
 test("skillsAddCommand includes -g for global and skill flags", () => {
   const cmd = skillsAddCommand(["dissect"], ["cursor", "claude-code"], "global");
-  assert.match(cmd, /npx -y skills@/);
+  assert.match(cmd, /^skills@[\d.]+ add <balakit package> /);
   assert.match(cmd, /-s dissect/);
   assert.match(cmd, /-a cursor/);
   assert.match(cmd, /-a claude-code/);
   assert.match(cmd, /-g/);
   assert.match(cmd, /-y/);
+});
+
+test("installTeamRules keeps a rule file the user changed unless forced", () => {
+  const first = installTeamRules([sampleAlways], { cwd });
+  const mdc = join(cwd, ".cursor", "rules", "base.mdc");
+  writeFileSync(mdc, "my own rule\n");
+  const guard = { files: first.files, legacy: false, force: false };
+  const again = installTeamRules([sampleAlways], { cwd, guard });
+  assert.ok(again.kept.some((k) => k.endsWith("base.mdc")), again.kept.join(","));
+  assert.equal(readFileSync(mdc, "utf8"), "my own rule\n");
+  installTeamRules([sampleAlways], { cwd, guard: { ...guard, force: true } });
+  assert.equal(readFileSync(`${mdc}.bak`, "utf8"), "my own rule\n");
+  assert.match(readFileSync(mdc, "utf8"), /Do the right thing/);
 });
 
 test("skillsRemoveCommand builds remove invocation", () => {

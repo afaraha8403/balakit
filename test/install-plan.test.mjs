@@ -186,7 +186,12 @@ test("parseArgv still parses add of remaining rules", () => {
   assert.equal(a.command, "add");
   assert.deepEqual(a.names, ["base", "testing"]);
   assert.equal(a.yes, true);
-  assert.equal(a.scope, "project");
+  assert.equal(a.scope, undefined);
+});
+
+test("parseArgv rejects an unknown command with a suggestion", () => {
+  assert.throws(() => parseArgv(["stauts"]), /Unknown command: stauts — did you mean `balakit status`\?/);
+  assert.throws(() => parseArgv(["frobnicate"]), (e) => e.message === "Unknown command: frobnicate");
 });
 
 test("parseArgv accepts --scope user", () => {

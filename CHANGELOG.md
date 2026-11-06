@@ -7,8 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.21.0]
+
 ### Features
+- Each tool you pick now gets only its own files. `--agents claude-code` writes `CLAUDE.md` and nothing for Cursor; user scope writes only the home files of the tools you picked. A file that already has a balakit block stays maintained.
+- After the first install, the CLI uses the tools recorded in the manifest instead of re-detecting them on every run. `init --agents` replaces that list and `add --agents` adds to it.
+- The guided setup asks for scope first, shows what each tool receives, offers a recommended set, rules only, or a pre-ticked picker, and lists every file before asking to install. Re-running it in an installed repo offers "Refresh what's installed".
+- `init` accepts names (`npx balakit init base dissect -y`) to install only those pieces.
+- `help <command>` and `<command> --help` print help for that command; `list`, `status` and `doctor` accept `--json`.
+- `--cursor-plugins` opts in to copying every plugin pack into `~/.cursor/plugins/local`, and `remove --cursor-plugins` deletes those copies.
 - New `trl` skill scores a software Technology Readiness Level (1–9) for an app, a feature, or a narrow improvement, and raises it in a loop. Every cycle a fresh blind panel of three low-context assessor agents scores each area of the software, from core logic through infra, UI/UX, accessibility, security, and docs. The builder then writes the next level's exit criteria as failing checks and builds until they pass. Levels 7–9 are reachable before launch, and each score carries a provenance label (`staged` vs `field`). Installed by default with `init`, and shipped in the `balakit-engineering` plugin.
+
+### Fixes
+- Skills now install from the balakit package you ran, through a pinned, bundled skills.sh, instead of being fetched from GitHub with `npx`. Skills always match the rules' version, install offline in a fraction of a second (instead of hanging about 70 seconds and failing), and no longer depend on spawning `npx`, which fails without a shell on Windows.
+- `init`, `update` and `remove` no longer overwrite or delete rule files you changed. Balakit records a hash of each file it writes and keeps any file that differs; `--force` replaces it and saves your copy as `.bak`.
+- `doctor` checks every recorded file on disk: missing or edited blocks, missing or changed rule files, missing skills, and broken skill links. It no longer reports "healthy" when skills or rule files are gone.
+- `update` reinstalls from the package, so it restores deleted skills and rule files, and with no `--scope` it now refreshes both the repo and the machine install.
+- A prompt with no interactive terminal (CI, piped input, an agent) now exits 2 with a message asking for `-y`, instead of exiting 0 having done nothing.
+- A mistyped command prints an error with a "did you mean" hint instead of opening the guided setup.
+- A failed run no longer records its tools in the manifest, and tools that cannot take skills (for example Aider) no longer count as installed.
+- A bare `.github` folder no longer makes Copilot count as detected.
+- The `release` rule no longer tells other projects to run this repository's `./sync.sh` and `check-lockstep` scripts.
+
+### Changes
+- User-scope installs no longer copy every Cursor plugin pack by default. Copies made by earlier versions are detected and kept up to date.
+- `skills@1.5.25` is now a dependency. Skills need Node 22.20 or newer, which that CLI requires; on older Node, rules still install and the CLI says that skills were skipped.
+- Manifest schema 3 adds a `files` hash map. Older manifests are read as-is.
+- CI and the release workflow run on Node 22, which the bundled skills CLI needs.
 
 ## [v1.20.1]
 

@@ -16,6 +16,7 @@ import { VERSION, MANIFEST_SCHEMA, canonicalizeRuleNames } from "./pkg.mjs";
  *   skills: string[],
  *   agents: string[],
  *   surfaces: string[],
+ *   files: Record<string, string>,
  *   mentalTooling: string|null,
  *   mentalDataPolicy: string|null,
  *   updatedAt: string,
@@ -31,6 +32,7 @@ function empty() {
     skills: [],
     agents: [],
     surfaces: [],
+    files: {},
     mentalTooling: null,
     mentalDataPolicy: null,
     updatedAt: new Date().toISOString(),
@@ -53,6 +55,7 @@ export function migrateManifest(data) {
     skills,
     agents: Array.isArray(data.agents) ? data.agents : [],
     surfaces: Array.isArray(data.surfaces) ? data.surfaces : [],
+    files: data.files && typeof data.files === "object" && !Array.isArray(data.files) ? data.files : {},
     mentalTooling: data.mentalTooling ?? null,
     mentalDataPolicy: data.mentalDataPolicy ?? null,
     updatedAt: data.updatedAt ?? "",
@@ -96,6 +99,7 @@ export function writeManifest(file, data) {
     skills: [...new Set(data.skills ?? [])].sort(),
     agents: [...new Set(data.agents ?? [])].sort(),
     surfaces: [...new Set(data.surfaces ?? [])].sort(),
+    files: Object.fromEntries(Object.entries(data.files ?? {}).sort(([a], [b]) => a.localeCompare(b))),
     mentalTooling: data.mentalTooling ?? null,
     mentalDataPolicy: data.mentalDataPolicy ?? null,
     updatedAt: new Date().toISOString(),
@@ -106,7 +110,8 @@ export function writeManifest(file, data) {
 }
 
 /**
- * Merge names into a manifest file.
+ * Merge names into a manifest file. `patch.replaceAgents` sets the tool list
+ * instead of adding to it.
  * @param {"project"|"global"} scope
  */
 export function recordInstall(scope, patch, { cwd = process.cwd(), home = homedir(), dryRun = false } = {}) {
@@ -115,8 +120,9 @@ export function recordInstall(scope, patch, { cwd = process.cwd(), home = homedi
   const next = {
     rules: [...cur.rules, ...(patch.rules ?? [])],
     skills: [...cur.skills, ...(patch.skills ?? [])],
-    agents: [...(cur.agents ?? []), ...(patch.agents ?? [])],
+    agents: patch.replaceAgents ? [...(patch.agents ?? [])] : [...(cur.agents ?? []), ...(patch.agents ?? [])],
     surfaces: [...(cur.surfaces ?? []), ...(patch.surfaces ?? [])],
+    files: { ...cur.files, ...(patch.files ?? {}) },
     mentalTooling: cur.mentalTooling,
     mentalDataPolicy: cur.mentalDataPolicy,
   };
@@ -135,16 +141,36 @@ export function recordRemove(scope, names, { cwd = process.cwd(), home = homedir
   const dropS = new Set(names.skills ?? []);
   const nextRules = cur.rules.filter((r) => !dropR.has(r));
   const nextSkills = cur.skills.filter((s) => !dropS.has(s));
+  const dropF = new Set(names.files ?? []);
+  const nextFiles = Object.fromEntries(Object.entries(cur.files).filter(([k]) => !dropF.has(k)));
+  const nextSurfaces = (cur.surfaces ?? []).filter((x) => !dropF.has(x));
   const stillMental = nextRules.includes("mental") || nextSkills.includes("mental");
   const next = {
     rules: nextRules,
     skills: nextSkills,
     agents: cur.agents ?? [],
-    surfaces: cur.surfaces ?? [],
+    surfaces: nextSurfaces,
+    files: nextFiles,
     mentalTooling: stillMental ? cur.mentalTooling : null,
     mentalDataPolicy: stillMental ? cur.mentalDataPolicy : null,
   };
   if (dryRun) return { file, ...next };
   if (!existsSync(file) && !cur.rules.length && !cur.skills.length) return { file, ...next };
   return { file, ...writeManifest(file, next) };
+}
+
+/**
+ * File-ownership guard for a manifest: which kit-written files may be replaced.
+ * A manifest that lists rules but predates `files` hashes owns its rule files
+ * by name (legacy), so `update` keeps working on older installs.
+ * @param {Manifest} m
+ * @param {{ force?: boolean }} [opts]
+ * @returns {import("./rules-install.mjs").FileGuard}
+ */
+export function guardFor(m, { force = false } = {}) {
+  return {
+    files: m.files ?? {},
+    legacy: m.rules.length > 0 && Object.keys(m.files ?? {}).length === 0,
+    force,
+  };
 }
