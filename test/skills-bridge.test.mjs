@@ -69,6 +69,51 @@ test("smoke: native skill installer accepts every verified agent id offline", ()
   assert.equal(r.ok, true, `Rejected agent id(s).\nstatus=${r.status}\n${r.stderr}`);
 });
 
+test("installSkills replaces empty skill-link files and removeSkills drops retired ones", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "balakit-empty-link-"));
+  const home = mkdtempSync(join(tmpdir(), "balakit-empty-link-home-"));
+  try {
+    mkdirSync(join(home, ".claude", "skills"), { recursive: true });
+    mkdirSync(join(home, ".copilot", "skills"), { recursive: true });
+    writeFileSync(join(home, ".claude", "skills", "dissect"), "");
+    writeFileSync(join(home, ".copilot", "skills", "dissect"), "");
+    writeFileSync(join(home, ".copilot", "skills", "kit-workflows"), "keep me\n");
+    writeFileSync(join(home, ".claude", "skills", "nlm-skill"), "");
+    writeFileSync(join(home, ".copilot", "skills", "nlm-skill"), "");
+
+    const installed = installSkills(["dissect", "kit-workflows"], {
+      agentIds: ["claude-code", "copilot"],
+      scope: "user",
+      cwd,
+      home,
+    });
+    assert.equal(installed.ok, true);
+    assert.equal(
+      installed.notes.some((n) => n.includes("dissect") && n.includes("not a kit symlink")),
+      false,
+    );
+    assert.ok(lstatSync(join(home, ".claude", "skills", "dissect")).isSymbolicLink());
+    assert.ok(lstatSync(join(home, ".copilot", "skills", "dissect")).isSymbolicLink());
+    assert.ok(existsSync(join(home, ".claude", "skills", "dissect", "SKILL.md")));
+    assert.ok(installed.notes.some((n) => n.includes("kit-workflows") && n.includes("not a kit symlink")));
+    assert.equal(readFileSync(join(home, ".copilot", "skills", "kit-workflows"), "utf8"), "keep me\n");
+
+    const removed = removeSkills(["nlm-skill"], {
+      scope: "user",
+      cwd,
+      home,
+      guard: { files: {}, legacy: false, force: false },
+    });
+    assert.ok(removed.removed.some((r) => r.includes(".claude/skills/nlm-skill")));
+    assert.ok(removed.removed.some((r) => r.includes(".copilot/skills/nlm-skill")));
+    assert.equal(existsSync(join(home, ".claude", "skills", "nlm-skill")), false);
+    assert.equal(existsSync(join(home, ".copilot", "skills", "nlm-skill")), false);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test("installSkills protects locally edited skill trees, backs up on --force, and prunes dropped agent links", () => {
   const cwd = mkdtempSync(join(tmpdir(), "balakit-native-skills-"));
   const home = mkdtempSync(join(tmpdir(), "balakit-native-home-"));

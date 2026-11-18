@@ -69,6 +69,20 @@ function isSymlink(p) {
 }
 
 /**
+ * True when `p` is a 0-byte regular file.
+ * Failed skill links on Windows land as empty files. They are not skill trees.
+ * @param {string} p
+ */
+function isEmptyFile(p) {
+  try {
+    const st = lstatSync(p);
+    return st.isFile() && st.size === 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * True when `p` is a symbolic link whose target no longer exists.
  * @param {string} p
  */
@@ -364,7 +378,7 @@ export function installSkills(
           continue;
         }
         const copyHash = guard.files[linkKey];
-        if (!isKitSkillLink(link, dest, { recordedCopyHash: copyHash }) && !guard.force) {
+        if (!isKitSkillLink(link, dest, { recordedCopyHash: copyHash }) && !guard.force && !isEmptyFile(link)) {
           notes.push(`Skipped skill link for ${name}: ${linkKey} exists and is not a kit symlink.`);
           continue;
         }
@@ -460,7 +474,7 @@ export function removeSkills(
       if (!existsSync(link) && !isSymlink(link)) continue;
       if (
         isKitSkillLink(link, canonical, { recordedCopyHash: guard.files[linkKey] }) ||
-        (isRetired && existsSync(join(link, "SKILL.md"))) ||
+        (isRetired && (existsSync(join(link, "SKILL.md")) || isEmptyFile(link))) ||
         guard.force
       ) {
         if (!dryRun) rmSync(link, { recursive: true, force: true });

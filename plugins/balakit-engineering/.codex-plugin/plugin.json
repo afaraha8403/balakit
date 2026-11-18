@@ -1,6 +1,6 @@
 {
   "name": "balakit-engineering",
-  "version": "1.22.2",
+  "version": "1.22.3",
   "description": "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, app verification, blinded eval, deliberation, inception, execute, TRL readiness loop, dissect, docs, release, and stealth browser fallback.",
   "skills": "./skills/"
 }

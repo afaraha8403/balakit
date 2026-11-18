@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.22.3]
+
+### Fixes
+- `doctor --fix` replaces 0-byte skill-link files and deletes retired 0-byte skill files, so Claude Code and Copilot links install instead of staying skipped.
+
 ### Changes
 - Pace skills (`dissect`, `deep-deliberation`, `inception`) advertise `--brake` instead of `--circuit`. `--circuit` still works as an alias of `--brake`.
 
