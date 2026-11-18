@@ -109,6 +109,7 @@ export function findRetiredArtifacts(scope, { cwd = process.cwd(), home = homedi
   const retired = [];
 
   for (const skill of RETIRED_SKILLS) {
+    if (skill === "mental") continue;
     for (const dir of [".agents/skills", ...allSkillLinkDirs(scope)]) {
       const target = join(root, dir, skill);
       if (existsSync(target) || isDanglingLink(target)) {

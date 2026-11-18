@@ -165,10 +165,11 @@ test("e2e tarball: real-world v1.21.0 schema-3 global manifest upgrades cleanly 
       "unmatched-workflow",
       "nlm-skill",
     ];
-    for (const s of [...retiredSkills, "dissect"]) {
+    for (const s of [...retiredSkills, "dissect", "mental"]) {
       mkdirSync(join(home, ".agents", "skills", s), { recursive: true });
       writeFileSync(join(home, ".agents", "skills", s, "SKILL.md"), `# old ${s}\n`);
     }
+    writeFileSync(join(home, ".cursor", "rules", "mental.mdc"), "standalone mental cli rule\n");
 
     // Seed non-empty rule file hashes (exact shape of v1.21.0 installed.json).
     const sha = (txt) => createHash("sha256").update(txt).digest("hex");
@@ -227,6 +228,10 @@ test("e2e tarball: real-world v1.21.0 schema-3 global manifest upgrades cleanly 
     assert.equal(manifest.schema, 4);
     assert.deepEqual(manifest.rules, ["base", "changelog", "comments", "testing"]);
     assert.deepEqual(manifest.skills, ["dissect", "execute", "kit-workflows", "notebooklm", "verify-app"]);
+
+    // Standalone @balacode/mental skill and rule coexist untouched with zero false-positive doctor errors.
+    assert.ok(existsSync(join(home, ".agents", "skills", "mental", "SKILL.md")));
+    assert.ok(existsSync(join(home, ".cursor", "rules", "mental.mdc")));
 
     const doc = runPacked(["doctor"], { cwd, home });
     assert.equal(doc.status, 0, out(doc));

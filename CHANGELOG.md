@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.22.1]
+
+### Fixes
+- Ignore standalone `@balacode/mental` skill folders (`~/.agents/skills/mental` and agent links) during `balakit doctor` retired-artifact checks.
+
 ## [v1.22.0]
 
 ### Features
