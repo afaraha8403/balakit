@@ -1,26 +1,24 @@
 # First-time release interview
 
-Run this **once per repository** the first time the user asks to release (beta or production) and no `projects/<repo-slug>.md` exists.
+Run this **once per repository** the first time the user asks to release (beta or production) and no `.balakit/release.md` exists at the repository root.
 
-Goal: capture how *this* project ships so later releases are mechanical. Keep questions short. Skip anything already obvious from the repo (workflows, `wrangler.toml`, Electron/Tauri configs, etc.) — confirm instead of re-asking.
+Goal: capture how *this* project ships so later releases are mechanical. Keep questions short. Skip anything already obvious from the repo (`.github/workflows/`, `package.json`, `wrangler.toml`, Electron/Tauri configs, default branch via `gh repo view --json defaultBranchRef`) — confirm instead of re-asking.
 
-Use the host's structured question tool when a choice is real (not a yes/no the repo already answered). Prompt in plain English. Last option is always `Say this in plain English` (meta: rephrase + example, do not advance). Numbered text fallback if the tool is missing.
+Invoke the host's native structured question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`; 2–4 options max) when a choice is real. Prompt in plain English. Last option is always `Say this in plain English` (meta: rephrase + example, do not advance). Numbered text fallback only if zero question tools are declared.
 
-After answers, write `projects/<repo-slug>.md` using [project.template.md](project.template.md). Tell the user the path and that they can edit it anytime.
+After answers, write `<repo>/.balakit/release.md` using [project.template.md](project.template.md) (never write inside the skill installation folder). Tell the user the path and whether to commit or gitignore it.
 
-## Repo slug
+## Repo metadata
 
-```text
-gh repo view --json nameWithOwner -q .nameWithOwner
+```bash
+gh repo view --json nameWithOwner,defaultBranchRef
 ```
 
-Replace `/` with `-` for the filename (e.g. `acme-widgets` → `projects/acme-widgets.md` if under an org path use full `owner-repo`).
-
-## Questions (ask conversationally; batch related ones)
+### Questions (ask conversationally; batch related ones)
 
 ### 1. Channels & branches
 
-1. Confirm production branch is `main` and beta branch is `staging`. If different, record the map.
+1. Confirm production branch matches `defaultBranchRef.name` (`main` or `master`) and beta branch is `staging`. If different, record the map.
 2. Confirm: tags on production branch = production releases; tags on staging branch = beta releases.
 
 ### 2. Versioning
@@ -62,7 +60,7 @@ Ask which apply, then drill into that platform:
 
 ## After the interview
 
-1. Write `projects/<repo-slug>.md` from the template.
+1. Write `<repo>/.balakit/release.md` from the template.
 2. Optionally list discovered workflow files the user confirmed.
 3. Proceed with the requested release using that config.
-4. If the user only wanted setup, stop after writing the file.
+4. If the user only wanted setup, stop after writing `.balakit/release.md`.

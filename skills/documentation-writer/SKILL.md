@@ -9,18 +9,9 @@ description: >-
   README. Not commit-message lint — changelog.mdc owns changelog headings.
 user-invocable: true
 disable-model-invocation: false
-version: "1.3.0"
+version: "1.5.0"
 author: "Ali Farahat"
 tags: ["documentation", "technical-writing", "markdown", "research-first", "diataxis"]
-when_to_use: |
-  USE WHEN:
-  - User asks for documentation, README, doc site, or technical writing.
-  - User needs API reference, migration guide, or setup instructions.
-  - Accuracy on versions, install commands, or external APIs matters.
-  DO NOT USE WHEN:
-  - User needs a code review or product-code change.
-  - User needs marketing copy (use marketing-psychology).
-  - The task is only a commit message or changelog heading.
 ---
 
 # Documentation Writer
@@ -28,17 +19,17 @@ when_to_use: |
 > **Leading words:** research-first, Diátaxis mode, BLUF, STE, Global English,
 > evidence-aware, phase separation.
 
-Research-first technical documentation. Chat stays Caveman; the document is
-Standard Professional Mode.
+Research-first technical documentation. Chat stays Caveman. The document uses
+Standard Professional Mode (80% ASD-STE100).
 
 Copy these phases into the todo list verbatim. A skipped phase stays with
 `skip: <reason>`.
 
-1. Discover — list every file/API/feature the docs must cover.
-2. Research — primary sources for versions, flags, install commands.
-3. Outline — name the Diátaxis mode; BLUF per section.
-4. Draft — STE / Global English; slop catalog for artifacts.
-5. Verify — examples run; citations still match.
+1. Discover — list every file, API, and feature the docs must cover.
+2. Research — read primary sources for versions, flags, and install commands.
+3. Outline — name the Diátaxis mode and write a BLUF per section.
+4. Draft — apply 80% STE, Global English, and the slop catalog.
+5. Verify — run examples, check citations, and run `lint-ste.mjs`.
 
 Mode table: [references/diataxis.md](references/diataxis.md).
 Sentence craft: [references/style.md](references/style.md).
@@ -90,9 +81,16 @@ examples first.
 ## Phase 5 — Verify
 
 Re-read against the repo. Re-check critical external claims. Run code examples
-when possible.
+when possible. Lint written markdown with the bundled 80% STE checker:
 
-*Exit:* every example runs as documented; every external claim matches the cite.
+```bash
+node <skill-dir>/scripts/lint-ste.mjs <files...>
+```
+
+Fix reported violations, or keep an intentional exception and name it in the
+reply.
+
+*Exit:* every example runs as documented, every external claim matches its citation, and `lint-ste.mjs` passes (or every kept exception is justified).
 
 ## Standard file shape
 

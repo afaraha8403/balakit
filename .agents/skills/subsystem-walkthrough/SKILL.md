@@ -8,25 +8,25 @@ description: >-
   proving-change-safety before merging a change you do not trust.
 user-invocable: true
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.4.0"
 author: "Ali Farahat"
 tags: ["explainer", "architecture", "onboarding"]
-when_to_use: |
-  USE WHEN:
-  - The user asks how a subsystem, feature, or function works.
-  - Placement or ownership questions: where should this live, which package owns it.
-  DO NOT USE WHEN:
-  - The question is why it was built this way (use design-rationale).
-  - The task is an entity-level audit (use dissect).
 ---
 
 # Subsystem walkthrough
 
 > **Leading words:** mental model, one explainer, parallel slices, inherit host
-> model.
+> model, invariants table, interactive stepper.
 
 Answer "how does X work?" at the level of a senior engineer onboarding onto
 the subsystem. Not annotated source.
+
+Optional `--interactive` flag (or an explicit request for an interactive
+explainer): after the walkthrough, deliver a discardable single-file HTML
+state stepper (`[Step Back]`, `[Play / Pause]`, `[Step Forward]`, `[Reset]` +
+live state inspector in 80% STE) via the host preview tool or a scratch path
+outside the repo. Never commit discardable HTML into the repository unless
+requested.
 
 Copy these steps into the todo list verbatim. Skip with `skip: <reason>`.
 

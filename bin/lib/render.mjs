@@ -5,8 +5,32 @@ import { readFileSync, writeFileSync, mkdirSync, unlinkSync, existsSync } from "
 import { dirname, relative } from "node:path";
 import { BEGIN, END, NAME, CMD, REPO } from "./pkg.mjs";
 
-/** Demote every Markdown heading one level so rule bodies nest under an H1. */
-export const demote = (md) => md.replace(/^(#{1,5}) /gm, "#$1 ");
+/**
+ * Demote every Markdown heading one level outside fenced code blocks so rule
+ * bodies nest cleanly under an H1 without corrupting code examples or comments.
+ * @param {string} md
+ */
+export function demote(md) {
+  let fence = null;
+  return md
+    .split("\n")
+    .map((line) => {
+      const open = line.match(/^\s*(`{3,}|~{3,})/);
+      if (open) {
+        const ch = open[1][0];
+        const len = open[1].length;
+        if (!fence) {
+          fence = { ch, len };
+        } else if (fence.ch === ch && len >= fence.len && /^\s*[`~]+\s*$/.test(line)) {
+          fence = null;
+        }
+        return line;
+      }
+      if (fence) return line;
+      return line.replace(/^(#{1,5}) /, "#$1 ");
+    })
+    .join("\n");
+}
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -17,21 +41,23 @@ export const rel = (f) => {
 };
 
 /**
- * Render selected rules into a Markdown block for AGENTS.md / CLAUDE.md.
- * Always-on rules are inlined; scoped rules get a conditional index entry
- * (and are installed as Cursor `.mdc` files separately).
+ * Render selected rules into a Markdown block for AGENTS.md / CLAUDE.md /
+ * user-level instruction files.
+ *
+ * Always-on rules are inlined. Scoped (glob) rules get a compact conditional
+ * pointer instead of dumping their full body into every turn's standing prompt.
+ *
  * @param {Array<{name: string, always: boolean, globs: string, body: string, description: string}>} rules
- * @param {{ consumer?: boolean }} [opts] When `consumer` is true, scoped rules
- *   carry an inline scope note (no pointer to repo `rules/*.mdc`).
+ * @param {{ consumer?: boolean, scopedPointer?: (rule: { name: string }) => string }} [opts]
  */
-export function renderRulesBlock(rules, { consumer = true } = {}) {
+export function renderRulesBlock(rules, { consumer = true, scopedPointer } = {}) {
   const always = rules.filter((r) => r.always);
   const scoped = rules.filter((r) => !r.always);
 
   const parts = [
     `# Opinionated Rules`,
     "",
-    `Installed from \`${REPO}\` via \`npx ${CMD}\`. Re-run \`npx ${CMD} update\` to refresh.`,
+    `Installed from \`${REPO}\` via \`npx ${CMD}@latest\`. Re-run \`npx ${CMD}@latest update\` to refresh.`,
     "",
   ];
 
@@ -42,16 +68,13 @@ export function renderRulesBlock(rules, { consumer = true } = {}) {
   if (scoped.length) {
     parts.push("## Conditional rules", "", "Apply these only when working on matching files:", "");
     for (const r of scoped) {
-      if (consumer) {
-        const globs = r.globs ? ` (globs: \`${r.globs}\`)` : "";
-        parts.push(`- **${r.name}**${globs} — ${r.description}`);
-        if (r.globs) {
-          parts.push("", `> Scope: apply only to files matching \`${r.globs}\`.`, "", demote(r.body), "");
-        }
-      } else {
-        const globs = r.globs ? ` (globs: \`${r.globs}\`)` : "";
-        parts.push(`- **${r.name}**${globs} — ${r.description} → see \`rules/${r.name}.mdc\``);
-      }
+      const globs = r.globs ? ` (globs: \`${r.globs}\`)` : "";
+      const target = scopedPointer
+        ? scopedPointer(r)
+        : consumer
+          ? `.balakit/rules/${r.name}.md`
+          : `rules/${r.name}.mdc`;
+      parts.push(`- **${r.name}**${globs} — ${r.description} → see \`${target}\``);
     }
     parts.push("");
   }
@@ -70,12 +93,12 @@ export function renderRepoStandingDocs(rules, agentLabel) {
   const scoped = rules.filter((r) => !r.always);
   const out = [
     "<!-- GENERATED FILE — do not edit by hand.",
-    "     Source of truth: rules/*.mdc · Regenerate: ./sync.sh or sync.ps1 -->",
+    "     Source of truth: rules/*.mdc · Regenerate: npm run sync (or ./sync.sh) -->",
     "",
     "# Project Rules",
     "",
     `Standing rules for ${agentLabel}, generated from this repository's \`rules/*.mdc\`. ` +
-      "Edit the source rules, then run the sync script to regenerate this file.",
+      "Edit the source rules, then run `npm run sync` to regenerate this file.",
     "",
   ];
   for (const r of always) {

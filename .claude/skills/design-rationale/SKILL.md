@@ -10,17 +10,9 @@ description: >-
   Use dissect to audit entities. Use proving-change-safety before merge.
 user-invocable: true
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 tags: ["investigation", "epistemics", "history"]
-when_to_use: |
-  USE WHEN:
-  - The user asks why something was built this way, why a flag is off, or
-    why a number or shape was chosen.
-  DO NOT USE WHEN:
-  - The question is how it works at runtime (use subsystem-walkthrough).
-  - There is no historical question, only "what should we change" (use dissect
-    or deep-deliberation).
 ---
 
 # Design rationale

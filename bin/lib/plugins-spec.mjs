@@ -1,0 +1,114 @@
+/**
+ * Domain plugin catalog shared by build-plugins.mjs and the CLI's on-the-fly
+ * Cursor local plugin installer (allowing npm tarballs to omit duplicate
+ * `plugins/` trees while keeping GitHub Marketplace `plugins/` in git).
+ *
+ * @typedef {"cursor" | "agent"} PluginFormat
+ *
+ * @typedef {object} PluginDef
+ * @property {string} name Plugin id (kebab-case, Agent Plugins name constraints).
+ * @property {string} description Short purpose for marketplace / manifests.
+ * @property {string[]} keywords Discovery tags.
+ * @property {PluginFormat} format Packaging format.
+ * @property {string[]} rules Rule basenames (without `.mdc`) copied into `rules/`.
+ * @property {string[]} skills Skill directory names copied into `skills/`.
+ */
+
+/** @type {PluginDef[]} */
+export const PLUGINS = [
+  {
+    name: "balakit-core",
+    description:
+      "Standing project rules: meta-principle, testing, comments, and changelog maintenance.",
+    keywords: ["rules", "coding-standards", "agents-md", "balakit"],
+    format: "cursor",
+    rules: ["base", "testing", "comments", "changelog"],
+    skills: [],
+  },
+  {
+    name: "balakit-seo",
+    description:
+      "Scoped seo-ai-search rule for Cursor (globs). Portable SEO skills ship in balakit-seo-skills.",
+    keywords: ["seo", "geo", "structured-data", "cursor", "balakit"],
+    format: "cursor",
+    rules: ["seo-ai-search"],
+    skills: [],
+  },
+  {
+    name: "balakit-seo-skills",
+    description:
+      "SEO and AI-search skills: everything-seo playbook, seo-audit workflow, and agent-ready discovery.",
+    keywords: ["seo", "geo", "structured-data", "audit", "agent-ready", "balakit"],
+    format: "agent",
+    rules: [],
+    skills: ["agent-ready", "everything-seo", "seo-audit"],
+  },
+  {
+    name: "balakit-marketing",
+    description:
+      "Startup marketing and conversion psychology skills for distribution and monetization.",
+    keywords: ["marketing", "startup", "psychology", "growth", "balakit"],
+    format: "agent",
+    rules: [],
+    skills: ["marketing-psychology", "startup-marketing-brain"],
+  },
+  {
+    name: "balakit-media",
+    description:
+      "Fal.ai media generation skill for images, video, upscale, and creative workflows.",
+    keywords: ["media", "fal-ai", "image-generation", "video", "balakit"],
+    format: "agent",
+    rules: [],
+    skills: ["media-gen"],
+  },
+  {
+    name: "balakit-notebooklm",
+    description:
+      "NotebookLM CLI and MCP expert skill for research, notebooks, and content generation.",
+    keywords: ["notebooklm", "nlm", "mcp", "research", "balakit"],
+    format: "agent",
+    rules: [],
+    skills: ["notebooklm"],
+  },
+  {
+    name: "balakit-engineering",
+    description:
+      "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, app verification, blinded eval, deliberation, inception, execute, TRL readiness loop, dissect, docs, release, and stealth browser fallback.",
+    keywords: [
+      "engineering",
+      "dissect",
+      "documentation",
+      "release",
+      "authoring",
+      "balakit",
+    ],
+    format: "agent",
+    rules: [],
+    skills: [
+      "authoring-skills-and-rules",
+      "blinded-eval",
+      "cloakbrowser-fallback",
+      "deep-deliberation",
+      "design-rationale",
+      "dissect",
+      "documentation-writer",
+      "execute",
+      "inception",
+      "kit-workflows",
+      "proving-change-safety",
+      "release-deploy",
+      "subsystem-walkthrough",
+      "trl",
+      "verify-app",
+    ],
+  },
+];
+
+/** Marketplace id for the Cursor multi-plugin repo root. */
+export const MARKETPLACE_NAME = "balakit";
+
+/** Marketplace owner metadata. */
+export const MARKETPLACE_OWNER = {
+  name: "Ali Farahat",
+  email: "ali@balacode.io",
+};

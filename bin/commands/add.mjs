@@ -4,7 +4,7 @@
 import * as p from "@clack/prompts";
 import { CMD, VERSION } from "../lib/pkg.mjs";
 import { loadRules, loadSkills, classifyNames } from "../lib/catalog.mjs";
-import { buildInstallPlan, runInstallPlan } from "../lib/install.mjs";
+import { buildInstallPlan, runInstallPlan, isHomeCwd, HOME_PROJECT_INIT } from "../lib/install.mjs";
 
 /**
  * @param {{
@@ -20,6 +20,12 @@ import { buildInstallPlan, runInstallPlan } from "../lib/install.mjs";
  * }} opts
  */
 export async function cmdAdd(opts) {
+  if (opts.scope !== "user" && isHomeCwd()) {
+    p.intro(`${CMD} v${VERSION} — ${opts.label ?? "add"} (project)`);
+    p.log.error(HOME_PROJECT_INIT);
+    p.outro("Nothing written.");
+    return 1;
+  }
   const allRules = loadRules();
   const allSkills = loadSkills();
   if (!opts.names?.length) {
@@ -55,6 +61,6 @@ export async function cmdAdd(opts) {
     p.outro("Finished with errors — see above (partial install).");
     return 1;
   }
-  p.outro(opts.dryRun ? "Dry-run complete." : `Done. Update: npx ${CMD} update`);
+  p.outro(opts.dryRun ? "Dry-run complete." : `Done. Update: npx ${CMD}@latest update`);
   return 0;
 }

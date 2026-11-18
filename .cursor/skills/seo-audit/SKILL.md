@@ -9,25 +9,11 @@ description: >-
   Use when the user asks about SEO audit, meta tags, structured data, local
   SEO, Core Web Vitals, crawlability, robots.txt, or public page optimization.
   Delegates depth to the everything-seo skill.
-user-invocable: false
+user-invocable: true
 disable-model-invocation: false
-version: "2.1.0"
+version: "2.2.0"
 author: "Ali Farahat"
 tags: ["seo-audit", "local-seo", "technical-seo", "structured-data", "geo"]
-when_to_use: |
-  USE WHEN:
-  - User asks about SEO audit, meta tags, or structured data implementation.
-  - User is working on public-facing pages, landing pages, or profile pages.
-  - User needs LocalBusiness schema or local SEO optimization.
-  - User mentions Core Web Vitals, crawlability, or robots.txt.
-  - User needs AI search readiness (GEO, llms.txt).
-
-  DO NOT USE WHEN:
-  - User needs high-level SEO strategy (use everything-seo).
-  - User needs well-known agent discovery, Auth.md, A2A, MCP, or agentic
-    commerce endpoints (use agent-ready).
-  - User needs content marketing or keyword research (use startup-marketing-brain).
-  - User needs PPC or paid search advice.
 ---
 
 # SEO Audit & Optimization

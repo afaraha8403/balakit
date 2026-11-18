@@ -7,30 +7,12 @@ description: >-
   strategy. Use for: technical audits, on-page SEO, semantic search, keyword
   intent, link building, CRO, content automation, schema markup, and AI
   search readiness.
-user-invocable: false
+user-invocable: true
 disable-model-invocation: false
-version: "1.3.0"
+version: "1.4.0"
 author: "Ali Farahat"
 derived_from: "NotebookLM"
 tags: ["SEO", "technical-SEO", "on-page-SEO", "link-building", "digital-PR", "CRO", "content-automation", "E-E-A-T", "Core-Web-Vitals", "GEO", "RAG-optimization"]
-when_to_use: |
-  - User asks about SEO, search optimization, or ranking improvement.
-  - User needs technical SEO audit, crawlability, or indexing help.
-  - User asks about on-page SEO, content optimization, or semantic SEO.
-  - User needs keyword research, intent mapping, or topical authority.
-  - User asks about link building, digital PR, or backlink strategies.
-  - User wants to improve E-E-A-T signals or site trustworthiness.
-  - User asks about Core Web Vitals, page speed, or performance.
-  - User needs schema markup, structured data, or rich results.
-  - User asks about CRO and SEO integration or A/B testing.
-  - User wants Bing SEO optimization or Google vs Bing differences.
-  - User asks about AI content automation or Generative Engine Optimization (GEO).
-  - User mentions SEO penalties, SpamBrain, or algorithm updates.
-  - DO NOT USE for: paid search (PPC), social media marketing, or general web
-    design. For local-business / public-profile audits specifically, prefer the
-    seo-audit skill (it carries the phase-separated Crawl > Audit > Fix > Verify
-    workflow and delegates depth here). For well-known agent discovery
-    (Auth.md, A2A, MCP, ACP/UCP/x402), use agent-ready.
 ---
 
 # Everything SEO

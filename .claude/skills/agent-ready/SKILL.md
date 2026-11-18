@@ -10,21 +10,9 @@ description: >-
   crawl audits, and GEO strategy use seo-audit and everything-seo.
 user-invocable: true
 disable-model-invocation: false
-version: "1.0.0"
+version: "1.1.0"
 author: "Ali Farahat"
 tags: ["agent-ready", "agent-discovery", "well-known", "mcp", "a2a", "geo"]
-when_to_use: |
-  USE WHEN:
-  - User asks to make a site or API agent-ready / agent-discoverable.
-  - User mentions well-known agent documents, Auth.md, api-catalog,
-    A2A agent cards, MCP server cards, WebMCP, DNS-AID, ACP, UCP, or x402.
-  - A scanner or audit reports missing agent discovery endpoints.
-
-  DO NOT USE WHEN:
-  - User needs page SEO, titles, schema, or a crawl audit of public HTML
-    (use seo-audit).
-  - User needs ranking / GEO / digital PR strategy (use everything-seo).
-  - User needs paid search (PPC).
 ---
 
 # Agent-ready discovery

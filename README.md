@@ -51,7 +51,7 @@ npx balakit@latest init --rules-only -y
 npx balakit@latest init --scope user -y
 ```
 
-Pick tools with `--agents claude-code,cursor`; each tool gets only its own files. Cursor plugin packs are opt-in with `--cursor-plugins`. Check the kit with `npx balakit doctor` (that is not `mental doctor`).
+Pick tools with `--agents claude-code,cursor`. Each tool receives only its own files. Cursor plugin packs are opt-in with `--cursor-plugins`. Check kit health with `npx balakit@latest doctor`, or repair drift in one command with `npx balakit@latest doctor --fix`.
 
 No menus: pass `-y`. Guided setup: `npx balakit` with no flags.
 
@@ -88,23 +88,20 @@ Ask the agent by name. One sentence each. Full pages: [Skills](docs/skills.md).
 | How does this work? | [`subsystem-walkthrough`](docs/skills.md#subsystem-walkthrough) | Explains architecture, runtime flow, and ownership |
 | Why is it shaped this way? | [`design-rationale`](docs/skills.md#design-rationale) | Investigates history. Every claim gets an evidence label |
 | Is this diff safe? | [`proving-change-safety`](docs/skills.md#proving-change-safety) | Names one safety fact and proves it by running real code |
-| Bug, small feature, or refactor | [`kit-workflows`](docs/skills.md#kit-workflows) | Matches one playbook. Not a sticky mode |
-| Nothing else fits | [`unmatched-workflow`](docs/skills.md#unmatched-workflow) | Designs a falsifiable playbook for the leftover work |
+| Bug, small feature, refactor, or custom playbook | [`kit-workflows`](docs/skills.md#kit-workflows) | Matches a named playbook, or designs a falsifiable custom playbook when none fits |
 | Audit what already exists | [`dissect`](docs/skills.md#dissect) | Red-teams an existing service, schema, or plan |
 | Compare approaches before building | [`deep-deliberation`](docs/skills.md#deep-deliberation) | Checkpointed option comparison |
 | A durable, file-level plan | [`inception`](docs/skills.md#inception) | Writes the plan and stops. Recommends `execute` |
-| Parallel takes, no writes | [`opinion`](docs/skills.md#opinion) | Current model by default; auto-pick for other families. This chat does not edit |
-| Workers research, then do the work | [`execute`](docs/skills.md#execute) | Same fan-out, then this chat implements |
+| Workers research, then build (or `--opinion` read-only) | [`execute`](docs/skills.md#execute) | Parallel takes across worker slots (`--opinion` stops before edits) |
 | Make it ready for real users | [`trl`](docs/skills.md#trl) | Scores a TRL 1–9 per area with a blind agent panel, then builds toward the next level |
 
-`dissect`, `deep-deliberation`, and `inception` share `--circuit` (skip waits) and `--autopilot` (take recommended choices). On `inception`, circuit still **stops at the plan**. Only `--autopilot` runs `execute`.
+`dissect`, `deep-deliberation`, and `inception` share `--circuit` (skip waits) and `--autopilot` (take recommended choices). On `inception`, circuit still **stops at the plan**. Only `--autopilot` runs `execute`. Interactive checkpoints call each harness's native Question UI (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) with at most 4 options and `Say this in plain English` last.
 
 ### Prove behavior
 
 | You want | Skill | What it does |
 | --- | --- | --- |
-| Drive the app like a user | [`generating-app-verify`](docs/skills.md#generating-app-verify) | Writes a repo-local verify skill for the real app |
-| Keep that map honest | [`refreshing-app-verify`](docs/skills.md#refreshing-app-verify) | Re-drives every mapped feature. Does not patch product code |
+| Drive the app like a user (or `--refresh` existing map) | [`verify-app`](docs/skills.md#verify-app) | Generates or refreshes a repo-local verify skill against the running app |
 
 ### Author skills and docs
 
@@ -127,38 +124,37 @@ Ask the agent by name. One sentence each. Full pages: [Skills](docs/skills.md).
 | Make a site discoverable to agents | [`agent-ready`](docs/skills.md#agent-ready) | `npx balakit add agent-ready` |
 | Copy psychology | [`marketing-psychology`](docs/skills.md#marketing-psychology) | `npx balakit add marketing-psychology` |
 | Startup GTM and distribution | [`startup-marketing-brain`](docs/skills.md#startup-marketing-brain) | `npx balakit add startup-marketing-brain` |
-| Images and video via Fal.ai | [`media-gen`](docs/skills.md#media-gen) | `npx balakit add media-gen` |
-| NotebookLM CLI and MCP | [`nlm-skill`](docs/skills.md#nlm-skill) | `npx balakit add nlm-skill` |
+| Images and video via Fal.ai | [`media-gen`](docs/skills.md#media-gen) | `npx balakit@latest add media-gen` |
+| NotebookLM CLI and MCP | [`notebooklm`](docs/skills.md#notebooklm) | `npx balakit@latest add notebooklm` |
 
 Or install the matching [plugin pack](docs/install.md#native-plugins).
 
 ## Standing rules
 
-Default `init` installs these five. They are always on.
+Default `init` installs four rules: three always-on standing rules plus path-scoped changelog maintenance.
 
-| Rule | What it does |
-| --- | --- |
-| `base` | Meta-principle, dual-mode chat, simplicity ladder, repo hygiene |
-| `testing` | Tests must catch a real bug. Prove behavior on the real artifact |
-| `comments` | Document why, not what. Every exported symbol gets a doc comment |
-| `changelog` | `CHANGELOG.md` grouped as Features / Fixes / Changes |
-| `release` | Git tag, changelog heading, `package.json`, and npm publish share one semver |
+| Rule | Scope | What it does |
+| --- | --- | --- |
+| `base` | Always on | Meta-principle, dual-mode chat, native Question UI, simplicity ladder, release lockstep |
+| `testing` | Always on | Tests must catch a real bug. Prove behavior on the real artifact |
+| `comments` | Always on | Document why, not what. Every exported symbol gets a doc comment |
+| `changelog` | `**/CHANGELOG.md` | `CHANGELOG.md` grouped as Features / Fixes / Changes |
 
-`seo-ai-search` is file-scoped SEO + AI-search implementation. Add it when you ship public pages: `npx balakit add seo-ai-search`.
+`seo-ai-search` is file-scoped SEO and AI-search implementation for public routes and metadata files. Add it when you ship public pages: `npx balakit@latest add seo-ai-search`.
 
 ## Commands
 
 ```bash
-npx balakit                         # guided setup
-npx balakit@latest init -y          # this repo: rules + engineering skills
+npx balakit@latest                         # guided setup
+npx balakit@latest init -y                 # this repo: rules + engineering skills
 npx balakit@latest init --scope user -y
-npx balakit init --rules-only -y    # standing rules only
-npx balakit add dissect --scope user
-npx balakit list
-npx balakit status
-npx balakit doctor
-npx balakit update
-npx balakit remove testing
+npx balakit@latest init --rules-only -y    # standing rules only
+npx balakit@latest add dissect --scope user
+npx balakit@latest list
+npx balakit@latest status
+npx balakit@latest doctor --fix
+npx balakit@latest update
+npx balakit@latest remove testing
 ```
 
 ```bash
@@ -172,7 +168,7 @@ balakit init -y
 
 This repo is a **marketplace**, not one plugin. Do not `/add-plugin` the repo root.
 
-Five [Agent Plugins 1.0.0](https://agent-plugins.org/specification) packs live under `plugins/` (`balakit-engineering`, `balakit-marketing`, `balakit-media`, `balakit-nlm`, `balakit-seo-skills`). Cursor also has two rules-only plugins (`balakit-core`, `balakit-seo`). Plugin install loads skills. It does **not** write `AGENTS.md`. You still run `balakit init` for standing rules.
+Five [Agent Plugins 1.0.0](https://agent-plugins.org/specification) packs live under `plugins/` (`balakit-engineering`, `balakit-marketing`, `balakit-media`, `balakit-notebooklm`, `balakit-seo-skills`). Cursor also has two rules-only plugins (`balakit-core`, `balakit-seo`). Plugin install loads skills. It does **not** write `AGENTS.md`. You still run `balakit init` for standing rules.
 
 ```text
 # Claude Code
@@ -213,14 +209,15 @@ Reload Cursor if plugins/local changed. Do not npm publish.
 
 | Client | Skills | Standing rules |
 | --- | --- | --- |
-| Cursor | Native Agent Plugins, or user-scope `init` copies to `~/.cursor/plugins/local/` | `init` → `.mdc` + `AGENTS.md` |
-| Copilot / VS Code | Point at a `plugins/balakit-*` folder, not the repo root | `init` |
-| Amazon Q / Kiro | Agent Plugins under `plugins/balakit-*`. skills.sh id is `kiro-cli` | `init` → `AGENTS.md` if it reads it |
-| ChatGPT / Codex | One [OpenAI plugin catalog](https://developers.openai.com/codex/plugins). ChatGPT: Plugins tab. Codex CLI: `codex plugin …`. **IDE extension: no plugins.** | `init` → `~/.codex/AGENTS.md` for Codex CLI |
-| Claude Code | Marketplace only (`.claude-plugin/`). Root `plugin.json` is invisible | `init` → `CLAUDE.md` |
-| OpenCode, Cline, Kilo, Windsurf, Gemini CLI, … | CLI / skills.sh | `init` → `AGENTS.md` if they read it |
+| Cursor | Native CLI skills (`.cursor/skills`), Agent Plugins, or `--cursor-plugins` (`~/.cursor/plugins/local/`) | Single-injection: `.cursor/rules/*.mdc` alone, or `AGENTS.md` + glob-scoped `.mdc` |
+| Copilot / VS Code | Native CLI skills (`.agents/skills` / `~/.copilot/skills`) or `plugins/balakit-*` | `AGENTS.md` + `.github/instructions/*.instructions.md` (project), `~/.copilot/copilot-instructions.md` (user) |
+| Amazon Q / Kiro | Native CLI skills (`.kiro/skills` / `~/.kiro/skills`) or `plugins/balakit-*` | `AGENTS.md` when supported |
+| ChatGPT / Codex | Native CLI skills (`.agents/skills` / `~/.codex/skills`) or [OpenAI plugin catalog](https://developers.openai.com/codex/plugins). **IDE extension: no plugins.** | `AGENTS.md` (project), `~/.codex/AGENTS.md` (user) |
+| Claude Code | Native CLI skills (`.claude/skills` / `~/.claude/skills`) or `.claude-plugin/` marketplace | `CLAUDE.md` + `.claude/rules/*.md` (project), `~/.claude/CLAUDE.md` (user) |
+| OpenCode & Gemini CLI | Zero-dep native CLI installer on Node 18+ | `AGENTS.md` (project), `~/.config/opencode/AGENTS.md` and `~/.gemini/GEMINI.md` (user) |
+| Cline, Kilo, Windsurf, Roo, Zed, Amp, Continue, Junie | Zero-dep native CLI installer on Node 18+ | `AGENTS.md` when supported |
 
-Aider has no skills.sh id (rules only). Google Jules is listed in the CLI matrix but is never auto-detected.
+Aider receives rules only (`AGENTS.md`). Google Jules is listed in the CLI matrix and is never auto-detected.
 
 ## FAQ
 
@@ -228,7 +225,7 @@ Aider has no skills.sh id (rules only). Google Jules is listed in the CLI matrix
 This repo → `--scope project` (default). Every project on this PC → `--scope user`.
 
 **Skills missing after `init`?**
-Default `init` installs engineering skills. `--rules-only` skips them. Marketing / SEO / media / nlm / `cloakbrowser-fallback` still need `add` or a plugin. Reload the agent window.
+Default `init` installs engineering skills. `--rules-only` skips them. Marketing / SEO / media / `notebooklm` / `cloakbrowser-fallback` still need `add` or a plugin. Reload the agent window.
 
 **Do native plugins replace the CLI?**
 No. Plugins load skills (and Cursor plugins can load rules). `balakit init` still writes the standing kit.
@@ -237,19 +234,15 @@ More answers: [FAQ](docs/faq.md).
 
 ## Developing
 
-`skills/` and `rules/` are the source of truth. Generated plugin trees and marketplace catalogs come from `./sync.sh`.
+`skills/` and `rules/` are the source of truth. Generated plugin trees, standing docs, and repo mirrors come from `npm run sync` (`scripts/sync.mjs`).
 
 ```bash
-./sync.sh
+npm run sync
 npm test
 npm run lockstep
 ```
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\sync.ps1
-```
-
-Never hand-edit generated plugin `version` fields. Bump `package.json`, then `./sync.sh`.
+Never hand-edit generated plugin `version` fields. Bump `package.json`, then run `npm run sync`.
 
 CI on `master` / `staging` runs tests and lockstep. A `v*` tag runs `.github/workflows/release.yml` (GitHub Release + `npm publish`). Repo secret `NPM_TOKEN` must be an npm **Automation** token.
 

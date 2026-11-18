@@ -1,6 +1,6 @@
 {
   "name": "balakit",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "description": "Standing rules and named playbooks for AI coding agents. One command installs AGENTS.md-first rules and engineering skills.",
   "license": "MIT",
   "homepage": "https://github.com/afaraha8403/balakit#readme",
@@ -18,25 +18,22 @@
     "bin",
     "skills",
     "rules",
-    "plugins",
-    ".cursor-plugin",
-    ".claude-plugin",
-    ".agents/plugins",
+    "CHANGELOG.md",
     "README.md",
     "LICENSE",
     "assets"
   ],
   "scripts": {
     "test": "node --test --test-concurrency=1",
+    "sync": "node scripts/sync.mjs",
     "plugins": "node scripts/build-plugins.mjs",
-    "lockstep": "node scripts/check-lockstep.mjs --rebuild --git"
+    "lockstep": "node scripts/check-lockstep.mjs --sync --git"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@clack/prompts": "^1.6.0",
-    "skills": "1.5.25"
+    "@clack/prompts": "^1.6.0"
   },
   "publishConfig": {
     "access": "public"

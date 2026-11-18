@@ -1,68 +1,59 @@
 # GitHub CLI release workflow
 
-Use `gh` for releases. Run git/`gh` commands as separate PowerShell statements (no `&&` chaining).
+Use `gh` and `git` matching the active OS shell (`bash`/`zsh` on Linux/macOS; PowerShell on Windows).
 
 ## Preconditions
 
-From project config + user confirmation:
+From `.balakit/release.md` + user confirmation:
 
-- Channel and branch match (`main` / `staging` or configured map)
-- Intended commit is HEAD (or known SHA)
+- Channel and branch match (`defaultBranchRef.name` — `main`/`master` — or `staging`)
+- Intended commit is HEAD (with `package.json`, `CHANGELOG.md`, and sync outputs already committed and pushed)
 - Next tag string confirmed
-- Changelog notes extracted
-- Guardrails satisfied (clean tree, CI, etc.)
+- Changelog notes verified (`## [vX.Y.Z]`)
+- Guardrails satisfied (clean tree, CI green)
+- Tag-CI ownership checked (`.github/workflows/release*.yml`): determine whether pushing `v*` already creates the GitHub Release in Actions!
 
 Useful checks:
 
-```powershell
+```bash
 git status
 git branch --show-current
 git log -1 --oneline
 gh auth status
 gh repo view --json nameWithOwner,defaultBranchRef
-```
-
-List recent releases/tags:
-
-```powershell
 gh release list --limit 20
-git tag -l "v*" --sort=-v:refname | Select-Object -First 20
+git tag -l "v*" --sort=-v:refname | head -n 20   # PowerShell: | Select-Object -First 20
 ```
 
-## Create the release
+## Path A — Tag-triggered CI owns GitHub Release (`push: tags: ['v*']`)
 
-Prefer letting `gh` create the tag from a branch or SHA:
+When a workflow in `.github/workflows/` triggers on `v*` tags and runs `gh release create` / `npm publish`, push the annotated tag ONLY (do **not** run `gh release create` locally):
 
-### Beta (staging)
+```bash
+git tag -a "v1.4.0" -m "v1.4.0"
+git push origin "v1.4.0"
+```
 
-```powershell
+## Path B — CLI creates the GitHub Release (`release: [published]` or no tag-release job)
+
+Prefer letting `gh` create the tag and release from the target branch or SHA:
+
+### Beta (`staging`)
+
+```bash
 gh release create "v1.4.0-beta.1" --target staging --title "v1.4.0-beta.1" --notes-file notes.md --prerelease
 ```
 
-### Production (main)
+### Production (`main` or `master` — match `defaultBranchRef.name`)
 
-```powershell
+```bash
 gh release create "v1.4.0" --target main --title "v1.4.0" --notes-file notes.md
 ```
 
 Notes:
-
-- Write extracted changelog body to a temp `notes.md` (or pass `--notes "..."` for short notes).
-- `--target` must be the **branch name** or **commit SHA** for that channel — not the other branch.
-- Add `--latest` only for production when this should be the GitHub "latest" release (default behavior is usually fine; follow project config).
-- To attach local files: pass asset paths as trailing arguments. Prefer CI-uploaded assets when the workflow already does that.
-
-### Annotated tag first (optional)
-
-Only if the project requires a local annotated tag before `gh`:
-
-```powershell
-git tag -a "v1.4.0" -m "v1.4.0"
-git push origin "v1.4.0"
-gh release create "v1.4.0" --notes-file notes.md
-```
-
-Do not push tags until the user confirmed the version.
+- Write extracted changelog body to a temporary `notes.md` (and clean it up afterward).
+- `--target` must match the release branch or exact commit SHA for that channel.
+- Do not push tags or create releases until the user confirms the version.
 
 ## Watch deployment
 

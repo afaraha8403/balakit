@@ -10,18 +10,9 @@ description: >-
   plan. Use deep-deliberation to pick among approaches. Use execute to implement.
 user-invocable: true
 disable-model-invocation: true
-invocation-type: manual
-version: "1.1.0"
+version: "1.3.0"
 author: "Ali Farahat"
 tags: ["planning", "orchestration", "inception"]
-when_to_use: |
-  USE WHEN:
-  - The user invokes inception or /inception, or wants a long-running detailed plan.
-  - The deliverable is the plan, not the implementation.
-  DO NOT USE WHEN:
-  - They want to audit an existing system or plan (use dissect).
-  - They want to pick among approaches with no work breakdown (use deep-deliberation).
-  - They already have a plan and want it built (use execute).
 ---
 
 # Inception
@@ -122,26 +113,24 @@ create `.balakit/plans/` as a second copy.
 
 **Plan Mode off** → do not yank them into Plan Mode.
 
-Interactive, ask:
+In `interactive` mode, invoke the host's **native structured question tool** (see [references/hosts.md](references/hosts.md) — `AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`; never print raw `prompt:`/`options:` YAML in chat). Ask one single-select question (`header: "Plan canvas"`):
 
-```text
-prompt: Where should this plan live?
-options:
-- .balakit/plans/<slug>.md in this repo (Recommended)
-- Switch to this host's Plan Mode (native UI)
-- I'll pick a path
-- Say this in plain English
-allow_multiple: false
-```
+- **Question:** `Where should this plan live?`
+- **Options (4):**
+  1. `.balakit/plans/<slug>.md in this repo (Recommended)`
+  2. `Switch to this host's Plan Mode (native UI)`
+  3. `I'll specify a custom path`
+  4. `Say this in plain English`
 
-`Say this in plain English` is a meta question: explain native vs repo file
-with one example, then re-ask. Do not write yet.
+Fall back to a numbered plain-text list only when zero question tools are declared in this session.
+
+`Say this in plain English` is a meta option: explain native Plan Mode vs a `.balakit/plans/` file with one concrete example, then re-invoke the question tool. Do not write yet.
 
 - Recommended → `.balakit/plans/<slug>.md` (create the directory). Slug is
   kebab-case from the request, filesystem-safe.
 - Native UI → `SwitchMode` to plan (user consent) or tell them Shift+Tab /
   Tab / `/plan`, then treat Plan Mode as on.
-- I'll pick a path → they name it. Refuse `.balakit/installed.json`, `skills/`,
+- Custom path → they name it (or enter it in the widget's free-text field). Refuse `.balakit/installed.json`, `skills/`,
   and a second file when a host plan is already live.
 
 `--circuit` / `--autopilot`: skip the ask. Default `.balakit/plans/<slug>.md`.
@@ -158,7 +147,7 @@ specialists: <pulled>, skipped: <name (reason)>, …
 ```
 
 Then: the plan lives at `canvas`. Interactive and circuit recommend `execute`
-next (not exclusive: `kit-workflows` / `unmatched-workflow` may still consume
+next (not exclusive: `kit-workflows` — including `playbooks/custom.md` — may still consume
 it). Autopilot continues into `execute` unless `skip: plan-mode`.
 
 Interactive final footer, last block, verbatim. Omit under `--circuit` /

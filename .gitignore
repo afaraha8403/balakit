@@ -4,3 +4,8 @@ Thumbs.db
 *.log
 .env
 .env.*
+.balakit/installed.json
+.balakit/plans/
+.balakit/trl/
+output/
+

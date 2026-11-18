@@ -152,16 +152,25 @@ test("buildInstallPlan reconciles add with existing manifest (no AGENTS shrink)"
   const body = readFileSync(join(cwd, "AGENTS.md"), "utf8");
   assert.match(body, /Do the right thing/);
   assert.match(body, /Write real tests/);
-  assert.match(body, /Ship meta tags/);
+  assert.match(body, /\.balakit\/rules\/seo-ai-search\.md/);
+  assert.match(readFileSync(join(cwd, ".balakit", "rules", "seo-ai-search.md"), "utf8"), /Ship meta tags/);
 });
 
-test("migrateManifest renames legacy global rule to base", () => {
+test("migrateManifest renames legacy rules and consolidated skills to schema v4", () => {
   const m = migrateManifest({
-    schema: 2,
-    rules: ["global", "testing", "global"],
-    skills: [],
+    schema: 3,
+    rules: ["global", "testing", "release", "global"],
+    skills: [
+      "nlm-skill",
+      "opinion",
+      "unmatched-workflow",
+      "generating-app-verify",
+      "refreshing-app-verify",
+    ],
   });
+  assert.equal(m.schema, 4);
   assert.deepEqual(m.rules, ["base", "testing"]);
+  assert.deepEqual(m.skills, ["notebooklm", "execute", "kit-workflows", "verify-app"]);
 });
 
 test("parseArgv rejects leftover Mental flags with moved message", () => {
@@ -252,8 +261,8 @@ test("manifest round-trip without Mental policy machinery", () => {
   assert.equal(m.schema, MANIFEST_SCHEMA);
   assert.deepEqual(m.rules, ["base"]);
   assert.deepEqual(m.skills, ["dissect"]);
-  assert.equal(m.mentalTooling, null);
-  assert.equal(m.mentalDataPolicy, null);
+  assert.equal(m.mentalTooling ?? null, null);
+  assert.equal(m.mentalDataPolicy ?? null, null);
 });
 
 test("loadRules no longer includes mental", () => {
@@ -272,7 +281,8 @@ test("defaultInitSkills honors --rules-only and packaged catalog", () => {
   assert.deepEqual(defaultInitSkills([{ name: "dissect" }]), ["dissect"]);
   assert.ok(TEAM_INIT_SKILLS.includes("dissect"));
   assert.ok(TEAM_INIT_SKILLS.includes("kit-workflows"));
-  assert.ok(TEAM_INIT_SKILLS.includes("opinion"));
+  assert.equal(TEAM_INIT_SKILLS.includes("opinion"), false);
+  assert.ok(TEAM_INIT_SKILLS.includes("verify-app"));
   assert.ok(TEAM_INIT_SKILLS.includes("execute"));
   assert.ok(TEAM_INIT_SKILLS.includes("inception"));
   assert.ok(TEAM_INIT_SKILLS.includes("trl"));
@@ -283,14 +293,31 @@ test("isHomeCwd is true only when cwd is the home directory", () => {
   assert.equal(isHomeCwd("/tmp/project", "/home/ali"), false);
 });
 
-test("project init refuses when cwd is homedir", () => {
+test("project init/add/remove refuse when cwd is homedir; status/doctor treat cwd=HOME as user-only", () => {
   const cli = fileURLToPath(new URL("../bin/cli.mjs", import.meta.url));
-  const result = spawnSync(process.execPath, [cli, "init", "-y"], {
+  for (const args of [
+    ["init", "-y"],
+    ["add", "dissect", "-y"],
+    ["remove", "base", "-y"],
+  ]) {
+    const result = spawnSync(process.execPath, [cli, ...args], {
+      cwd: home,
+      env: { ...process.env, HOME: home, USERPROFILE: home },
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 1, args.join(" "));
+    assert.match(`${result.stdout}${result.stderr}`, /home directory/);
+  }
+  assert.equal(existsSync(join(home, "AGENTS.md")), false);
+
+  // Seed user manifest in ~/.balakit/installed.json and confirm status --json from HOME reports only user scope!
+  recordInstall("global", { rules: ["base"], agents: ["codex"] }, { cwd: home, home });
+  const st = spawnSync(process.execPath, [cli, "status", "--json"], {
     cwd: home,
-    env: { ...process.env, HOME: home },
+    env: { ...process.env, HOME: home, USERPROFILE: home },
     encoding: "utf8",
   });
-  assert.equal(result.status, 1);
-  assert.match(`${result.stdout}${result.stderr}`, /home directory/);
-  assert.equal(existsSync(join(home, "AGENTS.md")), false);
+  assert.equal(st.status, 0);
+  const parsed = JSON.parse(st.stdout);
+  assert.deepEqual(parsed.scopes.map((s) => s.scope), ["user"]);
 });

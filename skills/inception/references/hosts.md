@@ -66,3 +66,15 @@ Interactive may offer native Plan Mode. Circuit/autopilot skip that offer.
 
 `--against` = the canvas path (host plan file/URI or `.balakit/plans/<slug>.md`).
 Do not copy the plan body into Mental.
+
+## Native Question UI (Cross-Harness)
+
+When interactive mode needs a user choice, inspect your session's live declared tools and invoke the matching structured question tool (2–4 options max, `header` ≤12 chars, never print `prompt:`/`options:` YAML):
+
+| Host | Question tool |
+|---|---|
+| `claude-code` | `AskUserQuestion` (`questions: [{ question, header, options: [{ label, description }], multiSelect: false }]`) |
+| `cursor` | `AskQuestion` (`title`, `questions: [{ id, prompt, options: [{ id, label }], allow_multiple: false }]`) |
+| `opencode` | `question` (`questions: [{ question, header, options: [{ label, description }], multiple: false }]`) |
+| `codex` | `request_user_input` (`questions: [{ id, header, question, options: [{ label, description }] }]`) |
+| `copilot` / `other` | `vscode_askQuestions` or `ask_user` if declared; numbered plain-text list only when zero question tools exist |

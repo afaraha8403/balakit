@@ -14,7 +14,7 @@ Applies to every task in this repo. Project-scoped rules extend or override thes
 
 ## AI Behavior & Communication (Dual-Mode)
 
-**Caveman Mode (defined):** Terse, compressed prose for the human. Fragments over sentences. Drop filler and articles (a/an/the). Use symbols (→, =, vs) and logical emojis (🐛, 🚀, 🛑, 📝) so the human scans fast. Compress *style* only — never correctness — and leave code, paths, URLs, and commands verbatim. (Mirrors the **Caveman** skill at its `full` level: "why use many token when few token do trick.")
+**Caveman Mode (defined):** Terse, compressed prose for the human. Fragments over sentences. Drop filler and articles (a/an/the). Use symbols (→, =, vs) and logical emojis (🐛, 🚀, 🛑, 📝) so the human scans fast. Compress *style* only — never correctness — and leave code, paths, URLs, and commands verbatim. Never flatten epistemic modality or hedges (`may`, `likely`, `unverified`) into false certainty. (Mirrors the **Caveman** skill at its `full` level: "why use many token when few token do trick.")
 
 **Reason fully, speak Caveman.** Caveman constrains the *surfaced message*, not your thinking. Plan and reason at full fidelity internally; compress only the text the human reads. Brevity is an output constraint, never a reasoning shortcut.
 
@@ -22,18 +22,24 @@ Two registers — pick by surface:
 
 **1. Chat + summaries → Caveman.** Goal: instant human "aha" at minimum tokens.
 
-**2. Artifacts → Standard Professional Mode.** Code, comments, JSDoc, architecture plans, `CHANGELOG.md`, commit messages, and docs stay highly detailed, articulate, and properly formatted for future developers. Never Caveman.
+**2. Artifacts → Standard Professional Mode (80% ASD-STE100).** Code, comments, JSDoc, architecture plans, `CHANGELOG.md`, commit messages, and docs use softened Simplified Technical English: active voice, simple tenses, ≤20 words per procedural step (one action per step), ≤25 words per descriptive sentence, zero synonym rotation (one canonical term per entity everywhere), and zero AI filler (`ensure`→`make sure`, `prior to`→`before`, `utilize`→`use`, no `delve`/`leverage`/`seamless`). Keep articles (`a`/`an`/`the`) and epistemic hedges intact; never Caveman.
 
-**Post-Change Summary (Caveman).** On any turn that modifies files, end with this exact block (skip it on read-only / answer-only turns):
+**Comprehension Ladder (when explaining complex systems):**
+- **Controlled prose** → short facts, diffs, and trade-offs.
+- **Mermaid + invariants table** (`sequenceDiagram`, `stateDiagram-v2`, `flowchart` + `[Component | Role | Invariant]`) → protocols, topologies, and lifecycles instead of prose walls.
+- **Discardable single-file HTML stepper** (host preview or scratch file, never unasked repo files) → offer when dynamic state or race conditions resist static diagrams.
+
+**Post-Change Summary (Caveman).** On any turn that modifies files, end with this compact block (skip on read-only / answer-only turns):
 - `✅ CHANGES:` [file] — [short reason, e.g. "Auth logic → fixed login bug"]
-- `⏭️ BYPASSED:` [file/concept] — [reason, e.g. "Out of scope", "Wait for human"]
-- `⚠️ CONCERNS:` [files, or "none"] — [edge cases / risks found]
+- `⏭️ BYPASSED:` [file/concept] — [reason] *(include only when something was intentionally deferred)*
+- `⚠️ CONCERNS:` [file] — [edge cases / risks] *(include only when real risks remain; omit "none")*
 - For any in-code concern, also inject the matching tag at the line: `// BUG:`, `// FIXME:`, `// TODO:`, `// CONCERN:`, `// OPTIMIZE:`.
 
 ## Think Before Coding
 **No assumptions. No hidden confusion. Surface tradeoffs.**
 - **State assumptions:** Do this before coding. Genuinely blocked? Stop → name the confusion → ask.
-- **Ask only when it pays:** Ask when blocked, or when a choice is costly / hard to reverse. Otherwise pick the sane default, act, and state the call in one line. Don't stall on reversible decisions.
+- **Ask only when it pays:** Unless an active skill or playbook defines an explicit interactive checkpoint, ask only when blocked or when a choice is costly / hard to reverse. Otherwise pick the sane default, act, and state the call in one line.
+- **Native Question UI:** When asking the human a structured choice, inspect your live declared tools and invoke the host's native question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) instead of printing raw option YAML or prose menus. Keep total options ≤4 (`(Recommended)` first; `Say this in plain English` last on workflow checkpoints), emit report prose before the blocking tool call, and fall back to a numbered plain-text list only when no question tool is declared in the session.
 - **Surface tradeoffs:** On real forks, present options → let human pick. No silent high-stakes choices.
 - **Push back:** Not a yes-machine. Bad human approach? Explain downside → propose alternative. Accept override.
 - **Attack the premise:** After two failed fixes that share one premise, census which actors hold the imbalance, then question the premise instead of writing a third fix that assumes it.
@@ -68,7 +74,7 @@ Climb the ladder before writing code → stop at the first rung that works:
 
 ## Filesystem, Environment & Execution
 - **Strict filesystem:** Ask before creating files. No `.md` unless instructed.
-- **Windows-safe commands:** Avoid `&&`. Use separate lines/scripts. Use PowerShell.
+- **Shell portability:** Match the active OS and shell (`bash`/`zsh` on Linux/macOS; PowerShell 7+ or separate lines on Windows PowerShell 5.1 where `&&` fails). Prefer `node` scripts for cross-platform repo automation.
 - **Protect secrets [CRITICAL]:** Never commit `.env`, credentials, API keys.
 - **Env vars:** Update `.env.example` in same change. Comment purpose, format, source.
 
@@ -83,10 +89,8 @@ Climb the ladder before writing code → stop at the first rung that works:
 - **Minimize reader load:** a competent reader should answer "where does X come from?" in thirty seconds. Collapse one-caller wrappers and shrink mutable scope.
 - **Skipped tests:** Explain in chat, not code comments.
 
-## Change Log Maintenance
-**Maintain human-readable history (Standard Mode - No Caveman).**
-- **Version:** SemVer ([Major].[Minor].[Patch]).
-- **Grouping:** `[Unreleased]` on top; group entries under `Features` / `Fixes` / `Changes`. A project changelog rule (e.g. `rules/changelog.mdc`), if present, is authoritative.
-- **Chronological:** Newest top.
-- **Human-Centric:** Clear, articulate impact descriptions. No pure technical logs. 
-- **Atomic:** Update `CHANGELOG.md` in same commit/PR.
+## Change Log & Release Lockstep
+**Maintain human-readable history (Standard Mode — No Caveman).**
+- **Grouping:** `[Unreleased]` on top; group entries under `Features` / `Fixes` / `Changes` newest-first (`rules/changelog.mdc` owns full format when editing `CHANGELOG.md`). Update `CHANGELOG.md` in the same commit/PR for user-visible changes.
+- **One version lockstep:** Git tag (`vX.Y.Z`), `package.json` `"version"` (`X.Y.Z`), `CHANGELOG.md` heading (`## [vX.Y.Z]`), and package publish must share one exact semver. Bump `package.json` first, run the repo's sync/generate step, never hand-edit generated manifests, and never tag an uncommitted version.
+- **Tag-workflow ownership:** When CI publishes on `v*` tags, push the committed tag only — do not also run `gh release create` or `npm publish` locally (use the `release-deploy` skill).

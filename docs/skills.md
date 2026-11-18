@@ -10,7 +10,7 @@ These ship with default `init`.
 
 ### `subsystem-walkthrough`
 
-Explains how a subsystem works: architecture, runtime flow, ownership, and layering.
+Explains how a subsystem works: architecture, runtime flow, ownership, and layering. Pairs Mermaid diagrams with a component invariants table when state transitions or message hops exist. Pass `--interactive` for a discardable single-file HTML state stepper.
 
 Ask when you would onboard a senior engineer onto that area. Not a line-by-line source tour. Use `design-rationale` for "why", `dissect` for an entity audit.
 
@@ -30,15 +30,9 @@ Finds what a change could break **beyond the diff**, then proves **one** safety 
 
 ### `kit-workflows`
 
-Matches the task to one playbook: bug fix, named-data-shape feature, or behavior-preserving refactor. Not a sticky mode. If none of those fit, use `unmatched-workflow`.
+Matches the task to one playbook: bug fix, named-data-shape feature, behavior-preserving refactor, or a falsifiable custom playbook (`playbooks/custom.md`) when no standard shape fits. Not a sticky mode.
 
 **Say:** "Fix the login 500", "Add a CSV export", or "Refactor this without changing behavior."
-
-### `unmatched-workflow`
-
-Designs a falsifiable playbook when no narrower skill fits: a large migration, a multi-part change, or work a human will review after stepping away.
-
-If the deliverable is the plan, use `inception` instead.
 
 ### `dissect`
 
@@ -74,21 +68,15 @@ If Plan Mode is on, `--autopilot` degrades to circuit (Plan Mode cannot implemen
 
 **Say:** `/inception add team-level API keys`
 
-### `opinion`
-
-Asks workers on this harness the same question. Returns labeled takes. Nobody writes project files.
-
-Optional `--agents N` (default 3, min 2, max 5). Default roster is the **current model on every slot**. Auto-pick still uses distinct families. Assigning per worker may repeat a family. Spawn identifiers stay out of the question UI (family aliases only).
-
-**Say:** `/opinion should we split this package`
-
 ### `execute`
 
-Same fan-out as `opinion`, then **this chat** does the work. Workers stay read-only. No `--agents` flag: the skill infers 2 or 3 from the job. Same picker: Current-for-all first, then auto-pick, then per-slot assign.
+Spawns parallel read-only worker slots on this harness, synthesizes labeled takes, and then **this chat** implements the work. Pass `--opinion` (with optional `--agents N`, default 3, min 2, max 5) for read-only parallel takes where nobody writes project files.
 
-If you want the plan first, run `inception`. If nobody should write, run `opinion`. If one agent should just build, use `kit-workflows`.
+Default roster is the **current model on every slot**. Auto-pick uses distinct model families. Assigning per worker may repeat a family. Spawn identifiers stay out of the question UI (family aliases only).
 
-**Say:** `/execute this canvas` or `/execute add the CSV export`
+If you want the plan first, run `inception`. If nobody should write, run `/execute --opinion`. If one agent should just build, use `kit-workflows`.
+
+**Say:** `/execute this canvas`, `/execute add the CSV export`, or `/execute --opinion should we split this package`
 
 ### `trl`
 
@@ -113,17 +101,13 @@ The ledger and evidence list live in `.balakit/trl/<slug>/`.
 
 These ship with default `init`.
 
-### `generating-app-verify`
+### `verify-app`
 
-Writes a repo-local skill (`skills/verify-<app>/`) that launches the real app and drives it the way a user does: web, CLI, API, or desktop.
+Generates a repo-local skill (`skills/verify-<app>/`) that launches the real app and drives it the way a user does: web, CLI, API, or desktop. Pass `--refresh` to re-drive an existing verify map and open at most one PR of proven map fixes without touching product code.
 
-Use this when the project has no scripted way to prove a feature. For a unit test, follow the `testing` rule instead.
+Use this when the project has no scripted way to prove a feature or when an existing verify map drifted. For a unit or integration test, follow the `testing` rule instead.
 
-### `refreshing-app-verify`
-
-Re-drives every mapped feature on an existing verify skill. At most one PR of proven corrections. Does not patch product code on that pass.
-
-If no verify skill exists, use `generating-app-verify`.
+**Say:** `/verify-app` or `/verify-app --refresh`
 
 ## Author skills and docs
 
@@ -145,7 +129,7 @@ Skip it for typos. Use it when the draft would change agent behavior.
 
 ### `documentation-writer`
 
-Research-first docs. Pick one [Diátaxis](https://diataxis.fr/) mode (tutorial, how-to, reference, or explanation), then write in STE / Global English.
+Research-first docs. Pick one [Diátaxis](https://diataxis.fr/) mode (tutorial, how-to, reference, or explanation), write in 80% ASD-STE100 / Global English, and verify prose with the bundled `scripts/lint-ste.mjs` checker.
 
 Use `marketing-psychology` for marketing copy. Use `authoring-skills-and-rules` to write a Skill, not a README.
 
@@ -201,11 +185,11 @@ Image, video, upscale, and ad creative through Fal.ai. Dual-model stills when a 
 
 **Opt-in:** `npx balakit add media-gen` (plugin: `balakit-media`)
 
-### `nlm-skill`
+### `notebooklm`
 
 NotebookLM CLI (`nlm`) and MCP: notebooks, sources, audio/video/slides, research.
 
-**Opt-in:** `npx balakit add nlm-skill` (plugin: `balakit-nlm`)
+**Opt-in:** `npx balakit@latest add notebooklm` (plugin: `balakit-notebooklm`)
 
 ## Pace flags (shared)
 
@@ -219,7 +203,7 @@ NotebookLM CLI (`nlm`) and MCP: notebooks, sources, audio/video/slides, research
 
 On `inception`, circuit silent-stops at the plan. Only `--autopilot` runs `execute`.
 
-Checkpoints that ask you a question use the host's structured question tool, in plain English. The last option is always `Say this in plain English`, which rephrases with an example instead of advancing.
+Checkpoints inspect live tools and call the harness Question UI (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) in plain English (max 4 options). Report prose appears before the blocking tool call. The last option is always `Say this in plain English`, which rephrases with an example instead of advancing.
 
 ## Related
 

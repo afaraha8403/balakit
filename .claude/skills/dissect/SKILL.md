@@ -13,33 +13,10 @@ description: >-
   or plan. If the session is in Cursor or Claude Plan Mode, update the existing
   plan in place — never rewrite it. Use inception to author a new plan.
 user-invocable: true
-disable-model-invocation: false
-version: "2.6.0"
+disable-model-invocation: true
+version: "2.7.0"
 author: "Ali Farahat"
 tags: ["dissect", "audit", "red-team", "minimal-build", "refactor", "ground-truth", "orchestration"]
-when_to_use: |
-  USE WHEN (backward-looking, "what is actually here and what should change?"):
-  - User invokes /dissect <target> or asks to audit, dissect, optimize, or
-    challenge an EXISTING service, schema, data model, or codebase area.
-  - User hands you a WRITTEN PLAN or spec and wants it pressure-tested against the
-    code/DB that already exists (intent vs reality).
-  - A system feels bloated, over-engineered, or misnamed and you need an
-    evidence-backed keep/fold/drop/defer decision per entity.
-  - You suspect scope-creep, dead code, stubs masquerading as features, or tables/
-    components living in the wrong domain.
-  - Before a migration or refactor, to find the minimal set of changes that
-    actually meets the requirement.
-  - The session is in Cursor Plan Mode or Claude Plan Mode and the user wants
-    the current plan dissected, fixed, and tuned (gaps filled, errors corrected)
-    without replacing the document.
-
-  DO NOT USE WHEN:
-  - The thing does not exist yet and you need a detailed work-breakdown plan.
-    That is `inception`. If you only need to pick among approaches, use
-    `deep-deliberation`.
-  - The task is a quick lookup or a one-line fix with an obvious answer.
-  - You only have intent (a plan) with no code/DB/runtime to verify against AND no
-    way to get ground truth — dissect's power comes from live evidence; flag the gap.
 ---
 
 # Dissect
@@ -111,9 +88,9 @@ ask. Autopilot logs the recommended resolution in `PACE_LOG` and the report;
 never drop them.
 
 **Interactive final footer.** On Checkpoint 3 only, when this run is
-interactive, append the block below **verbatim as the last thing in the
-message** (after the Checkpoint 3 ask). Omit it under `--circuit` /
-`--autopilot`. Do not paraphrase. Do not place it earlier.
+interactive, append the block below **verbatim at the end of the Stage 4
+markdown report, right BEFORE invoking the blocking Checkpoint 3 question tool**.
+Omit it under `--circuit` / `--autopilot`. Do not paraphrase.
 
 ```markdown
 ⚡ **Skip the waits next time**
@@ -128,20 +105,14 @@ This run was **interactive** — a stop at every checkpoint. Same skill, two oth
 
 ---
 
-## User questions (plain question)
+## User questions (Native Question UI)
 
 The report may be technical. The **ask** must not be.
 
-Same turn as the checkpoint message: host structured question tool
-(Cursor `AskQuestion`, Claude Code `AskUserQuestion`, OpenCode equivalent).
-No tool → numbered list. Do not replace the report. Then stop.
+In the **same turn** after emitting the stage report markdown: inspect your live declared tools and invoke the host's **native structured question tool** (`AskUserQuestion` on Claude Code, `AskQuestion` on Cursor, `question` on OpenCode, `request_user_input` on Codex, `vscode_askQuestions` or `ask_user` on Copilot/Gemini CLI). Fall back to a numbered plain-text list **only** when zero structured question tools are declared in this session. Do not replace the report with the question, and **never print raw `prompt:` / `options:` YAML in markdown**.
 
-Prompt: one sentence, product language. Labels ≤40 chars. First ends
-`(Recommended)`. Last is always `Say this in plain English` (meta: do not
-advance; rephrase + one example of what each real option means here; re-ask).
-Second pick: a simpler analogy. Free-text overrides. Per-option
-descriptions: one plain sentence if the host supports them. Any ask to
-the human (including cannot-proceed) follows this contract.
+- **Option count:** strictly **2–4 options** (`maxItems: 4` on Claude Code and OpenCode; native widgets automatically provide a free-text `"Other"` field).
+- **Header & labels:** `header` ≤12 chars; option `label` ≤40 chars. First option ends `(Recommended)`. Last option is always `Say this in plain English` (meta: do not advance; rephrase with a concrete example from this codebase and re-invoke the question tool). Free-text overrides.
 
 ---
 
@@ -245,19 +216,16 @@ any write.
 
 ### 🛑 Checkpoint 1
 Lead with one sentence a product owner could repeat (what you found, what's
-in vs out of scope). Then the naming table and proposed scope boundary (what
+in vs out of scope). Then emit the naming table and proposed scope boundary (what
 this target owns vs merely reads).
 
-Interactive: structured question per **User questions**, then stop.
-
-```text
-prompt: Some names don't match what they actually store. Use the corrected names for the rest of this review?
-options:
-- Yes, use the corrected names (Recommended)
-- Keep the original names
-- Change what we're reviewing first
-- Say this in plain English
-```
+Interactive: invoke the host's native question tool (`header: "Checkpoint 1"`, **4 options**), then stop:
+- **Question:** `Some names don't match what they actually store. Use the corrected names for the rest of this review?`
+- **Options (4):**
+  1. `Yes, use the corrected names (Recommended)`
+  2. `Keep the original names`
+  3. `Change what we're reviewing first`
+  4. `Say this in plain English`
 
 `--circuit` / `--autopilot`: log the proposed names and scope as auto-accepted
 (`PACE_LOG`) and continue. A mismatch here changes the verdicts in every later
@@ -319,19 +287,16 @@ For entity <X>:
 ```
 
 ### 🛑 Checkpoint 2
-Lead with one sentence a product owner could repeat. Then the per-entity
-verdicts table (Entity | Proposed verdict | Evidence).
+Lead with one sentence a product owner could repeat. Then emit the per-entity
+verdicts table (`Entity | Proposed verdict | Evidence`).
 
-Interactive: structured question per **User questions**, then stop.
-
-```text
-prompt: For each piece I recommend keep it, combine it, remove it, or move it. Look right?
-options:
-- Looks right, keep going (Recommended)
-- I want to change some of those
-- Look closer at one of them
-- Say this in plain English
-```
+Interactive: invoke the host's native question tool (`header: "Checkpoint 2"`, **4 options**), then stop:
+- **Question:** `For each piece I recommend keep, combine, remove, or move. Look right?`
+- **Options (4):**
+  1. `Looks right, keep going (Recommended)`
+  2. `I want to change some verdicts`
+  3. `Inspect one piece closer`
+  4. `Say this in plain English`
 
 `--circuit` / `--autopilot`: log the proposed verdicts as auto-accepted and
 continue.
@@ -411,128 +376,38 @@ Nitpick gravity: a rename is not a defect. Hypothetical vs actual: "could theore
 
 ## Stage 4 — Synthesis + minimal-build plan
 
-Done in the main context (synthesis needs all evidence held together). Output:
+Read [references/synthesis_and_lessons.md](references/synthesis_and_lessons.md) and synthesize all evidence in the main context into the seven dissection report sections (`0. Naming corrections`, `1. Scope boundary corrections`, `2. Entity verdicts`, `3. System-level changes`, `4. Bug / misuse log`, `5. Execution order`, `6. Deferred / out of scope`), obeying [references/fold_tests.md](references/fold_tests.md) (`1:1 → columns`, `1:N bounded → JSONB unless relational access needed`, `1:N unbounded / N:M → separate table`, never fold across PII/DB boundaries).
 
-**0. Naming corrections** — every mismatch found, with corrected names (apply
-throughout).
-**1. Scope boundary corrections** — entities wrongly counted in this domain; the
-real owner of each; any live code that incorrectly crosses the boundary.
-**2. Entity verdicts** — one table: Entity | Verdict | Rationale (file:line / live
-evidence) | Lands (if FOLD/RE-HOME). No row-count justifications.
-**3. System-level changes** — for each cross-cutting issue, in this format:
-- **Decision:** [what]
-- **Why:** [evidence-backed reason]
-- **Other options:** [alternatives + why rejected]
-**4. Bug / misuse log** — places where code uses the wrong entity or wires an
-entity to the wrong system. Correctness issues, distinct from optimization.
-**5. Execution order** — the minimal-build sequence: highest-value/most-independent
-first, what depends on what, what to defer.
-**6. Deferred / out of scope** — what is intentionally NOT changing, each with a
-reason.
-
-The six sections above are the **dissection report** (chat). They are not a
-replacement body for an existing plan file.
-
-### Plan Mode / existing plan document
-
-If the session is in Cursor or Claude Plan Mode, or the target is an existing
-plan file: do **not** emit a new plan. Follow
-[references/plan_preservation.md](references/plan_preservation.md). Build a
-patch map (`KEEP` / `PATCH` / `APPEND` / `FLAG`), apply surgical edits after
-Checkpoint 3, and preserve every unaddressed section. `APPEND` is how newly
-identified gaps land in the plan — they are added, not used as a reason to
-rewrite.
+If the session is in Cursor or Claude Plan Mode, or the target is an existing plan file, follow [references/plan_preservation.md](references/plan_preservation.md): build a surgical patch map (`KEEP` / `PATCH` / `APPEND` / `FLAG`) and preserve unaddressed sections verbatim — never rewrite the plan file.
 
 ### 🛑 Checkpoint 3
-Lead with one sentence a product owner could repeat. Then the technical
-detail (recommended ToT branch and ranked alternatives). If a live plan is
-being patched, also present the patch map.
+Lead with one plain-English sentence a product owner could repeat, followed by the Stage 4 report (and patch map if patching a plan).
 
-Interactive / `--circuit`: structured question per **User questions**, then
-stop. Name the recommended branch in the prompt in product language, not
-taxonomy.
+- **Interactive:** append the `⚡ Skip the waits next time` footer verbatim at the end of the markdown report, **then** invoke the host's native question tool (`header: "Checkpoint 3"`, **4 options**) and stop. Do not implement or edit the plan file until confirmed.
+- **`--circuit`:** omit the interactive footer, invoke the Checkpoint 3 native question tool, and stop.
+- **`--autopilot`**, or **circuit after confirmation:** proceed as defined under Pace modes.
 
-```text
-prompt: I recommend we do “[short name]”: [one-line why]. Go with that?
-options:
-- Yes, do that (Recommended)
-- Do the other option instead
-- Don't start yet
-- Say this in plain English
-```
-
-- **Interactive:** do not start implementing unless they ask. Do not touch
-  the plan file until they confirm. End the message with the interactive
-  final footer (Pace modes) — last block, verbatim.
-- **`--circuit`:** if they say no, stay at this checkpoint.
-- **`--autopilot`**, or **circuit after they say go ahead:** proceed as defined
-  under Pace modes.
-
----
-
-## Fold tests (reference)
-
-The full fold-test table (cardinality → fold type → blocker, plus the
-independent-relational-access check and the PII/DB-boundary rule) lives in
-[references/fold_tests.md](references/fold_tests.md).
-
-Quick reference:
-- 1:1 with parent → columns on parent (just do it).
-- 1:N bounded (≤~10) → JSONB on parent, **unless** independent relational
-  access is needed.
-- 1:N unbounded/queried, N:M → keep as table.
-- Never fold across a PII/DB boundary.
+Checkpoint 3 question (`header: "Checkpoint 3"`, **4 options**):
+- **Question:** `I recommend "[short branch name]": [one-line why]. Go with that?`
+- **Options (4):**
+  1. `Yes, do that (Recommended)`
+  2. `Pick the runner-up option`
+  3. `Don't start yet`
+  4. `Say this in plain English`
 
 ---
 
 ## Sub-agent dispatch rules
 
-- **Parallel for the Stage 1 triple** (DB + code + plan) — independent, run at once.
+- **Parallel for Stage 1** (DB + code + plan) — independent, launch in one turn.
 - **One cluster per Stage 2 agent** — never mix unrelated clusters.
-- **Read-only only.** All dissection agents use `subagent_type: "explore"`. No
-  write access. Do NOT pass a `model` — sub-agents inherit the parent model.
-- **Agents return raw evidence, not verdicts.** Synthesis is the orchestrator's
-  job. Escalate discrepancies to the checkpoint (or `PACE_LOG` / final ask
-  under pace modes); never drop them.
-
----
-
-## Key lessons (baked in)
-
-- **Read the actual data first.** A table named `managed_preference` might contain
-  "Favorite Drink → Moscow Mule." You would never know without reading it.
-- **Channel ≠ kind ≠ group.** Multiple orthogonal taxonomies get conflated; that
-  produces wrong verdicts. Keep them distinct.
-- **"Built for" vs "used for."** A table built for one purpose can be misused for
-  another. If design intent and actual use diverge, that's a bug, not a design.
-- **The eligibility/read pipeline is not authoritative.** What a pipeline reads
-  doesn't define the correct data model — it may be reading the wrong thing.
-- **Stubs inflate the system.** A cron that throws, a consumer that re-queues, a
-  client that returns `permanent_failure` for all inputs — none are live.
-- **Plan and code diverge.** The plan is intent; the code is reality. Ground the
-  optimization in reality.
-
----
-
-## Output format notes
-
-- Every verdict cites evidence. No bare assertions.
-- Every FOLD/RE-HOME states the target it lands in and which fold test applies.
-- Every OUT-OF-SCOPE names the correct domain owner.
-- Every DROP names the reason (no code path / derivable / moved / legacy).
-- Every DEFER/ON-DEMAND names the requirement that justifies the seam (or its
-  absence).
-- Row count appears only as liveness context, never as a reason.
-- Lead with plain-terms summaries, then technical detail. Write both. The
-  structured question at each checkpoint is a **plain question** (User
-  questions); jargon stays in the report, not in the prompt or labels.
-- Interactive Checkpoint 3: end with the pace-mode footer from Pace modes
-  (verbatim, last block). Omit under `--circuit` / `--autopilot`.
+- **Read-only (`explore`).** Sub-agents inherit the parent model and return raw evidence with `file:line`, never verdicts. Escalate discrepancies to the checkpoint or `PACE_LOG`.
 
 ## References
 
 | File | Use it for |
 |---|---|
-| [references/verdict_taxonomy.md](references/verdict_taxonomy.md) | Full dynamic verdict taxonomy (KEEP/FOLD/DROP/DEFER/ON-DEMAND/EXTRACT/RE-HOME/REFACTOR/OUT-OF-SCOPE) with meanings, plan-vs-code typicals, distinctions, output format |
-| [references/fold_tests.md](references/fold_tests.md) | Fold-test table (cardinality → fold type → blocker), independent-relational-access check, PII/DB-boundary rule |
-| [references/plan_preservation.md](references/plan_preservation.md) | Plan Mode / existing plan file: patch in place, never rewrite. Detection, forbidden actions, patch map, host notes, worked example |
+| [references/synthesis_and_lessons.md](references/synthesis_and_lessons.md) | Stage 4 seven-section report format, verdict evidence checklist, and field lessons |
+| [references/verdict_taxonomy.md](references/verdict_taxonomy.md) | Dynamic verdict taxonomy (`KEEP`, `FOLD`, `DROP`, `DEFER`, `ON-DEMAND`, `EXTRACT`, `RE-HOME`, `REFACTOR`, `OUT-OF-SCOPE`) |
+| [references/fold_tests.md](references/fold_tests.md) | Fold-test table (cardinality → fold type → blocker) and PII/DB-boundary rules |
+| [references/plan_preservation.md](references/plan_preservation.md) | Plan Mode / existing plan file: patch in place (`KEEP`/`PATCH`/`APPEND`/`FLAG`), never rewrite |

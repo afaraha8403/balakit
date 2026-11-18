@@ -6,24 +6,12 @@ description: >-
   YouTube, TikTok), AI marketing automation (agentic growth ops),
   Engineering as Marketing (free tools), pre-launch validation, distribution
   playbooks, and monetization.
-user-invocable: false
+user-invocable: true
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 derived_from: "NotebookLM"
 tags: ["startup", "marketing", "growth", "bootstrapping", "AI-automation", "distribution", "SaaS", "agentic-growth-ops", "monetization"]
-when_to_use: |
-  - User asks about startup marketing, go-to-market, or growth tactics.
-  - User needs help validating an idea before building.
-  - User wants to build an audience or grow followers from zero.
-  - User asks about bootstrapping, indie hacking, or solo-founder strategies.
-  - User needs distribution tactics for Reddit, Twitter/X, YouTube, TikTok, or communities.
-  - User asks about AI-assisted marketing, agent jockeying, or automated workflows.
-  - User wants monetization strategies, pricing, or revenue models.
-  - User needs content frameworks, hooks, or viral post structures.
-  - User asks about pre-launch, waitlist, or prototype validation.
-  - User mentions SaaS marketing, mobile app marketing, or product marketing.
-  - DO NOT USE for: enterprise B2B sales, traditional advertising, or PR/media relations.
 ---
 
 # Startup Marketing Brain

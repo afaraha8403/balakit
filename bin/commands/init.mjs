@@ -50,6 +50,7 @@ export async function cmdInit(opts = {}) {
     agents: opts.agents,
     scope: opts.scope,
     replaceAgents: Boolean(opts.agents?.length),
+    replaceSelection: true,
     cursorPlugins: opts.cursorPlugins,
   });
 
@@ -67,7 +68,7 @@ export async function cmdInit(opts = {}) {
   p.outro(
     opts.dryRun
       ? "Dry-run complete — nothing written."
-      : `Done. Update anytime: npx ${CMD} update`,
+      : `Done. Update anytime: npx ${CMD}@latest update`,
   );
   return 0;
 }

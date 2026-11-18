@@ -10,19 +10,9 @@ description: >-
   Use dissect instead to audit an existing system or written plan.
 user-invocable: true
 disable-model-invocation: true
-invocation-type: manual
-version: "2.4.0"
+version: "2.5.0"
 author: "Ali Farahat"
 tags: ["decision-making", "red-team", "evidence", "orchestration"]
-when_to_use: |
-  USE WHEN:
-  - The user explicitly invokes deep-deliberation for a consequential decision.
-  - Multiple viable approaches exist and the tradeoffs are non-obvious.
-  - The cost of choosing incorrectly is meaningfully higher than the cost of deliberating.
-  DO NOT USE WHEN:
-  - The task is trivial, mechanical, or has one clear answer.
-  - The goal is to audit or optimize something that already exists; use dissect.
-  - The deliverable is a detailed work-breakdown plan; use inception.
 ---
 
 # Deep Deliberation
@@ -76,9 +66,10 @@ forward. The decision record is still emitted first.
 This skill shares `--circuit` / `--autopilot` grammar with `dissect`.
 
 **Interactive final footer.** On Checkpoint 3 only, when this run is
-interactive, append the block below **verbatim as the last thing in the
-message** (after the Checkpoint 3 ask). Omit it under `--circuit` /
-`--autopilot`. Do not paraphrase. Do not place it earlier.
+interactive, append the block below **verbatim at the very end of the Final
+markdown report, right BEFORE invoking the blocking Checkpoint 3 question tool**
+(so the user sees the report + footer immediately above the graphical question
+widget). Omit it under `--circuit` / `--autopilot`. Do not paraphrase.
 
 ```markdown
 ⚡ **Skip the waits next time**
@@ -91,21 +82,16 @@ This run was **interactive** — a stop at every checkpoint. Same skill, two oth
 `/deep-deliberation --circuit <decision>` · `/deep-deliberation --autopilot <decision>`
 ```
 
-## User questions (plain question)
+## User questions (Native Question UI)
 
 The report may be technical. The **ask** must not be.
 
-Same turn as the checkpoint message: host structured question tool
-(Cursor `AskQuestion`, Claude Code `AskUserQuestion`, OpenCode equivalent).
-No tool → numbered list. Do not replace the template. Then stop.
+In the **same turn** after emitting the complete stage report markdown: inspect your live declared tools and invoke the host's **native structured question tool** (`AskUserQuestion` on Claude Code, `AskQuestion` on Cursor, `question` on OpenCode, `request_user_input` on Codex, `vscode_askQuestions` or `ask_user` on Copilot/Gemini CLI). Fall back to a numbered plain-text list **only** when zero structured question tools are declared in this session. Never replace the stage report with the question, and **never print raw `prompt:` / `options:` YAML in markdown**.
 
-Prompt: one sentence, product language. No `DELIBERATION_STATE` fields.
-Labels ≤40 chars. First ends `(Recommended)`. Last is always
-`Say this in plain English` (meta: do not advance; rephrase + one example
-of what each real option means here; re-ask). Second pick: a simpler
-analogy. Free-text overrides. Per-option descriptions: one plain sentence
-if the host supports them. Any ask to the human (including cannot-proceed
-and delegate failure) follows this contract.
+- **Option count:** strictly **2–4 options** (`maxItems: 4` on Claude Code and OpenCode; native widgets automatically provide a free-text `"Other"` field).
+- **Header & labels:** `header` ≤12 chars; option `label` ≤40 chars. First option ends `(Recommended)`. Last option is always `Say this in plain English`.
+- **Prompt:** one plain-English product sentence. Never include `DELIBERATION_STATE` tokens or internal jargon.
+- **Meta loop (`Say this in plain English`):** do not advance the stage. Rephrase with a concrete project example for each real option, then re-invoke the native question tool at the same checkpoint. Free-text user replies always override.
 
 ## Operating contract
 
@@ -173,15 +159,13 @@ If two cheap throwaway sketches would settle the fork, offer that **prototype
 off-ramp** before Stage 1: scratch dir, no pipeline, observe the behavior,
 then resume here with evidence. Skip with `skip: shape already concrete` or
 `skip: pace mode` under `--circuit` / `--autopilot`. Interactive off-ramp
-ask:
+ask via the native question tool (`header: "Quick spike"`):
 
-```text
-prompt: Two cheap sketches might settle this faster than a full comparison. Try that first?
-options:
-- Yes, sketch both first (Recommended)
-- No, run the full comparison
-- Say this in plain English
-```
+- **Question:** `Two quick throwaway sketches might settle this faster than a full comparison. Try that first?`
+- **Options (3):**
+  1. `Yes, sketch both first (Recommended)`
+  2. `No, run the full comparison`
+  3. `Say this in plain English`
 
 When a candidate crosses a function boundary, sketch types and signatures
 first (`not implemented`). Screen with
@@ -209,18 +193,14 @@ complete Stage 1 template, set `checkpoint: 1`. Interactive: stop.
 `--circuit` / `--autopilot`: log the shortlist as auto-accepted and continue to
 Stage 2.
 
-Checkpoint 1 choices (interactive) — structured question per **User
-questions**:
+Checkpoint 1 choices (interactive) — invoke the host's native question tool (`header: "Checkpoint 1"`, **4 options**):
 
-```text
-prompt: I'll compare “[A short name]” vs “[B short name]”. Is that the right choice to decide?
-options:
-- Yes, compare those two (Recommended)
-- Swap or rewrite an option
-- Change what we're optimizing for
-- This is obvious now — stop
-- Say this in plain English
-```
+- **Question:** `I'll compare "[A short name]" vs "[B short name]". Is that the right choice to decide?`
+- **Options (4):**
+  1. `Yes, compare those two (Recommended)`
+  2. `Change the options or criteria`
+  3. `This is obvious now — stop`
+  4. `Say this in plain English`
 
 ## Stage 2 — Evidence tournament
 
@@ -273,18 +253,14 @@ complete Stage 2 template, set `checkpoint: 2`. Interactive: stop.
 `--circuit` / `--autopilot`: log the synthesis as auto-accepted and continue to
 Stage 3, unless `Return to Stage 1 required: yes` (then stop even on autopilot).
 
-Checkpoint 2 choices (interactive) — structured question per **User
-questions**:
+Checkpoint 2 choices (interactive) — invoke the host's native question tool (`header: "Checkpoint 2"`, **4 options**):
 
-```text
-prompt: Both options still stand. Ready for me to pick a winner?
-options:
-- Yes, pick a winner (Recommended)
-- Change an option and re-check
-- Start over with a different fork
-- Stop here
-- Say this in plain English
-```
+- **Question:** `Both options still stand after review. Ready for me to adjudicate and pick a winner?`
+- **Options (4):**
+  1. `Yes, pick a winner (Recommended)`
+  2. `Revise an option or re-frame`
+  3. `Stop here`
+  4. `Say this in plain English`
 
 ## Stage 3 — Adjudication
 
@@ -318,25 +294,18 @@ The orchestrator then produces:
 Read [references/output_templates.md](references/output_templates.md), emit the
 complete Final template, set `checkpoint: 3`.
 
-- **Interactive:** stop. Do not implement. End the message with the
-  interactive final footer (Pace modes) — last block, verbatim.
-- **`--circuit`:** stop. Structured question per **User questions**. If
-  they say no, stay at this checkpoint.
-- **`--autopilot`**, or **circuit after they say go ahead:** proceed — accept
-  the recommendation and start implementing it.
+- **Interactive:** append the interactive final footer verbatim at the end of the markdown report, **then** invoke the Checkpoint 3 native question tool and stop. Do not implement until confirmed.
+- **`--circuit`:** omit the interactive footer, invoke the Checkpoint 3 native question tool, and stop. If they say no, stay at this checkpoint.
+- **`--autopilot`**, or **circuit after they say go ahead:** proceed — accept the recommendation and start implementing it.
 
-Checkpoint 3 choices (interactive / circuit) — structured question per
-**User questions**:
+Checkpoint 3 choices (interactive / circuit) — invoke the host's native question tool (`header: "Checkpoint 3"`, **4 options**):
 
-```text
-prompt: I recommend “[chosen]”: [one-line why]. Make that the decision?
-options:
-- Yes, go with that (Recommended)
-- Pick the other option
-- Change something first
-- Plan or build it next
-- Say this in plain English
-```
+- **Question:** `I recommend "[chosen]": [one-line why]. Make that the decision?`
+- **Options (4):**
+  1. `Yes, go with that (Recommended)`
+  2. `Pick the other option`
+  3. `Revise something first`
+  4. `Say this in plain English`
 
 ## Delegate failure protocol
 
@@ -359,7 +328,7 @@ Before declaring the pipeline complete, verify:
 - The recommendation states what evidence would overturn it.
 - No implementation occurred before Checkpoint 3 was accepted (interactive /
   circuit wait) or auto-accepted (`--autopilot`).
-- Interactive Checkpoint 3 ended with the pace-mode footer as the last block.
+- Interactive Checkpoint 3 included the pace-mode footer at the end of the markdown report right before invoking the Checkpoint 3 question tool.
 
 ## References
 

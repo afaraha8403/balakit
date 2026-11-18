@@ -6,7 +6,7 @@ Wix sites are JS-rendered SPAs. The browser tool cannot render them (blank page 
 
 ```bash
 # Step 1: Fetch raw HTML and find all wixstatic image URLs
-curl -sL "https://www.terrabath.com/product-page/vanilla-pink-salt" \
+curl -sL "https://www.example-store.com/product-page/vanilla-pink-salt" \
   | grep -oP 'src="[^"]*"' | grep wixstatic
 
 # Step 2: Spot the primary product images (skip blurry thumbnails)
@@ -20,8 +20,9 @@ curl -sL "https://www.terrabath.com/product-page/vanilla-pink-salt" \
 
 # Step 3: Download the best-quality version
 # Take the w_960,q_90,enc_avif variant for best resolution-to-file-size ratio
-curl -sL "https://static.wixstatic.com/media/164e4d_b71ee637836940b599bd59f938f27118~mv2.png/v1/fit/w_960,h_960,q_90,enc_avif,quality_auto/164e4d_b71ee637836940b599bd59f938f27118~mv2.png" \
-  -o "C:/Users/ali/product_primary.png"
+mkdir -p ./output
+curl -sL "https://static.wixstatic.com/media/a1b2c3_b71ee637836940b599bd59f938f27118~mv2.png/v1/fit/w_960,h_960,q_90,enc_avif,quality_auto/a1b2c3_b71ee637836940b599bd59f938f27118~mv2.png" \
+  -o "./output/product_primary.png"
 ```
 
 ## Image URL Anatomy (Wix)
@@ -34,7 +35,7 @@ https://static.wixstatic.com/media/
   {filename}
 ```
 
-- **siteId**: `164e4d` — Terra Bath's Wix site ID
+- **siteId**: e.g. `a1b2c3` — the store's Wix site ID
 - **assetId**: unique per uploaded image (e.g. `b71ee637836940b599bd59f938f27118`)
 - **~mv2**: Wix internal version marker
 - **ext**: `png` or `jpg` depending on source format

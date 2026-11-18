@@ -1,6 +1,6 @@
 # Project release config template
 
-Copy to `projects/<repo-slug>.md` after the first-time interview. Fill every section. Delete rows that do not apply.
+Copy to `<repo>/.balakit/release.md` after the first-time interview. Fill every section. Delete rows that do not apply.
 
 ```markdown
 # Release config: <owner/repo>
@@ -66,5 +66,5 @@ Copy to `projects/<repo-slug>.md` after the first-time interview. Fill every sec
 
 ## Naming
 
-- File: `projects/<owner>-<repo>.md` from `nameWithOwner` with `/` → `-`.
-- One file per GitHub repo. Update the file when deploy targets or workflows change; do not re-run the full interview unless the user asks.
+- File: `<repo>/.balakit/release.md` at the root of the target repository (never inside the installed skill folder).
+- One file per repository. Update the file when deploy targets or workflows change; do not re-run the full interview unless the user asks.

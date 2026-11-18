@@ -17,10 +17,20 @@ test("changelog-notes extracts the matching version section", () => {
   assert.doesNotMatch(r.stdout, /## \[v1\.13\.0\]/);
 });
 
-test("changelog-notes fails for a missing version", () => {
+test("changelog-notes fails for a missing version without --fallback", () => {
   const r = spawnSync(process.execPath, [join(ROOT, "scripts", "changelog-notes.mjs"), "v0.0.0-missing"], {
     encoding: "utf8",
     cwd: ROOT,
   });
   assert.notEqual(r.status, 0);
+});
+
+test("changelog-notes emits default body on --fallback when version section is missing", () => {
+  const r = spawnSync(
+    process.execPath,
+    [join(ROOT, "scripts", "changelog-notes.mjs"), "v0.0.0-missing", "--fallback"],
+    { encoding: "utf8", cwd: ROOT },
+  );
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stdout.trim(), "Release v0.0.0-missing");
 });

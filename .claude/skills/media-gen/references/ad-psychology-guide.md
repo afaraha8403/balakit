@@ -1,5 +1,5 @@
 # Social Media Ad Psychology for Product Imagery
-## Applied to Terra Bath & Body (Artisanal Soaps & Body Scrubs)
+## Applied to Botanica Bath Co. (Artisanal Soaps & Body Scrubs)
 ### Target: Women 25-45 | Luxury Self-Care | Natural Ingredients | Spa Experiences
 ### Models: Fal.ai — Nano Banana Pro Edit / Ideogram v4 (Image-to-Image from Product Photo)
 
@@ -131,7 +131,7 @@ An earthy editorial composition of handcrafted soap bars in warm terracotta tone
 
 ---
 
-## Color Quick-Reference Table for Terra Bath & Body
+## Color Quick-Reference Table for Botanica Bath Co.
 
 | Goal | Primary Color | Accent | Best Use | Prompt Keyword |
 |------|--------------|--------|----------|----------------|
@@ -160,7 +160,7 @@ Subliminal cues in visual advertising work because the brain processes 83% of vi
 - The "Z" creates a natural hierarchy: element at Z-start = "first impression"; element at Z-end = "call to action" (this is why the CTA button is almost always bottom-right in ads).
 - The diagonal sweep is especially important — this is where the brain's attention is most malleable. Place the product logo or key visual element along this diagonal path.
 
-**How to Apply for Terra Bath & Body:**
+**How to Apply for Botanica Bath Co.:**
 - Top-left: The most striking visual — a beautifully lit soap bar, open scrub jar, or lather shot.
 - Top-right: A texture or ingredient visual that adds depth — dried botanicals, sea salt, essential oil droplets.
 - Diagonal line: The brand name or a short tagline ("Ritual, Not Routine")
@@ -187,7 +187,7 @@ A Z-pattern editorial composition: top-left is a hero product shot of artisanal 
 - On Instagram, this means: if your image has text overlay, put the most important words on the far left at two distinct vertical positions.
 - The "F" pattern is why you put the brand name on the left, not centered. Centered text in ads performs 22% worse on recall because the brain doesn't anchor it spatially.
 
-**How to Apply for Terra Bath & Body:**
+**How to Apply for Botanica Bath Co.:**
 - Top horizontal bar (F-top): Headline — "The Organic Body Scrub That Feels Like a Spa Day"
 - Lower horizontal bar (F-lower): Key benefit — "Natural Ingredients | No Parabens | Handcrafted"
 - Left vertical bar: Brand name — "TERRA" along the left edge (people scan this path looking for brand attribution)
@@ -214,7 +214,7 @@ An F-pattern layout designed for text overlay. Left 40% of composition is clean 
 - This is the MOST powerful attention-direction tool available. A model looking at the product ensures the viewer looks at the product. A model looking directly at the camera creates emotional connection but diffuses product focus.
 - For bath/body: A model in the tub looking down at the bubbles (toward the product) directs the viewer's eye to the product. The model is the vessel, the product is the destination.
 
-**How to Apply for Terra Bath & Body:**
+**How to Apply for Botanica Bath Co.:**
 - **Direct gaze → product:** Model looks directly at the soap/scrub in their hands. Viewer follows their gaze.
 - **Gaze → ingredient:** Model looking at a scoop of sea salt or a handful of dried lavender. This directs attention to the natural ingredient story.
 - **Avoid:** Model looking at camera (unless it's a brand-awareness campaign — for conversions, the product must be the focal point).
@@ -241,7 +241,7 @@ A woman's hands holding an artisanal bar of soap, her eyes directed down at the 
 - Even abstract triangles that don't literally "look like" arrows are processed as directional cues — the brain computes "this shape has a point, and that point is important."
 - Shadows that converge toward a product act as invisible arrows. Fabric folds that radiate outward from a product do the same.
 
-**How to Apply for Terra Bath & Body:**
+**How to Apply for Botanica Bath Co.:**
 - **Triangular composition:** Arrange three items (soap, scrub, candle) in a triangle pointing toward the hero product at the apex.
 - **Prop shadows:** Place a prop (a eucalyptus branch, a wooden spoon) so its shadow points at the product or the CTA.
 - **Linen folds:** Drape a cream towel so the folds radiate from the soap like spokes from a hub — the brain follows the lines inward.
@@ -268,7 +268,7 @@ An artisanal soap bar sitting on a cream linen towel. The towel is arranged so t
 - Elements placed at the upper-left intersection are perceived as "most important." Upper-right = "upcoming/aspirational." Lower-left = "grounded/supporting." Lower-right = "conclusion/CTA."
 - For Instagram specifically: 4:5 aspect ratio is the standard feed image size. The rule of thirds applied to 4:5 puts the upper-left sweet spot exactly where the thumb hovers — this is the "thumb zone" for mobile scrolling.
 
-**How to Apply for Terra Bath & Body:**
+**How to Apply for Botanica Bath Co.:**
 - Upper-left third intersection: The hero product or the brand logo.
 - Upper-right third intersection: A compelling ingredient visual (lavender sprig, sea salt crystals, honey drizzle).
 - Lower-left third intersection: Texture or lifestyle element (wooden scoop, linen, a hand reaching in).
@@ -625,5 +625,5 @@ A woman in a cream robe holds a jar of body scrub close to her face, inhaling th
 
 ---
 
-*Prepared for Terra Bath & Body — Fal.ai Image Generation System*
+*Prepared for Botanica Bath Co. — Fal.ai Image Generation System*
 *Psychology sources: Cialdini (Persuasion), Kahneman & Tversky (Behavioral Economics), Nielsen Norman Group (Eye-Tracking), Journal of Consumer Research, MIT Neuroscience*

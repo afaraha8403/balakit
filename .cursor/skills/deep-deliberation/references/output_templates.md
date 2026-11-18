@@ -19,9 +19,9 @@ with a `## PACE_LOG` that records the auto-accepted recommendation, then
 execute. Change `## Next step` from "Do not execute it" to the action you
 are about to take.
 
-When `mode` is `interactive` at Checkpoint 3: after `## Checkpoint 3`, append
-the interactive final footer from the skill **verbatim**. It must be the last
-thing in the message. Omit the footer when `mode` is `circuit` or `autopilot`.
+When `mode` is `interactive` at Checkpoint 3: append the interactive final
+footer from `SKILL.md` **verbatim** at the very end of the Final markdown
+report, and **then** invoke the host's native structured question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`). Omit the footer when `mode` is `circuit` or `autopilot`. Never print raw `prompt:` / `options:` YAML inside the markdown report!
 
 ## Stage 1 — Frame and shortlist
 
@@ -73,18 +73,10 @@ next_action: Wait for the user's Checkpoint 1 decision.
 - Evidence most likely to change this shortlist: [...]
 
 ## Checkpoint 1
-Lead with one sentence a product owner could repeat. Then fire the
-host's structured question (plain question). Do not replace this template
-with the question.
-
-prompt: I'll compare "[A short name]" vs "[B short name]". Is that the right choice to decide?
-options:
-- Yes, compare those two (Recommended)
-- Swap or rewrite an option
-- Change what we're optimizing for
-- This is obvious now — stop
-- Say this in plain English
+[One plain-English sentence a product owner could repeat summarizing the fork.]
 ```
+
+Immediately after emitting the Stage 1 markdown above (when `mode` is `interactive`), invoke the host's native question tool (`header: "Checkpoint 1"`, 4 options: `Yes, compare those two (Recommended)` / `Change the options or criteria` / `This is obvious now — stop` / `Say this in plain English`). Never echo `prompt:`/`options:` YAML as prose.
 
 ## Stage 2 — Evidence tournament
 
@@ -125,17 +117,10 @@ next_action: Wait for the user's Checkpoint 2 decision.
 - Return to Stage 1 required: yes | no
 
 ## Checkpoint 2
-Lead with one sentence a product owner could repeat. Then fire the
-host's structured question (plain question).
-
-prompt: Both options still stand. Ready for me to pick a winner?
-options:
-- Yes, pick a winner (Recommended)
-- Change an option and re-check
-- Start over with a different fork
-- Stop here
-- Say this in plain English
+[One plain-English sentence a product owner could repeat summarizing what survived.]
 ```
+
+Immediately after emitting the Stage 2 markdown above (when `mode` is `interactive`), invoke the host's native question tool (`header: "Checkpoint 2"`, 4 options: `Yes, pick a winner (Recommended)` / `Revise an option or re-frame` / `Stop here` / `Say this in plain English`). Never echo `prompt:`/`options:` YAML as prose.
 
 ## Final recommendation
 
@@ -188,16 +173,7 @@ the most important uncertainty.]
 [One action appropriate to the session's current capabilities. Do not execute it.]
 
 ## Checkpoint 3
-Lead with one sentence a product owner could repeat. Then fire the
-host's structured question (plain question).
-
-prompt: I recommend "[chosen]": [one-line why]. Make that the decision?
-options:
-- Yes, go with that (Recommended)
-- Pick the other option
-- Change something first
-- Plan or build it next
-- Say this in plain English
+[One plain-English sentence a product owner could repeat stating the recommended option and why.]
 
 ⚡ **Skip the waits next time**
 
@@ -208,3 +184,7 @@ This run was **interactive** — a stop at every checkpoint. Same skill, two oth
 
 `/deep-deliberation --circuit <decision>` · `/deep-deliberation --autopilot <decision>`
 ```
+
+*(Omit the `⚡ Skip the waits next time` block above when `mode` is `circuit` or `autopilot`.)*
+
+Immediately after emitting the Final markdown above (when `mode` is `interactive` or `circuit`), invoke the host's native question tool (`header: "Checkpoint 3"`, 4 options: `Yes, go with that (Recommended)` / `Pick the other option` / `Revise something first` / `Say this in plain English`). Never echo `prompt:`/`options:` YAML as prose.

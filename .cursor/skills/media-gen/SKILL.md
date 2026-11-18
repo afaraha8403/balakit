@@ -1,48 +1,31 @@
 ---
 name: media-gen
 description: >-
-  AI media generation via Fal.ai: images, video, upscale, edits.
-  Produces Instagram ad creative using a dual-model pipeline —
-  runs Nano Banana Pro Edit AND Ideogram v4 Image-to-Image side-by-side
-  for every concept, giving the user two takes per brief at negligible cost
-  (~$0.28/concept). Always uses image-to-image when a reference image is
-  provided, preserving product identity. Crafts photography-grade prompts
-  using camera/lens/lighting terminology. Sends 1 image per message
-  (Telegram delivery limitation).
-  Use whenever the user says "generate an image", "create a photo",
-  "make a video", "upscale this", "turn this into a video".
-user-invocable: false
+  AI media generation via Fal.ai: images, image-to-image edits, video
+  animation, and upscaling. Crafts photography-grade prompts using camera,
+  lens, and lighting terminology, preserves product identity via
+  image-to-image when a reference image is provided, and supports optional
+  dual-model social ad pairs (Nano Banana Pro Edit + Ideogram v4). Apply
+  when the user says "generate an image", "create a photo", "make a video",
+  "upscale this", "turn this into a video", or asks for ad creative via Fal.ai.
+user-invocable: true
 disable-model-invocation: false
-version: "3.1.0"
+version: "3.2.0"
 author: "Balacode"
-tags: [image-generation, video-generation, fal-ai, media, dual-model, social-media-ads, prompt-craft, photography, instagram-ads]
-when_to_use: |
-  USE WHEN:
-  - User asks to generate, create, make, render, or produce an image/photo/picture.
-  - User wants to animate an image into a video, or generate video from an image.
-  - User wants to upscale, enhance, or sharpen an image or video.
-  - User wants to edit an image (inpaint, outpaint, style transfer, re-style).
-  - User mentions Fal.ai, or any specific image/video model by name.
-
-  DO NOT USE WHEN:
-  - User needs text-to-video from scratch with no seed image (use a video-first workflow).
-  - User needs real-time video processing (Fal latency too high).
-  - User wants audio/music generation (different domain).
+tags: [image-generation, video-generation, fal-ai, media, dual-model, social-media-ads, prompt-craft, photography]
 ---
 
-# Media Generation (Fal.ai) — v3.1
+# Media Generation (Fal.ai) — v3.2
 
-> **Leading words:** pick the model, run the script, dual-model ads, one
-> image per message, native filesystem path.
+> **Leading words:** pick the model, run the script, dual-model ads,
+> native filesystem path.
 
 **Decision model (read this first):**
-1. Pick the job: still / edit / upscale / video / Instagram ad pair.
-2. Run `scripts/generate.py` (or the documented fal_client call). Do not
+1. Pick the job: still / edit / upscale / video / social ad pair.
+2. Run `scripts/generate.py` (or the documented `fal_client` call). Do not
    paste a rotated key; use `FAL_KEY="$FAL_KEY"`.
-3. Image-to-image when a reference exists. Dual-model for ad concepts
-   (Nano Banana Pro Edit + Ideogram v4).
-4. One image per chat message (Telegram).
-5. Depth: [references/endpoint-models.md](references/endpoint-models.md),
+3. Use image-to-image whenever a reference image exists. Use dual-model generation (Nano Banana Pro Edit + Ideogram v4) when producing social ad concepts.
+4. Depth: [references/endpoint-models.md](references/endpoint-models.md),
    [references/model-input-formats.md](references/model-input-formats.md),
    [references/high-conversion-prompting.md](references/high-conversion-prompting.md),
    [references/fal-key-troubleshooting.md](references/fal-key-troubleshooting.md),
@@ -117,9 +100,9 @@ Default for product/ad work: run **both** Nano Banana Pro Edit (`image_urls` arr
 Reference image present → image-to-image only. Never fall back to text-to-image.
 No reference → Ideogram v4 T2I, optional Nano Banana T2I for variety.
 
-## Dual-model delivery
+## Dual-model ad creative delivery
 
-For each concept, two images in **separate** messages (Telegram shows only the first image in a batch):
+When generating social ad concepts from a product brief, produce two takes per concept (if delivering through a single-attachment chat surface such as Telegram, send 1 image per message):
 
 1. Nano Banana — Concept N
 2. Ideogram v4 — Concept N
@@ -145,7 +128,7 @@ Ads use the 3-concept set in `high-conversion-prompting.md` (Ingredient Story, S
    - `image-edit` — image-to-image editing (reference image IS provided — ALWAYS prefer this)
    - `video` — animate an existing image into video
    - `upscale` — sharpen + enlarge an existing image or video
-5. **This is an Instagram ad brief** — Default to the full Instagram Ad Creative Strategy (3-Concept Framework, dual-model generation, 1 image per message delivery). Run the strategy before proceeding.
+5. **If this is a social/Instagram ad brief** — Use the 3-Concept Framework and dual-model generation from `references/high-conversion-prompting.md`. For ordinary single-image requests, run only the requested model.
 6. **Intelligent model routing** — When an image-to-image reference is provided, ALWAYS use both Nano Banana Pro Edit + Ideogram v4 I2I in parallel. See the Model Selection section above for exact endpoint parameters.
 7. **Cost-capability trade-off** — Cross-reference with `references/cost-reference.md`. State the total cost (~$0.85 for a full 3-concept set with both models). Note: costs are negligible, no need to pre-approve image runs.
 
@@ -216,7 +199,7 @@ $GEN upscale --endpoint "fal-ai/topaz/upscale/video" --input /path/to/video.mp4 
 ## Output Structure
 
 ```
-~/Documents/Media Gen/2026-07-09-japanese-garden/
+./output/media-gen/2026-07-09-japanese-garden/
 ├── prompt.md            # Full metadata: prompts, model, params, timestamps
 ├── image-01.png
 └── video-01.mp4         # Only if video step ran
@@ -267,7 +250,7 @@ $GEN upscale --endpoint "fal-ai/topaz/upscale/video" --input /path/to/video.mp4 
 14. **Wix / JS-heavy product pages break the browser tool** — Do NOT retry the browser. Switch immediately to `curl + grep wixstatic.com`. See `references/wix-product-image-extraction.md`.
 15. **fal_client v1.0.0 `upload_file` is synchronous** — On Windows, pass an absolute path like `C:/Users/<user>/file.png`, not `/tmp/file.png`. The function calls `os.path.getsize()` which resolves against the native filesystem, not MSYS. Do NOT `await` it.
 17. **`fal_client.run()` is the synchronous replacement for `subscribe()`** — `run_sync` does not exist in v1.0.0. Use `run()` directly without await.
-18. **1 image per message** — Telegram and similar platforms may only render the first image in a multi-image message. Always send 1 image per message.
+18. **Single-attachment chat surfaces** — If delivering through Telegram or a bot channel that drops secondary attachments, send 1 image per message.
 19. **Ideogram v4 I2I uses `image_url` (string), Nano Banana Pro Edit uses `image_urls` (array)** — Mixing these up returns 422. Always double-check the input field name.
 20. **Cost data is in `x-fal-billable-units` response header, not the response body** — Use `resp.headers.get('x-fal-billable-units')` to get exact billable units. 1 unit = $0.15 USD.
 21. **Both models together cost ~$0.28 per concept** — Run both freely. The total for a full 3-concept ad set (6 images) is ~$0.85.

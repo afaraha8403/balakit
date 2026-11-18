@@ -4,17 +4,17 @@
  */
 import * as p from "@clack/prompts";
 import { join } from "node:path";
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
-import { CMD, VERSION, PERSONAL_RULES, PKG_ROOT } from "../lib/pkg.mjs";
+import { CMD, VERSION, PERSONAL_RULES, RETIRED_SKILLS } from "../lib/pkg.mjs";
 import { loadRules, loadSkills, classifyNames } from "../lib/catalog.mjs";
 import {
   removeTeamRules,
   removeUserRules,
   partitionRules,
 } from "../lib/rules-install.mjs";
-import { skillsRemoveArgv, formatSkillsArgv, shellCommand, runSkillsArgv } from "../lib/skills-bridge.mjs";
-import { canPrompt, NO_TTY } from "../lib/install.mjs";
+import { removeSkills } from "../lib/skills-install.mjs";
+import { canPrompt, NO_TTY, isHomeCwd, HOME_PROJECT_INIT } from "../lib/install.mjs";
 import {
   readManifest,
   recordRemove,
@@ -24,18 +24,24 @@ import {
   guardFor,
 } from "../lib/manifest.mjs";
 import { hasManagedBlock } from "../lib/render.mjs";
-import { unlinkCursorProjectSkills, listCursorLocalPlugins } from "../lib/cursor-native.mjs";
-import { unlinkCopilotUserSkills } from "../lib/copilot-native.mjs";
+import { listCursorLocalPlugins, knownKitPluginNames } from "../lib/cursor-native.mjs";
 
 /**
- * @param {{ names: string[], dryRun?: boolean, yes?: boolean, scope?: "project"|"user", force?: boolean }} opts
+ * @param {{ names: string[], dryRun?: boolean, yes?: boolean, scope?: "project"|"user", force?: boolean, cursorPlugins?: boolean }} opts
  */
 export async function cmdRemove(opts) {
+  const scope = opts.scope === "user" ? "user" : "project";
+  if (opts.cursorPlugins) return removeCursorPlugins(opts);
+
+  if (scope !== "user" && isHomeCwd()) {
+    p.intro(`${CMD} v${VERSION} — remove (project)`);
+    p.log.error(HOME_PROJECT_INIT);
+    p.outro("Nothing written.");
+    return 1;
+  }
+
   const allRules = loadRules();
   const allSkills = loadSkills();
-  const scope = opts.scope === "user" ? "user" : "project";
-
-  if (opts.cursorPlugins) return removeCursorPlugins(opts);
   if (!opts.names?.length) {
     console.error(`Usage: ${CMD} remove <rule-or-skill>...   or   ${CMD} remove --cursor-plugins`);
     return 1;
@@ -45,6 +51,12 @@ export async function cmdRemove(opts) {
   if (unknown.length) {
     console.error(`Unknown name(s): ${unknown.join(", ")} — see \`${CMD} list\``);
     return 1;
+  }
+
+  for (const raw of opts.names) {
+    if (RETIRED_SKILLS.includes(raw) && raw !== "mental" && !skillNames.includes(raw)) {
+      skillNames.push(raw);
+    }
   }
 
   p.intro(`${CMD} v${VERSION} — remove (${scope})${opts.dryRun ? "  [dry-run]" : ""}`);
@@ -57,6 +69,7 @@ export async function cmdRemove(opts) {
   const proj = readManifest(projectManifestPath());
   const glob = readManifest(globalManifestPath());
   const cwd = process.cwd();
+  const home = homedir();
 
   const liveTeamBlock =
     hasManagedBlock(join(cwd, "AGENTS.md")) || hasManagedBlock(join(cwd, "CLAUDE.md"));
@@ -83,7 +96,7 @@ export async function cmdRemove(opts) {
     (r) => glob.rules.includes(r.name) && !ruleNames.includes(r.name),
   );
 
-  const skillRoot = scope === "user" ? join(homedir(), ".agents", "skills") : join(cwd, ".agents", "skills");
+  const skillRoot = scope === "user" ? join(home, ".agents", "skills") : join(cwd, ".agents", "skills");
   const owned = scope === "user" ? glob.skills : proj.skills;
   const notInstalled = skillNames.filter((n) => !owned.includes(n) && !existsSync(join(skillRoot, n)));
   if (notInstalled.length) {
@@ -119,10 +132,11 @@ export async function cmdRemove(opts) {
     }
   }
 
-  let failed = false;
+  const projGuard = guardFor(proj, { force: opts.force });
+  const globGuard = guardFor(glob, { force: opts.force });
 
   if (projectRules.length) {
-    const r = removeTeamRules(projectRules, remainingTeam, { dryRun: opts.dryRun, guard: guardFor(proj, { force: opts.force }) });
+    const r = removeTeamRules(projectRules, remainingTeam, { dryRun: opts.dryRun, guard: projGuard });
     if (r.removed.length) p.note(r.removed.join("\n"), opts.dryRun ? "Would remove" : "Removed");
     if (r.written.length) p.note(r.written.join("\n"), opts.dryRun ? "Would rewrite" : "Rewrote");
     if (r.kept.length) p.note(`${r.kept.join("\n")}\n(you changed these, so they stay)`, "Kept");
@@ -130,7 +144,7 @@ export async function cmdRemove(opts) {
   }
 
   if (userRules.length) {
-    const r = removeUserRules(userRules, remainingUser, { dryRun: opts.dryRun, guard: guardFor(glob, { force: opts.force }) });
+    const r = removeUserRules(userRules, remainingUser, { dryRun: opts.dryRun, guard: globGuard });
     if (r.removed.length) p.note(r.removed.join("\n"), opts.dryRun ? "Would remove" : "Removed");
     if (r.written.length) p.note(r.written.join("\n"), opts.dryRun ? "Would rewrite" : "Rewrote");
     if (r.kept.length) p.note(`${r.kept.join("\n")}\n(you changed these, so they stay)`, "Kept");
@@ -138,53 +152,40 @@ export async function cmdRemove(opts) {
   }
 
   if (skillNames.length) {
-    const skillScope = scope === "user" ? "global" : "project";
-    const argv = skillsRemoveArgv(skillNames, skillScope);
-    if (opts.dryRun) {
-      p.log.step(`Would remove skills:\n${formatSkillsArgv(argv)}`);
-    } else {
-      p.log.step(`Removing ${skillNames.length} skill(s)`);
-      const result = runSkillsArgv(argv);
-      if (!result.ok) {
-        p.log.error(`Skills were not removed: ${result.reason}. To retry by hand:`);
-        p.log.message(shellCommand(argv));
-        failed = true;
-      } else {
-        recordRemove(skillScope === "global" ? "global" : "project", { skills: skillNames });
-        if (scope === "project") {
-          const unlinked = unlinkCursorProjectSkills(skillNames, { dryRun: opts.dryRun });
-          if (unlinked.length) p.note(unlinked.join("\n"), "Removed Cursor skill links");
-        }
-        if (scope === "user") {
-          const unlinked = unlinkCopilotUserSkills(skillNames, { dryRun: opts.dryRun });
-          if (unlinked.removed.length) p.note(unlinked.removed.join("\n"), "Removed Copilot skill links");
-          if (unlinked.notes.length) p.note(unlinked.notes.join("\n"), "Copilot skill links");
-        }
-      }
+    const skillGuard = scope === "user" ? globGuard : projGuard;
+    const res = removeSkills(skillNames, { scope, cwd, home, dryRun: opts.dryRun, guard: skillGuard });
+    if (res.removed.length) p.note(res.removed.join("\n"), opts.dryRun ? "Would remove skills" : "Removed skills");
+    if (res.kept.length) p.note(`${res.kept.join("\n")}\n(you customized these, so they stay — pass --force to delete)`, "Kept");
+    if (res.notes.length) p.note(res.notes.join("\n"), "Notes");
+    if (!opts.dryRun) {
+      recordRemove(scope === "user" ? "global" : "project", { skills: skillNames, files: res.droppedKeys });
     }
   }
 
-  p.outro(opts.dryRun ? "Dry-run complete." : failed ? "Finished with errors." : "Done.");
-  return failed ? 1 : 0;
+  p.outro(opts.dryRun ? "Dry-run complete." : "Done.");
+  return 0;
 }
 
 /** Manifest file keys a rule may own, so removal drops their hashes. */
 function ruleFileKeys(rules, scope) {
-  if (scope === "user") return rules.map((r) => `~/.cursor/rules/${r.name}.mdc`);
+  if (scope === "user") {
+    return rules.flatMap((r) => [`~/.cursor/rules/${r.name}.mdc`, `~/.balakit/rules/${r.name}.md`]);
+  }
   return rules.flatMap((r) => [
     `.cursor/rules/${r.name}.mdc`,
     `.claude/rules/${r.name}.md`,
     `.github/instructions/${r.name}.instructions.md`,
+    `.balakit/rules/${r.name}.md`,
   ]);
 }
 
 /**
  * Delete the plugin packs this package copied into ~/.cursor/plugins/local.
- * Only folder names this package ships are touched.
+ * Only known balakit folder names (current + retired) are touched.
  */
 function removeCursorPlugins(opts) {
   const home = homedir();
-  const shipped = new Set(packagedPluginNames());
+  const shipped = new Set(knownKitPluginNames());
   const present = listCursorLocalPlugins(home).filter((n) => shipped.has(n));
   p.intro(`${CMD} v${VERSION} — remove Cursor plugin copies${opts.dryRun ? "  [dry-run]" : ""}`);
   if (!present.length) {
@@ -194,14 +195,8 @@ function removeCursorPlugins(opts) {
   for (const name of present) {
     if (!opts.dryRun) rmSync(join(home, ".cursor", "plugins", "local", name), { recursive: true, force: true });
   }
-  if (!opts.dryRun) recordRemove("global", { files: ["~/.cursor/plugins/local"] });
+  if (!opts.dryRun) recordRemove("global", { files: ["~/.cursor/plugins/local"], surfaces: ["~/.cursor/plugins/local"] });
   p.note(present.map((n) => `~/.cursor/plugins/local/${n}`).join("\n"), opts.dryRun ? "Would remove" : "Removed");
   p.outro("Done. Reload Cursor.");
   return 0;
-}
-
-function packagedPluginNames() {
-  const dir = join(PKG_ROOT, "plugins");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 }

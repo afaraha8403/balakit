@@ -84,3 +84,12 @@ approval_policy = { granular = { sandbox_approval = true, rules = false, mcp_eli
 `--profile <profile-name>` (CLI); the selected profile file overrides
 `config.toml` per profile. (Verified against the live config reference —
 there is no `[profiles.<name>]` block.)
+
+## Native Question UI (`request_user_input`)
+
+Codex provides `request_user_input` (`questions: [{ id, header, question, options: [{ label, description }] }]`) for graphical multiple-choice checkpoints. It is enabled by default in Plan collaboration mode; to enable it in Default coding mode as well, add to `~/.codex/config.toml`:
+
+```toml
+[features]
+default_mode_request_user_input = true
+```

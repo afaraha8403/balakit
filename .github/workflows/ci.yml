@@ -8,7 +8,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,4 +21,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: node scripts/check-lockstep.mjs --rebuild --git
+      - run: node scripts/check-lockstep.mjs --sync --git

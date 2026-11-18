@@ -68,7 +68,9 @@ def next_index(folder: Path, kind: str, ext: str) -> int:
 
 
 def download(url: str, dest: Path) -> None:
-    urllib.request.urlretrieve(url, dest)
+    req = urllib.request.Request(url, headers={"User-Agent": "balakit-media-gen/3.2"})
+    with urllib.request.urlopen(req, timeout=60) as resp, dest.open("wb") as out:
+        shutil.copyfileobj(resp, out)
 
 
 def deep_get(obj, dotted: str):

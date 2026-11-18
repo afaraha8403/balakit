@@ -21,8 +21,16 @@ function toolHint(id, scope) {
   const c = getCapability(id);
   const rules =
     scope === "user"
-      ? { "claude-code": "~/.claude/CLAUDE.md", codex: "~/.codex/AGENTS.md", opencode: "~/.config/opencode/AGENTS.md", cursor: "~/.cursor/rules" }[id] ?? "no user-wide rules file"
-      : { "claude-code": "CLAUDE.md", cursor: "AGENTS.md + .cursor/rules" }[id] ?? (c.standing === "agents-md" ? "AGENTS.md" : "no rules file");
+      ? {
+          "claude-code": "~/.claude/CLAUDE.md",
+          codex: "~/.codex/AGENTS.md",
+          opencode: "~/.config/opencode/AGENTS.md",
+          copilot: "~/.copilot/copilot-instructions.md",
+          "gemini-cli": "~/.gemini/GEMINI.md",
+          cursor: "~/.cursor/rules",
+        }[id] ?? "no user-wide rules file"
+      : { "claude-code": "CLAUDE.md", cursor: ".cursor/rules" }[id] ??
+        (c.standing === "agents-md" ? "AGENTS.md" : "no rules file");
   const skills = c.skillsShId ? "skills" : "no skills";
   return `rules → ${rules}; ${skills}`;
 }
@@ -178,6 +186,7 @@ export async function cmdInteractive(opts = {}) {
     agents: agentIds,
     scope,
     replaceAgents: true,
+    replaceSelection: true,
     cursorPlugins,
   });
   if (!opts.agents?.length && !opts.yes) plan.agentSource = "picked";
@@ -200,7 +209,7 @@ export async function cmdInteractive(opts = {}) {
   p.outro(
     opts.dryRun
       ? "Dry-run complete — nothing written."
-      : `Done. Reload your editor, then run \`npx ${CMD} doctor\`.`,
+      : `Done. Reload your editor, then run \`npx ${CMD}@latest doctor\`.`,
   );
   return 0;
 }

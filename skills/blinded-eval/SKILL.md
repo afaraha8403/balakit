@@ -10,18 +10,9 @@ description: >-
   existing system.
 user-invocable: true
 disable-model-invocation: true
-invocation-type: manual
-version: "1.1.0"
+version: "1.2.0"
 author: "Ali Farahat"
 tags: ["eval", "skills", "blinding", "subagents", "meta"]
-when_to_use: |
-  USE WHEN:
-  - The user invokes /blinded-eval or asks to eval, A/B, or promote a skill change.
-  - authoring-skills-and-rules Phase 4: the draft would change agent behavior.
-  DO NOT USE WHEN:
-  - The change is a typo, comment, or formatting-only edit.
-  - The task is to write the skill (use authoring-skills-and-rules).
-  - The user wants a code review of product code (use dissect).
 ---
 
 # Blinded eval

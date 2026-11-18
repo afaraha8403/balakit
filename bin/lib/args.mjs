@@ -11,21 +11,22 @@ export function usage() {
   return `${CMD} v${VERSION}: standing rules and named skills for coding agents
 
 Usage:
-  npx ${CMD}                         Guided setup (plan → review → apply)
-  npx ${CMD} init [names...]         Same guided setup; -y installs the defaults,
+  npx ${CMD}@latest                  Guided setup (plan → review → apply)
+  npx ${CMD}@latest init [names...]  Same guided setup; -y installs the defaults,
                                      or only the named rules/skills
-  npx ${CMD} add <names...>          Add rules and/or skills by name
-  npx ${CMD} remove <names...>       Remove owned kit pieces
-  npx ${CMD} list                    Available rules, skills, capability matrix
-  npx ${CMD} status                  What balakit owns (inventory)
-  npx ${CMD} doctor                  Health: drift, plugins/local, Copilot ~/.copilot/skills, leftover Mental
-  npx ${CMD} update                  Refresh installed kit pieces
+  npx ${CMD}@latest add <names...>   Add rules and/or skills by name
+  npx ${CMD}@latest remove <names..> Remove owned kit pieces
+  npx ${CMD}@latest list             Available rules, skills, capability matrix
+  npx ${CMD}@latest status           What balakit owns (inventory)
+  npx ${CMD}@latest doctor [--fix]   Health: drift, duplicates, retired leftovers, broken links
+  npx ${CMD}@latest update           Refresh installed kit pieces & prune retired artifacts
 
 Options:
   --scope project|user   Install to this repo (default) or this machine
-  --agents <ids|all>     Skills targets (default: detect + confirm in wizard)
+  --agents <ids|all>     Target tools (default: detect + confirm in wizard)
   --rules-only           Init: standing rules only (skip default skills)
-  --force                Replace rule files you changed (keeps a .bak copy)
+  --fix                  Doctor: automatically repair drift, links, and retired leftovers
+  --force                Replace rule/skill files you changed (keeps a .bak copy)
   --cursor-plugins       User scope + Cursor: also copy every plugin pack to
                          ~/.cursor/plugins/local (remove: delete those copies)
   --dry-run              Preview without writing
@@ -39,9 +40,6 @@ Init skills: ${TEAM_INIT_SKILLS.join(", ")}
 
 Mental continuity has moved to ${MENTAL_REPO}
 (\`--personal\` and \`--mental-*\` flags print the new location.)
-
-Skills are installed via skills.sh. Direct path:
-  npx skills add afaraha8403/balakit
 
 Available rules: ${rules.map((r) => r.name).join(", ")}
 `;
@@ -101,11 +99,12 @@ ${COMMON}
 
 What balakit installed here and on this machine, with skill counts and the
 tool capability matrix.`,
-  doctor: `Usage: ${CMD} doctor [--json]
+  doctor: `Usage: ${CMD} doctor [--fix] [--force] [--dry-run] [--json]
 
 Checks every recorded file on disk: rule blocks, rule files (and whether you
-changed them), skills, and skill links. Exit 1 when something is missing or
-broken; warnings alone exit 0. Fix with \`${CMD} update\`.`,
+changed them), skills, skill links, retired leftovers, and user+project or
+plugin+CLI duplicate loads. Exit 1 when something is missing or broken;
+warnings alone exit 0. Pass --fix to repair automatically.`,
   list: `Usage: ${CMD} list [--json]
 
 Every rule, skill, and supported tool, with what each tool can receive.`,
@@ -175,6 +174,7 @@ export function parseArgv(argv) {
     liftIgnore: false,
     rulesOnly: false,
     force: false,
+    fix: false,
     cursorPlugins: undefined,
     json: false,
     help: false,
@@ -218,6 +218,8 @@ export function parseArgv(argv) {
       args.rulesOnly = true;
     } else if (a === "--force") {
       args.force = true;
+    } else if (a === "--fix") {
+      args.fix = true;
     } else if (a === "--cursor-plugins") {
       args.cursorPlugins = true;
     } else if (a === "--no-cursor-plugins") {

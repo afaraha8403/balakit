@@ -1,0 +1,9 @@
+{
+  "name": "balakit-notebooklm",
+  "version": "1.22.0",
+  "description": "NotebookLM CLI and MCP expert skill for research, notebooks, and content generation.",
+  "author": {
+    "name": "Ali Farahat",
+    "email": "ali@balacode.io"
+  }
+}

@@ -1,6 +1,6 @@
 ---
 description: Universal guidelines for SEO and AI-search implementation — meta tags, JSON-LD, llms.txt, crawlability, and adversarial security.
-globs: **/*.{astro,ts,tsx,jsx,vue,svelte,md,mdx}
+globs: "**/pages/**/*.{astro,ts,tsx,jsx,vue,svelte,mdx},**/app/**/*.{tsx,jsx,mdx},**/routes/**/*.{ts,tsx,jsx,vue,svelte},**/*{seo,meta,schema,jsonld,sitemap,robots,llms}*.{ts,tsx,js,mjs,astro,md,txt},**/public/{robots.txt,llms*.txt,ai.txt,sitemap*.xml}"
 alwaysApply: false
 ---
 

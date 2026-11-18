@@ -9,23 +9,11 @@ description: >-
   Use when the user asks about copy psychology, persuasion, behavioral design,
   conversion optimization, onboarding flow design, CTA wording, pricing
   psychology, or ethical influence.
-user-invocable: false
+user-invocable: true
 disable-model-invocation: false
-version: "2.0.1"
+version: "2.1.0"
 author: "Ali Farahat"
 tags: ["marketing-psychology", "behavioral-design", "cognitive-biases", "conversion", "ethical-influence"]
-when_to_use: |
-  USE WHEN:
-  - User asks about copy psychology, persuasion, or behavioral design.
-  - User is designing an onboarding flow, landing page, CTA, or pricing tier.
-  - User asks how to frame a value proposition, nudge, or feature description.
-  - User wants to reduce cognitive load or improve conversion without dark patterns.
-
-  DO NOT USE WHEN:
-  - User needs SEO (use everything-seo or seo-audit).
-  - User needs agent discovery / well-known protocol cards (use agent-ready).
-  - User needs overall startup marketing strategy (use startup-marketing-brain).
-  - User is asking about visual/UI design, not behavioral copy.
 ---
 
 # Marketing Psychology
@@ -125,4 +113,4 @@ for the full list and the ethical-influence test. Summary:
 |---|---|
 | [references/principles.md](references/principles.md) | Full reasoning behind each cognitive bias + the Fogg Behavior Model |
 | [references/ethical_boundaries.md](references/ethical_boundaries.md) | Dark patterns, addiction design, product-truth overrides, ethical-influence test |
-| [references/yappi_examples.md](references/yappi_examples.md) | Worked examples from the Yappi.ai context (the original skill's content) |
+| [references/saas-examples.md](references/saas-examples.md) | Worked SaaS examples mapping product surfaces to cognitive biases |

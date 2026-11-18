@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: Lockstep vs package.json
-        run: node scripts/check-lockstep.mjs --rebuild --git
+        run: node scripts/check-lockstep.mjs --sync --git
       - name: Tag matches package.json
         run: |
           TAG="${GITHUB_REF_NAME}"
@@ -32,7 +32,7 @@ jobs:
             exit 1
           fi
       - name: Changelog notes
-        run: node scripts/changelog-notes.mjs "$GITHUB_REF_NAME" > /tmp/notes.md
+        run: node scripts/changelog-notes.mjs "$GITHUB_REF_NAME" --fallback > /tmp/notes.md
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,6 +53,6 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           case "$TAG" in
-            *-beta.*) npm publish --access public --tag beta ;;
-            *) npm publish --access public ;;
+            *-beta.*) npm publish --provenance --access public --tag beta ;;
+            *) npm publish --provenance --access public ;;
           esac

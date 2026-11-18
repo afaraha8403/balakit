@@ -9,22 +9,9 @@ description: >-
   browser", or to bypass a block.
 user-invocable: true
 disable-model-invocation: true
-version: "1.1.0"
+version: "1.2.0"
 author: "Ali Farahat"
 tags: ["cloakbrowser", "stealth-browser", "anti-bot-bypass", "playwright", "fallback"]
-when_to_use: |
-  USE WHEN:
-  - The built-in browser returned 403, 429, "Access Denied", "blocked".
-  - A Cloudflare, Turnstile, or reCAPTCHA wall blocks content.
-  - The response is empty or clearly a bot-detection interstitial.
-  - The user explicitly asks for stealth browser or to bypass a block.
-  - Normal automation fails to load a page.
-
-  DO NOT USE WHEN:
-  - The built-in browser works fine (try it first).
-  - The site requires login credentials or image CAPTCHAs (CloakBrowser can't
-    solve these).
-  - The user wants to bypass paywalls or violate a site's terms of service.
 ---
 
 # CloakBrowser Fallback
@@ -33,21 +20,22 @@ when_to_use: |
 > Turnstile, headless failover, real Chromium binary.
 
 Stealth Chromium for navigating sites that block ordinary automation. Drop-in
-Playwright API, but the browser is a custom-compiled Chromium binary, so
-detectors score it as a real human browser.
+Playwright API, backed by a custom-compiled Chromium binary (`~/.cloakbrowser/`)
+so bot detectors score it as a real browser.
 
-Already installed on this machine. Both languages share the same stealth binary at `~/.cloakbrowser/`:
-- **Python** (global): `pip` package `cloakbrowser`.
-- **JS** (self-contained in this skill's `scripts/`): npm `cloakbrowser` + `playwright-core`.
+## One-time dependencies (verify before first run)
 
-Prefer **Python** by default. Use **JS** when the target codebase/repo is JS/TS or the user asks for it.
+- **Python** (recommended default): `pip install cloakbrowser`
+- **Node.js** (self-contained in this skill's `scripts/` folder): `cd <skill-dir>/scripts && npm ci`
+
+Both share the stealth Chromium binary downloaded on first launch to `~/.cloakbrowser/`. Prefer **Python** unless the target repo is JS/TS-only or Python is unavailable.
 
 ## When to reach for this
 
 Use as a **fallback only** — try the built-in browser tool or Chrome DevTools
-MCP first. Escalate to CloakBrowser when any of the triggers in the
-frontmatter `when_to_use` fire (403/429, Cloudflare/Turnstile/reCAPTCHA walls,
-empty/blocked response, explicit user ask).
+MCP first. Escalate to CloakBrowser on 403/429 responses, Cloudflare/Turnstile/reCAPTCHA
+interstitials, blank bot-blocked responses, or an explicit user request. Do not
+use it to bypass paywalls, login walls, or image CAPTCHAs.
 
 **Headless failover pattern:** start headless. If a Turnstile **managed**
 challenge appears, re-run with `--headed` — it clears with one click after the

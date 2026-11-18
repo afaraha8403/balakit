@@ -48,21 +48,23 @@ function out(r) {
   return `${r.stdout || ""}\n${r.stderr || ""}`;
 }
 
-test("e2e: project init writes AGENTS.md, always-on .mdc, and project manifest — not home plugins", () => {
+test("e2e: cursor-only project init writes .cursor/rules/*.mdc without duplicate AGENTS.md", () => {
   const r = run(["init", "-y", "--scope", "project", "--agents", "cursor"]);
   assert.equal(r.status, 0, out(r));
 
-  assert.ok(existsSync(join(cwd, "AGENTS.md")));
+  assert.equal(existsSync(join(cwd, "AGENTS.md")), false, "Cursor-only avoids duplicate AGENTS.md");
   assert.equal(existsSync(join(cwd, "CLAUDE.md")), false, "Claude Code was not picked");
-  assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Meta-Principle/);
-  for (const name of ["base", "testing", "comments", "changelog", "release"]) {
+  for (const name of ["base", "testing", "comments", "changelog"]) {
     assert.ok(existsSync(join(cwd, ".cursor", "rules", `${name}.mdc`)), name);
   }
+  assert.equal(existsSync(join(cwd, ".cursor", "rules", "release.mdc")), false, "release folded into base");
 
   const manifest = JSON.parse(readFileSync(join(cwd, ".balakit", "installed.json"), "utf8"));
+  assert.equal(manifest.schema, 4);
   assert.ok(manifest.rules.includes("base"));
   assert.ok(manifest.rules.includes("testing"));
   assert.ok(manifest.skills.includes("dissect"));
+  assert.ok(manifest.skills.includes("verify-app"));
   assert.ok(existsSync(join(cwd, ".agents", "skills", "dissect", "SKILL.md")));
   assert.ok(existsSync(join(cwd, ".cursor", "skills", "dissect", "SKILL.md")));
 
@@ -97,8 +99,9 @@ test("e2e: user init writes only the picked tools' home files; plugin packs are 
   assert.equal(existsSync(join(cwd, ".balakit", "installed.json")), false);
 });
 
-test("e2e: add seo-ai-search writes Claude and Copilot twins without shrinking always-on rules", () => {
+test("e2e: add seo-ai-search with cursor+claude-code+copilot prunes redundant always-on .mdc and writes scoped twins", () => {
   assert.equal(run(["init", "-y", "--scope", "project", "--agents", "cursor"]).status, 0);
+  assert.ok(existsSync(join(cwd, ".cursor", "rules", "base.mdc")));
   const r = run([
     "add",
     "seo-ai-search",
@@ -108,7 +111,9 @@ test("e2e: add seo-ai-search writes Claude and Copilot twins without shrinking a
   ]);
   assert.equal(r.status, 0, out(r));
 
-  assert.ok(existsSync(join(cwd, ".cursor", "rules", "base.mdc")));
+  // Copilot activates AGENTS.md, so redundant always-on .cursor/rules/base.mdc is pruned (single injection)!
+  assert.equal(existsSync(join(cwd, ".cursor", "rules", "base.mdc")), false);
+  assert.ok(existsSync(join(cwd, ".cursor", "rules", "changelog.mdc")));
   assert.ok(existsSync(join(cwd, ".cursor", "rules", "seo-ai-search.mdc")));
   const claude = join(cwd, ".claude", "rules", "seo-ai-search.md");
   const copilot = join(cwd, ".github", "instructions", "seo-ai-search.instructions.md");
@@ -116,7 +121,8 @@ test("e2e: add seo-ai-search writes Claude and Copilot twins without shrinking a
   assert.ok(existsSync(copilot));
   assert.match(readFileSync(claude, "utf8"), /^paths:/m);
   assert.match(readFileSync(copilot, "utf8"), /applyTo:/);
-  assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Universal SEO|AI Search/);
+  assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /\.balakit\/rules\/seo-ai-search\.md/);
+  assert.ok(existsSync(join(cwd, ".balakit", "rules", "seo-ai-search.md")));
 });
 
 test("e2e: project skill add installs from the package then links .cursor/skills", () => {
@@ -132,13 +138,13 @@ test("e2e: project skill add installs from the package then links .cursor/skills
   assert.equal(existsSync(join(home, ".cursor", "plugins", "local")), false);
 });
 
-test("e2e: user skill add passes -g (dry-run) and installs user-wide", () => {
+test("e2e: user skill add targets user scope (dry-run) and installs user-wide", () => {
   const preview = run(["add", "dissect", "--dry-run", "--scope", "user", "--agents", "cursor"]);
   assert.equal(preview.status, 0, out(preview));
-  assert.match(out(preview), /(^|\s)-g(\s|$)/);
+  assert.match(out(preview), /~\/\.agents\/skills/);
   const projectPreview = run(["add", "dissect", "--dry-run", "--agents", "cursor"]);
   assert.equal(projectPreview.status, 0, out(projectPreview));
-  assert.doesNotMatch(out(projectPreview), /(^|\s)-g(\s|$)/);
+  assert.doesNotMatch(out(projectPreview), /~\/\.agents\/skills/);
 
   const r = run(["add", "dissect", "-y", "--scope", "user", "--agents", "cursor"]);
   assert.equal(r.status, 0, out(r));
@@ -150,7 +156,7 @@ test("e2e: user skill add passes -g (dry-run) and installs user-wide", () => {
 });
 
 test("e2e: status shows project and home surfaces; remove one rule keeps the rest", () => {
-  assert.equal(run(["init", "-y", "--scope", "project", "--agents", "cursor"]).status, 0);
+  assert.equal(run(["init", "-y", "--scope", "project", "--agents", "cursor,codex"]).status, 0);
   const status = run(["status"]);
   assert.equal(status.status, 0, out(status));
   assert.match(out(status), /\.cursor\/rules/);
@@ -159,7 +165,7 @@ test("e2e: status shows project and home surfaces; remove one rule keeps the res
   const rm = run(["remove", "testing", "-y", "--scope", "project"]);
   assert.equal(rm.status, 0, out(rm));
   assert.equal(existsSync(join(cwd, ".cursor", "rules", "testing.mdc")), false);
-  assert.ok(existsSync(join(cwd, ".cursor", "rules", "base.mdc")));
+  assert.ok(existsSync(join(cwd, ".cursor", "rules", "changelog.mdc")));
   assert.match(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Meta-Principle/);
   assert.doesNotMatch(readFileSync(join(cwd, "AGENTS.md"), "utf8"), /Every test must earn its place/);
 });
@@ -209,8 +215,8 @@ test("e2e: user skill add with copilot links ~/.copilot/skills; remove drops the
   rmSync(join(home, ".copilot", "skills"), { recursive: true, force: true });
   const doctorFail = run(["doctor"]);
   assert.equal(doctorFail.status, 1, out(doctorFail));
-  assert.match(out(doctorFail), /~\/\.copilot\/skills is missing/);
-  assert.match(out(doctorFail), /npx balakit update --scope user/);
+  assert.match(out(doctorFail), /missing or unlinked in ~\/\.agents\/skills: dissect/);
+  assert.match(out(doctorFail), /balakit@latest doctor --fix/);
 
   const healed = run(["update", "-y", "--scope", "user"]);
   assert.equal(healed.status, 0, out(healed));
@@ -253,7 +259,7 @@ test("e2e: init keeps a Cursor rule the user wrote; --force replaces it with a .
   assert.match(readFileSync(mdc, "utf8"), /alwaysApply: true/);
 });
 
-test("e2e: doctor catches a deleted skill and rule file; update repairs both", () => {
+test("e2e: doctor catches a deleted skill and rule file; doctor --fix repairs both", () => {
   assert.equal(run(["init", "-y", "--agents", "cursor,claude-code"]).status, 0);
   assert.equal(run(["doctor"]).status, 0);
 
@@ -261,11 +267,11 @@ test("e2e: doctor catches a deleted skill and rule file; update repairs both", (
   rmSync(join(cwd, ".cursor", "rules", "testing.mdc"));
   const sick = run(["doctor"]);
   assert.equal(sick.status, 1, out(sick));
-  assert.match(out(sick), /missing from \.agents\/skills: dissect/);
+  assert.match(out(sick), /missing or unlinked in \.agents\/skills: dissect/);
   assert.match(out(sick), /Missing \.cursor\/rules\/testing\.mdc/);
-  assert.match(out(sick), /Broken skill link\(s\): \.claude\/skills\/dissect/);
+  assert.match(out(sick), /Broken skill link\(s\): .*\.claude\/skills\/dissect/);
 
-  const fixed = run(["update", "-y"]);
+  const fixed = run(["doctor", "--fix"]);
   assert.equal(fixed.status, 0, out(fixed));
   assert.ok(existsSync(join(cwd, ".agents", "skills", "dissect", "SKILL.md")));
   assert.ok(existsSync(join(cwd, ".cursor", "rules", "testing.mdc")));
@@ -274,12 +280,93 @@ test("e2e: doctor catches a deleted skill and rule file; update repairs both", (
 });
 
 test("e2e: doctor warns (exit 0) when the managed block was edited by hand", () => {
-  assert.equal(run(["init", "-y", "--rules-only", "--agents", "cursor"]).status, 0);
+  assert.equal(run(["init", "-y", "--rules-only", "--agents", "codex"]).status, 0);
   const file = join(cwd, "AGENTS.md");
   writeFileSync(file, readFileSync(file, "utf8").replace("Meta-Principle", "Meta Principle (edited)"));
   const r = run(["doctor"]);
   assert.equal(r.status, 0, out(r));
   assert.match(out(r), /AGENTS\.md block differs from this balakit version/);
+});
+
+test("e2e: schema v3 upgrade sweeps retired skills, rules, plugins, and legacy skills-lock.json", () => {
+  // Simulate a pre-upgrade v1.21.0 schema-3 project + user Cursor plugin install.
+  mkdirSync(join(cwd, ".balakit"), { recursive: true });
+  mkdirSync(join(cwd, ".cursor", "rules"), { recursive: true });
+  writeFileSync(join(cwd, ".cursor", "rules", "release.mdc"), "legacy release rule\n");
+  writeFileSync(join(cwd, ".cursor", "rules", "base.mdc"), "legacy base rule\n");
+  for (const oldSkill of ["nlm-skill", "opinion", "unmatched-workflow", "generating-app-verify"]) {
+    mkdirSync(join(cwd, ".agents", "skills", oldSkill), { recursive: true });
+    writeFileSync(join(cwd, ".agents", "skills", oldSkill, "SKILL.md"), `# ${oldSkill}\n`);
+    mkdirSync(join(cwd, ".cursor", "skills", oldSkill), { recursive: true });
+    writeFileSync(join(cwd, ".cursor", "skills", oldSkill, "SKILL.md"), `# ${oldSkill}\n`);
+  }
+  writeFileSync(
+    join(cwd, "skills-lock.json"),
+    JSON.stringify({ skills: { opinion: { source: "/tmp/balakit" } } }),
+  );
+  writeFileSync(
+    join(cwd, ".balakit", "installed.json"),
+    JSON.stringify({
+      schema: 3,
+      version: "1.21.0",
+      rules: ["base", "release", "changelog"],
+      skills: ["nlm-skill", "opinion", "unmatched-workflow", "generating-app-verify"],
+      agents: ["cursor", "codex"],
+      surfaces: ["AGENTS.md", ".cursor/rules/*.mdc"],
+      files: {},
+    }),
+  );
+
+  // Also seed retired balakit-nlm in ~/.cursor/plugins/local
+  mkdirSync(join(home, ".balakit"), { recursive: true });
+  mkdirSync(join(home, ".cursor", "plugins", "local", "balakit-nlm"), { recursive: true });
+  writeFileSync(
+    join(home, ".balakit", "installed.json"),
+    JSON.stringify({
+      schema: 3,
+      version: "1.21.0",
+      rules: ["base"],
+      skills: ["nlm-skill"],
+      agents: ["cursor"],
+      surfaces: ["~/.cursor/rules/*.mdc", "~/.cursor/plugins/local"],
+      files: {},
+    }),
+  );
+
+  // Doctor detects schema v3 + retired artifacts before repair.
+  const before = run(["doctor"]);
+  assert.equal(before.status, 1, out(before));
+
+  // doctor --fix migrates both scopes cleanly!
+  const fix = run(["doctor", "--fix"]);
+  assert.equal(fix.status, 0, out(fix));
+
+  // Verify retired artifacts are 100% gone and new canonical ones exist!
+  assert.equal(existsSync(join(cwd, "skills-lock.json")), false);
+  assert.equal(existsSync(join(cwd, ".cursor", "rules", "release.mdc")), false);
+  // Because codex+cursor wrote AGENTS.md, redundant base.mdc was also pruned!
+  assert.equal(existsSync(join(cwd, ".cursor", "rules", "base.mdc")), false);
+  assert.ok(existsSync(join(cwd, ".cursor", "rules", "changelog.mdc")));
+  for (const oldSkill of ["nlm-skill", "opinion", "unmatched-workflow", "generating-app-verify"]) {
+    assert.equal(existsSync(join(cwd, ".agents", "skills", oldSkill)), false, oldSkill);
+    assert.equal(existsSync(join(cwd, ".cursor", "skills", oldSkill)), false, oldSkill);
+  }
+  for (const newSkill of ["notebooklm", "execute", "kit-workflows", "verify-app"]) {
+    assert.ok(existsSync(join(cwd, ".agents", "skills", newSkill, "SKILL.md")), newSkill);
+    assert.ok(existsSync(join(cwd, ".cursor", "skills", newSkill, "SKILL.md")), newSkill);
+  }
+  assert.equal(existsSync(join(home, ".cursor", "plugins", "local", "balakit-nlm")), false);
+  assert.ok(existsSync(join(home, ".cursor", "plugins", "local", "balakit-notebooklm")));
+
+  const projManifest = JSON.parse(readFileSync(join(cwd, ".balakit", "installed.json"), "utf8"));
+  assert.equal(projManifest.schema, 4);
+  assert.deepEqual(projManifest.rules, ["base", "changelog"]);
+  assert.deepEqual(projManifest.skills, ["execute", "kit-workflows", "notebooklm", "verify-app"]);
+
+  // Doctor is now 100% green (with dual-scope overlap warning exit 0).
+  const after = run(["doctor"]);
+  assert.equal(after.status, 0, out(after));
+  assert.match(out(after), /Duplicate kit items installed in BOTH user and project scope: rules \(base\)/);
 });
 
 test("e2e: a failed skills run does not remember the failed tools", () => {
@@ -295,7 +382,6 @@ test("e2e: a failed skills run does not remember the failed tools", () => {
 
 test("e2e: update with no --scope refreshes the user scope too", () => {
   assert.equal(run(["add", "dissect", "-y", "--scope", "user", "--agents", "claude-code"]).status, 0);
-  // With Claude Code as the only tool, skills.sh copies straight into ~/.claude/skills.
   const skill = join(home, ".claude", "skills", "dissect");
   assert.ok(existsSync(join(skill, "SKILL.md")));
   rmSync(skill, { recursive: true, force: true });

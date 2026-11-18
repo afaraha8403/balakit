@@ -1,6 +1,7 @@
 ---
 description: Maintain CHANGELOG.md for significant changes; grouped by type (Features, Fixes, Changes); source for GitHub release notes
-alwaysApply: true
+globs: "**/CHANGELOG.md"
+alwaysApply: false
 ---
 
 # Changelog maintenance
@@ -23,7 +24,7 @@ Do **not** add trivial edits (typos, comment-only, formatting-only) unless the u
 - **Newest release first** under Unreleased. When you cut a release, the previous `[Unreleased]` content can be moved under a new `## [vX.Y.Z]` section.
 - **Group by type.** Within each version section, organize entries under three subsections: `### Features`, `### Fixes`, `### Changes`.
 - **No type prefix.** Items do not need `**Feature:**`, `**Fix:**`, or `**Change:**` prefixes since they are grouped by section.
-- One line per item; keep text concise.
+- One line per item (≤20 words, active plain verbs — `make sure` over `ensure`, `before` over `prior to`, `use` over `utilize`, direct verbs over `perform/conduct X`).
 
 Structure:
 

@@ -47,7 +47,7 @@ Validate with Google's [Rich Results Test](https://search.google.com/test/rich-r
 `[Business Name] in [City] | [Value Prop]`
 
 - ✅ `Mario's Plumbing in Austin | 24/7 Emergency Plumber`
-- ❌ `Mario's Plumbing | Powered by Yappi.ai` — the platform brand does not
+- ❌ `Mario's Plumbing | Powered by AcmeBooking` — the platform brand does not
   help the business rank; lead with the business + city + value prop.
 
 ## Meta description

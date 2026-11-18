@@ -22,6 +22,12 @@ export {
   SKILLS_SH_VERIFIED_IDS,
   SKILLS_CLI_VERSION,
 } from "./lib/skills-bridge.mjs";
+export {
+  installSkills,
+  removeSkills,
+  hashSkillTree,
+  AGENT_SKILL_PATHS,
+} from "./lib/skills-install.mjs";
 export { installTeamRules, installPersonalRules, installUserRules, partitionRules } from "./lib/rules-install.mjs";
 export {
   detectAgents,
@@ -37,8 +43,14 @@ export {
   TEAM_INIT_SKILLS,
   defaultInitSkills,
   RULE_ALIASES,
+  SKILL_ALIASES,
+  RETIRED_RULES,
+  RETIRED_SKILLS,
+  RETIRED_PLUGINS,
   canonicalizeRuleName,
   canonicalizeRuleNames,
+  canonicalizeSkillName,
+  canonicalizeSkillNames,
   NAME,
   CMD,
   REPO,
@@ -99,7 +111,13 @@ async function main() {
       code = cmdList({ json: args.json });
       break;
     case "doctor":
-      code = cmdDoctor({ json: args.json });
+      code = await cmdDoctor({
+        json: args.json,
+        fix: args.fix,
+        force: args.force,
+        dryRun: args.dryRun,
+        scope: args.scope,
+      });
       break;
     case "status":
       code = cmdStatus({ json: args.json });

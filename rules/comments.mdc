@@ -43,6 +43,8 @@ Every part of a module's public surface — exported functions, types, classes, 
 - Document the return only when it isn't obvious from the function name.
 - Document every error/exception the function can raise as part of its contract.
 - Add an example for non-trivial public APIs and shared utilities.
+- Keep noun clusters ≤3 words and use one canonical term per entity across the module (zero synonym rotation).
+- Format sharp-edge safety callouts as `CAUTION:` or `WARNING:` followed by a direct command, then the specific data-loss or security risk.
 - Don't duplicate what the language already expresses — let the type system, signatures, and tooling do their job.
 
 ## Externally-surfaced docs

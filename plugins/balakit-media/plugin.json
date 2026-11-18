@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "balakit-media",
-  "version": "1.21.0",
-  "description": "Fal.ai media generation skill for images, video, upscale, and ad creative workflows.",
+  "version": "1.22.0",
+  "description": "Fal.ai media generation skill for images, video, upscale, and creative workflows.",
   "author": {
     "name": "Ali Farahat",
     "email": "ali@balacode.io",

@@ -7,7 +7,14 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
-import { VERSION, MANIFEST_SCHEMA, canonicalizeRuleNames } from "./pkg.mjs";
+import {
+  VERSION,
+  MANIFEST_SCHEMA,
+  canonicalizeRuleNames,
+  canonicalizeSkillNames,
+  RETIRED_RULES,
+  RETIRED_SKILLS,
+} from "./pkg.mjs";
 
 /**
  * @typedef {{
@@ -17,15 +24,15 @@ import { VERSION, MANIFEST_SCHEMA, canonicalizeRuleNames } from "./pkg.mjs";
  *   agents: string[],
  *   surfaces: string[],
  *   files: Record<string, string>,
- *   mentalTooling: string|null,
- *   mentalDataPolicy: string|null,
  *   updatedAt: string,
  *   version: string,
+ *   _migratedRules?: string[],
+ *   _migratedSkills?: string[],
  * }} Manifest
  */
 
 /** @returns {Manifest} */
-function empty() {
+export function emptyManifest() {
   return {
     schema: MANIFEST_SCHEMA,
     rules: [],
@@ -33,34 +40,44 @@ function empty() {
     agents: [],
     surfaces: [],
     files: {},
-    mentalTooling: null,
-    mentalDataPolicy: null,
     updatedAt: new Date().toISOString(),
     version: VERSION,
   };
 }
 
+const empty = emptyManifest;
+
 /**
- * Normalize a raw JSON object to the current Manifest schema.
- * Legacy Mental policy fields are preserved when present so old files stay readable.
+ * Normalize a raw JSON object to the current Manifest schema, translating
+ * renamed/merged rule and skill slugs and recording retired slugs in transient
+ * `_migratedRules` / `_migratedSkills` fields so `update` can prune disk ghosts.
  * @param {object} data
  * @returns {Manifest}
  */
 export function migrateManifest(data) {
-  const rules = canonicalizeRuleNames(Array.isArray(data.rules) ? data.rules : []);
-  const skills = Array.isArray(data.skills) ? data.skills : [];
-  return {
+  const rawRules = Array.isArray(data.rules) ? data.rules : [];
+  const rawSkills = Array.isArray(data.skills) ? data.skills : [];
+  const rules = canonicalizeRuleNames(rawRules);
+  const skills = canonicalizeSkillNames(rawSkills);
+  const retiredRuleSet = new Set(RETIRED_RULES);
+  const retiredSkillSet = new Set(RETIRED_SKILLS);
+  const migratedRules = rawRules.filter((r) => retiredRuleSet.has(r));
+  const migratedSkills = rawSkills.filter((s) => retiredSkillSet.has(s));
+
+  const out = {
     schema: MANIFEST_SCHEMA,
     rules,
     skills,
     agents: Array.isArray(data.agents) ? data.agents : [],
     surfaces: Array.isArray(data.surfaces) ? data.surfaces : [],
     files: data.files && typeof data.files === "object" && !Array.isArray(data.files) ? data.files : {},
-    mentalTooling: data.mentalTooling ?? null,
-    mentalDataPolicy: data.mentalDataPolicy ?? null,
     updatedAt: data.updatedAt ?? "",
     version: data.version ?? "",
+    _rawSchema: typeof data.schema === "number" ? data.schema : 1,
   };
+  if (migratedRules.length) out._migratedRules = migratedRules;
+  if (migratedSkills.length) out._migratedSkills = migratedSkills;
+  return out;
 }
 
 export function projectManifestPath(cwd = process.cwd()) {
@@ -96,12 +113,10 @@ export function writeManifest(file, data) {
   const out = {
     schema: MANIFEST_SCHEMA,
     rules: canonicalizeRuleNames(data.rules ?? []).sort(),
-    skills: [...new Set(data.skills ?? [])].sort(),
+    skills: canonicalizeSkillNames(data.skills ?? []).sort(),
     agents: [...new Set(data.agents ?? [])].sort(),
     surfaces: [...new Set(data.surfaces ?? [])].sort(),
     files: Object.fromEntries(Object.entries(data.files ?? {}).sort(([a], [b]) => a.localeCompare(b))),
-    mentalTooling: data.mentalTooling ?? null,
-    mentalDataPolicy: data.mentalDataPolicy ?? null,
     updatedAt: new Date().toISOString(),
     version: VERSION,
   };
@@ -110,21 +125,26 @@ export function writeManifest(file, data) {
 }
 
 /**
- * Merge names into a manifest file. `patch.replaceAgents` sets the tool list
- * instead of adding to it.
+ * Merge or replace names in a manifest file.
+ * - `patch.replaceAgents`: set the tool list instead of unioning.
+ * - `patch.replaceRules` / `patch.replaceSkills` / `patch.replaceSurfaces`:
+ *   replace those collections (used on `init` / `update` after pruning).
+ * - `patch.dropFiles`: file hash keys removed during upgrade pruning.
  * @param {"project"|"global"} scope
  */
 export function recordInstall(scope, patch, { cwd = process.cwd(), home = homedir(), dryRun = false } = {}) {
   const file = scope === "global" ? globalManifestPath(home) : projectManifestPath(cwd);
   const cur = readManifest(file);
+  const dropF = new Set(patch.dropFiles ?? []);
+  const mergedFiles = Object.fromEntries(
+    Object.entries({ ...cur.files, ...(patch.files ?? {}) }).filter(([k]) => !dropF.has(k)),
+  );
   const next = {
-    rules: [...cur.rules, ...(patch.rules ?? [])],
-    skills: [...cur.skills, ...(patch.skills ?? [])],
+    rules: patch.replaceRules ? [...(patch.rules ?? [])] : [...cur.rules, ...(patch.rules ?? [])],
+    skills: patch.replaceSkills ? [...(patch.skills ?? [])] : [...cur.skills, ...(patch.skills ?? [])],
     agents: patch.replaceAgents ? [...(patch.agents ?? [])] : [...(cur.agents ?? []), ...(patch.agents ?? [])],
-    surfaces: [...(cur.surfaces ?? []), ...(patch.surfaces ?? [])],
-    files: { ...cur.files, ...(patch.files ?? {}) },
-    mentalTooling: cur.mentalTooling,
-    mentalDataPolicy: cur.mentalDataPolicy,
+    surfaces: patch.replaceSurfaces ? [...(patch.surfaces ?? [])] : [...(cur.surfaces ?? []), ...(patch.surfaces ?? [])],
+    files: mergedFiles,
   };
   if (dryRun) return { file, ...next };
   return { file, ...writeManifest(file, next) };
@@ -137,22 +157,20 @@ export function recordInstall(scope, patch, { cwd = process.cwd(), home = homedi
 export function recordRemove(scope, names, { cwd = process.cwd(), home = homedir(), dryRun = false } = {}) {
   const file = scope === "global" ? globalManifestPath(home) : projectManifestPath(cwd);
   const cur = readManifest(file);
-  const dropR = new Set(canonicalizeRuleNames(names.rules ?? []));
+  const dropR = new Set(names.rules ?? []);
   const dropS = new Set(names.skills ?? []);
   const nextRules = cur.rules.filter((r) => !dropR.has(r));
   const nextSkills = cur.skills.filter((s) => !dropS.has(s));
   const dropF = new Set(names.files ?? []);
+  const dropSurf = new Set(names.surfaces ?? names.files ?? []);
   const nextFiles = Object.fromEntries(Object.entries(cur.files).filter(([k]) => !dropF.has(k)));
-  const nextSurfaces = (cur.surfaces ?? []).filter((x) => !dropF.has(x));
-  const stillMental = nextRules.includes("mental") || nextSkills.includes("mental");
+  const nextSurfaces = (cur.surfaces ?? []).filter((x) => !dropSurf.has(x));
   const next = {
     rules: nextRules,
     skills: nextSkills,
     agents: cur.agents ?? [],
     surfaces: nextSurfaces,
     files: nextFiles,
-    mentalTooling: stillMental ? cur.mentalTooling : null,
-    mentalDataPolicy: stillMental ? cur.mentalDataPolicy : null,
   };
   if (dryRun) return { file, ...next };
   if (!existsSync(file) && !cur.rules.length && !cur.skills.length) return { file, ...next };
@@ -161,16 +179,20 @@ export function recordRemove(scope, names, { cwd = process.cwd(), home = homedir
 
 /**
  * File-ownership guard for a manifest: which kit-written files may be replaced.
- * A manifest that lists rules but predates `files` hashes owns its rule files
- * by name (legacy), so `update` keeps working on older installs.
+ * A manifest that lists rules or skills but predates hashes (`legacy`) owns its
+ * recorded items by name so upgrades from <=1.21.0 stay seamless.
  * @param {Manifest} m
  * @param {{ force?: boolean }} [opts]
  * @returns {import("./rules-install.mjs").FileGuard}
  */
 export function guardFor(m, { force = false } = {}) {
+  const files = m.files ?? {};
+  const keys = Object.keys(files);
+  const hasSkillHashes = keys.some((k) => k.includes(".agents/skills/"));
   return {
-    files: m.files ?? {},
-    legacy: m.rules.length > 0 && Object.keys(m.files ?? {}).length === 0,
+    files,
+    legacy: (m.rules.length > 0 || m.skills.length > 0) && keys.length === 0,
+    legacySkills: m.skills.length > 0 && ((m._rawSchema ?? MANIFEST_SCHEMA) < 4 || !hasSkillHashes),
     force,
   };
 }

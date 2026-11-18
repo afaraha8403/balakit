@@ -1,34 +1,18 @@
 ---
 name: trl
 description: >-
-  Raises and scores a software Technology Readiness Level (TRL 1–9) in a
-  loop. Each cycle collects facts-only evidence, has three low-context
-  assessor agents score every in-scope area (core logic, data, interfaces,
-  UI/UX, accessibility, performance, security, infra, observability,
-  reliability, docs) without seeing the target or earlier verdicts, then
-  writes the next level's exit criteria as failing evidence checks and
-  builds until they pass. Works on a whole app, one feature, or a narrow
-  improvement. Levels 7–9 are reachable before launch with
-  production-equivalent evidence, labeled by provenance. Optional
-  --target N (default 8), --cycles N (default 5), --assess-only, --circuit.
-  Apply when the user invokes trl or /trl, asks for a readiness level, or
-  wants something made ready for real users. Use opinion for open-ended
-  takes. Use generating-app-verify to map app flows. Use
-  proving-change-safety for one diff.
+  Score and raise a software Technology Readiness Level (TRL 1–9) in an
+  assess-then-build loop using three blind read-only assessor subagents and
+  failing-first evidence checks (`--target 8`, `--cycles 5`, `--assess-only`,
+  `--circuit`). Apply when the user invokes /trl, asks for a readiness score,
+  or wants an app or feature raised to launch readiness. Use execute --opinion
+  for open-ended takes, verify-app to map live flows, or proving-change-safety
+  for one diff.
 user-invocable: true
 disable-model-invocation: true
-invocation-type: manual
-version: "1.0.0"
+version: "1.1.0"
 author: "Ali Farahat"
 tags: ["readiness", "trl", "orchestration", "evidence", "tdd"]
-when_to_use: |
-  USE WHEN:
-  - The user invokes trl or /trl, or asks what TRL / readiness level an app or feature is at.
-  - They want an app, feature, or improvement raised to a readiness level (for example "ready for real users").
-  DO NOT USE WHEN:
-  - They want open-ended takes with no scoring (use opinion).
-  - They want one diff proven safe (use proving-change-safety).
-  - They want a work-breakdown plan as the deliverable (use inception).
 ---
 
 # TRL
@@ -147,23 +131,18 @@ target, deduplicated.
   action or needs `attested` evidence. Ask. If the user declines, stop
   that row and continue the others.
 
-## Checkpoint question
+## Checkpoint question (Native Question UI)
 
-After the baseline (and on plateau), report first, then ask:
+After emitting the baseline scorecard and gap plan (and on plateau), invoke the host's **native structured question tool** (see [references/hosts.md](references/hosts.md) — `AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`; never print raw `prompt:`/`options:` YAML). Ask one single-select question (`header: "TRL loop"`, **4 options**):
 
-```text
-prompt: The panel scored this TRL N. Should I start raising it toward TRL <target>?
-options:
-- Yes, raise it (Recommended)
-- Change the target level
-- Stop here with the score and gap list
-- Say this in plain English
-allow_multiple: false
-```
+- **Question:** `The panel scored this TRL N. Should I start raising it toward TRL <target>?`
+- **Options (4):**
+  1. `Yes, raise it (Recommended)`
+  2. `Change the target level`
+  3. `Stop here with the score and gap list`
+  4. `Say this in plain English`
 
-`Say this in plain English` is a meta question. Explain what the next
-level would need here, with one example check, then ask again. Do not
-advance. No structured question tool → numbered text fallback.
+`Say this in plain English` is a meta option: explain what the next level requires here with one concrete example check, then re-invoke the question tool without advancing. Fall back to a numbered plain-text list only when zero question tools are declared in this session.
 
 ## Reply contract
 

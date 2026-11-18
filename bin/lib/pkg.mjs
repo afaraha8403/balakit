@@ -1,5 +1,5 @@
 /**
- * Package identity and kit constants shared across the CLI.
+ * Package identity, kit defaults, and upgrade migration tables.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +20,7 @@ export const CMD = Object.keys(pkg.bin ?? {})[0] ?? NAME;
 export const VERSION = pkg.version;
 
 /**
- * GitHub owner/repo slug for skills.sh, derived from package.json `repository.url`.
+ * GitHub owner/repo slug, derived from package.json `repository.url`.
  */
 export const REPO =
   (pkg.repository?.url ?? "")
@@ -32,24 +32,45 @@ export const RULES_DIR = join(PKG_ROOT, "rules");
 export const SKILLS_DIR = join(PKG_ROOT, "skills");
 
 /**
- * Rule → skills that must ship with it. The rule is the always-on pointer; the
- * skill carries the procedure. Selecting the rule always installs the skill.
- */
-export const RULE_BUNDLED_SKILLS = {};
-
-/**
- * Names that install user-wide instead of into the project.
- * Empty: Balakit no longer ships a personal continuity rule (Mental moved out).
- */
-export const PERSONAL_RULES = [];
-
-/**
  * Rule name aliases → canonical basenames. Keeps old CLI/manifest names working
- * after renames (e.g. `global` → `base`).
+ * after renames or merges (`global` → `base`, `release` → `base`).
  */
 export const RULE_ALIASES = Object.freeze({
   global: "base",
+  release: "base",
 });
+
+/** Rule basenames retired from disk; upgrade prunes their old `.mdc` / twin files. */
+export const RETIRED_RULES = Object.freeze(["global", "release", "mental"]);
+
+/**
+ * Skill name aliases → canonical directory names. Supports CLI shorthand and
+ * seamless upgrades across renamed or consolidated skills.
+ */
+export const SKILL_ALIASES = Object.freeze({
+  "nlm-skill": "notebooklm",
+  nlm: "notebooklm",
+  "generating-app-verify": "verify-app",
+  "refreshing-app-verify": "verify-app",
+  "unmatched-workflow": "kit-workflows",
+  workflows: "kit-workflows",
+  opinion: "execute",
+  "prove-safety": "proving-change-safety",
+  "write-docs": "documentation-writer",
+});
+
+/** Skill directory slugs retired from disk; upgrade prunes their stale folders and links. */
+export const RETIRED_SKILLS = Object.freeze([
+  "nlm-skill",
+  "generating-app-verify",
+  "refreshing-app-verify",
+  "unmatched-workflow",
+  "opinion",
+  "mental",
+]);
+
+/** Plugin directory slugs retired/renamed under `~/.cursor/plugins/local/`. */
+export const RETIRED_PLUGINS = Object.freeze(["balakit-nlm"]);
 
 /**
  * Map a user/manifest rule name to the on-disk canonical name.
@@ -60,36 +81,54 @@ export function canonicalizeRuleName(name) {
 }
 
 /**
- * Canonicalize a list of rule names, dropping duplicates after aliasing.
+ * Canonicalize a list of rule names, dropping retired `"mental"` and duplicates.
  * @param {string[]} names
  */
 export function canonicalizeRuleNames(names) {
-  return [...new Set(names.map(canonicalizeRuleName))];
+  return [...new Set(names.filter((n) => n && n !== "mental").map(canonicalizeRuleName))];
 }
 
-/** Default standing rules installed by `balakit init`. */
-export const TEAM_INIT_RULES = ["base", "testing", "comments", "changelog", "release"];
+/**
+ * Map a user/manifest skill name to the on-disk canonical name.
+ * @param {string} name
+ */
+export function canonicalizeSkillName(name) {
+  return SKILL_ALIASES[name] ?? name;
+}
+
+/**
+ * Canonicalize a list of skill names, dropping retired `"mental"` and duplicates.
+ * @param {string[]} names
+ */
+export function canonicalizeSkillNames(names) {
+  return [...new Set(names.filter((n) => n && n !== "mental").map(canonicalizeSkillName))];
+}
+
+/** Legacy empty constants preserved for public ESM API compatibility. */
+export const RULE_BUNDLED_SKILLS = Object.freeze({});
+export const PERSONAL_RULES = Object.freeze([]);
+export const SKILL_BUNDLED_BY = Object.freeze({});
+
+/** Default rules installed by `balakit init` (`changelog` is path-scoped). */
+export const TEAM_INIT_RULES = ["base", "testing", "comments", "changelog"];
 
 /**
  * Default engineering skills installed by `balakit init` unless `--rules-only`.
- * Marketing, SEO, media, and nlm stay opt-in via `add`.
+ * Kit-meta authoring (`authoring-skills-and-rules`, `blinded-eval`), stealth
+ * scraping (`cloakbrowser-fallback`), marketing, SEO, media, and NotebookLM
+ * stay opt-in via `balakit add`.
  */
 export const TEAM_INIT_SKILLS = Object.freeze([
   "subsystem-walkthrough",
   "design-rationale",
   "proving-change-safety",
   "kit-workflows",
-  "unmatched-workflow",
   "dissect",
   "deep-deliberation",
   "inception",
-  "opinion",
   "execute",
   "trl",
-  "generating-app-verify",
-  "refreshing-app-verify",
-  "blinded-eval",
-  "authoring-skills-and-rules",
+  "verify-app",
   "documentation-writer",
   "release-deploy",
 ]);
@@ -106,16 +145,7 @@ export function defaultInitSkills(catalog, { rulesOnly = false } = {}) {
 }
 
 /** Manifest schema version for ownership ledger. */
-export const MANIFEST_SCHEMA = 3;
-
-/** Reverse map: skill name → rules that bundle it. */
-export const SKILL_BUNDLED_BY = Object.entries(RULE_BUNDLED_SKILLS).reduce(
-  (m, [rule, skills]) => {
-    for (const s of skills) (m[s] ??= []).push(rule);
-    return m;
-  },
-  {},
-);
+export const MANIFEST_SCHEMA = 4;
 
 export const BEGIN = `<!-- BEGIN ${NAME} (managed — edits inside are overwritten on reinstall) -->`;
 export const END = `<!-- END ${NAME} -->`;

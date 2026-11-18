@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.22.0]
+
+### Features
+- Add zero-dependency native skill installer (`bin/lib/skills-install.mjs`) for all 16 verified agents on Node 18+ with SHA-256 edit guards.
+- Add `balakit doctor --fix` and manifest schema v4 reconciliation to migrate renames, prune retired artifacts, and flag dual-scope duplicates.
+- Add cross-harness Native Question UI contract (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, `ask_user`) across `base` and interactive skills.
+- Add user-scope standing instruction targets for GitHub Copilot (`~/.copilot/copilot-instructions.md`) and Gemini CLI (`~/.gemini/GEMINI.md`).
+- Add cross-platform `scripts/sync.mjs`, `scripts/lint-ste.mjs` in `documentation-writer` v1.4.0, and `--interactive` HTML steppers in `subsystem-walkthrough` v1.3.0.
+
+### Fixes
+- Stop duplicate always-on rule injection in Cursor when `AGENTS.md` is active, keeping only glob-scoped `.cursor/rules/*.mdc` files.
+- Fix `demote()` heading parser inside fenced code blocks and brace-aware `globList()` splitting in Claude Code and Copilot adapters.
+- Guard `$HOME` against accidental `--scope project` collisions across `init`, `add`, `remove`, `status`, and `doctor`.
+- Enable `user-invocable: true` on all 22 skills, drop dead frontmatter keys, and add 60s download timeouts in `media-gen`.
+- Support `--fallback` in `scripts/changelog-notes.mjs` and add `--provenance` to `npm publish` in `.github/workflows/release.yml`.
+
+### Changes
+- Remove `skills@1.5.25` runtime dependency and duplicate `plugins/` tarball files, and materialize `--cursor-plugins` directly from packaged sources.
+- Merge `verify-app` (`--refresh`), `kit-workflows` (`custom.md`), and `execute` (`--opinion`), and rename `nlm-skill` / `balakit-nlm` to `notebooklm` / `balakit-notebooklm`.
+- Scope `changelog` (`**/CHANGELOG.md`), narrow `seo-ai-search` globs, fold `release` into `base`, and emit 1-line conditional pointers in `AGENTS.md` / `CLAUDE.md`.
+- Pin artifact prose in `base`, `comments`, and `changelog` to 80% ASD-STE100 with preserved hedges and Mermaid invariants tables.
+- Run CI on `ubuntu-latest` and `windows-latest` with `check-lockstep.mjs --sync --git` verification.
+
 ## [v1.21.0]
 
 ### Features

@@ -25,6 +25,8 @@ Write these onto the canvas (host-native wrapping is fine; the content must exis
 
 - Paths and symbols, not vibes. Cite `file` or `file:line` when the code exists.
 - Units are independently verifiable. Do not hide a negative behind a bundle.
+- Procedural 80% STE per unit: ≤20 words per action step, active imperative, one verifiable change per unit.
+- Zero synonym rotation: reuse exact symbol and entity names from **Named data shape** across every unit and predicate. Include a `[Component | Responsibility | Invariant]` table when introducing stateful boundaries.
 - Preserve host UI anchors: Cursor frontmatter todos must map to units (Build
   needs non-empty `todos`). Claude: the injected file must be non-empty before
   `ExitPlanMode`.

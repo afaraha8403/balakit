@@ -37,3 +37,15 @@ names there (`Current`, `Claude`, `OpenAI`, `Gemini`, …).
 The read-only contract lives in the prompt. Do not rely on a read-only
 flag existing. New agents every cycle. Never resume or message an
 earlier cycle's assessor.
+
+## Native Question UI (Cross-Harness)
+
+At baseline/plateau checkpoints and outward-action asks, inspect your session's live declared tools and invoke the matching structured question tool (2–4 options max, `header` ≤12 chars, never print `prompt:`/`options:` YAML):
+
+| Host | Question tool |
+|---|---|
+| `claude-code` | `AskUserQuestion` (`questions: [{ question, header, options: [{ label, description }], multiSelect: false }]`) |
+| `cursor` | `AskQuestion` (`title`, `questions: [{ id, prompt, options: [{ id, label }], allow_multiple: false }]`) |
+| `opencode` | `question` (`questions: [{ question, header, options: [{ label, description }], multiple: false }]`) |
+| `codex` | `request_user_input` (`questions: [{ id, header, question, options: [{ label, description }] }]`) |
+| `copilot` / `other` | `vscode_askQuestions` or `ask_user` if declared; numbered plain-text list only when zero question tools exist |

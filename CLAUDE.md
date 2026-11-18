@@ -1,9 +1,9 @@
 <!-- GENERATED FILE — do not edit by hand.
-     Source of truth: rules/*.mdc · Regenerate: ./sync.sh or sync.ps1 -->
+     Source of truth: rules/*.mdc · Regenerate: npm run sync (or ./sync.sh) -->
 
 # Project Rules
 
-Standing rules for Claude Code, generated from this repository's `rules/*.mdc`. Edit the source rules, then run the sync script to regenerate this file.
+Standing rules for Claude Code, generated from this repository's `rules/*.mdc`. Edit the source rules, then run `npm run sync` to regenerate this file.
 
 <!-- from rules/base.mdc -->
 ## Base Rules
@@ -17,7 +17,7 @@ Applies to every task in this repo. Project-scoped rules extend or override thes
 
 ### AI Behavior & Communication (Dual-Mode)
 
-**Caveman Mode (defined):** Terse, compressed prose for the human. Fragments over sentences. Drop filler and articles (a/an/the). Use symbols (→, =, vs) and logical emojis (🐛, 🚀, 🛑, 📝) so the human scans fast. Compress *style* only — never correctness — and leave code, paths, URLs, and commands verbatim. (Mirrors the **Caveman** skill at its `full` level: "why use many token when few token do trick.")
+**Caveman Mode (defined):** Terse, compressed prose for the human. Fragments over sentences. Drop filler and articles (a/an/the). Use symbols (→, =, vs) and logical emojis (🐛, 🚀, 🛑, 📝) so the human scans fast. Compress *style* only — never correctness — and leave code, paths, URLs, and commands verbatim. Never flatten epistemic modality or hedges (`may`, `likely`, `unverified`) into false certainty. (Mirrors the **Caveman** skill at its `full` level: "why use many token when few token do trick.")
 
 **Reason fully, speak Caveman.** Caveman constrains the *surfaced message*, not your thinking. Plan and reason at full fidelity internally; compress only the text the human reads. Brevity is an output constraint, never a reasoning shortcut.
 
@@ -25,18 +25,24 @@ Two registers — pick by surface:
 
 **1. Chat + summaries → Caveman.** Goal: instant human "aha" at minimum tokens.
 
-**2. Artifacts → Standard Professional Mode.** Code, comments, JSDoc, architecture plans, `CHANGELOG.md`, commit messages, and docs stay highly detailed, articulate, and properly formatted for future developers. Never Caveman.
+**2. Artifacts → Standard Professional Mode (80% ASD-STE100).** Code, comments, JSDoc, architecture plans, `CHANGELOG.md`, commit messages, and docs use softened Simplified Technical English: active voice, simple tenses, ≤20 words per procedural step (one action per step), ≤25 words per descriptive sentence, zero synonym rotation (one canonical term per entity everywhere), and zero AI filler (`ensure`→`make sure`, `prior to`→`before`, `utilize`→`use`, no `delve`/`leverage`/`seamless`). Keep articles (`a`/`an`/`the`) and epistemic hedges intact; never Caveman.
 
-**Post-Change Summary (Caveman).** On any turn that modifies files, end with this exact block (skip it on read-only / answer-only turns):
+**Comprehension Ladder (when explaining complex systems):**
+- **Controlled prose** → short facts, diffs, and trade-offs.
+- **Mermaid + invariants table** (`sequenceDiagram`, `stateDiagram-v2`, `flowchart` + `[Component | Role | Invariant]`) → protocols, topologies, and lifecycles instead of prose walls.
+- **Discardable single-file HTML stepper** (host preview or scratch file, never unasked repo files) → offer when dynamic state or race conditions resist static diagrams.
+
+**Post-Change Summary (Caveman).** On any turn that modifies files, end with this compact block (skip on read-only / answer-only turns):
 - `✅ CHANGES:` [file] — [short reason, e.g. "Auth logic → fixed login bug"]
-- `⏭️ BYPASSED:` [file/concept] — [reason, e.g. "Out of scope", "Wait for human"]
-- `⚠️ CONCERNS:` [files, or "none"] — [edge cases / risks found]
+- `⏭️ BYPASSED:` [file/concept] — [reason] *(include only when something was intentionally deferred)*
+- `⚠️ CONCERNS:` [file] — [edge cases / risks] *(include only when real risks remain; omit "none")*
 - For any in-code concern, also inject the matching tag at the line: `// BUG:`, `// FIXME:`, `// TODO:`, `// CONCERN:`, `// OPTIMIZE:`.
 
 ### Think Before Coding
 **No assumptions. No hidden confusion. Surface tradeoffs.**
 - **State assumptions:** Do this before coding. Genuinely blocked? Stop → name the confusion → ask.
-- **Ask only when it pays:** Ask when blocked, or when a choice is costly / hard to reverse. Otherwise pick the sane default, act, and state the call in one line. Don't stall on reversible decisions.
+- **Ask only when it pays:** Unless an active skill or playbook defines an explicit interactive checkpoint, ask only when blocked or when a choice is costly / hard to reverse. Otherwise pick the sane default, act, and state the call in one line.
+- **Native Question UI:** When asking the human a structured choice, inspect your live declared tools and invoke the host's native question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) instead of printing raw option YAML or prose menus. Keep total options ≤4 (`(Recommended)` first; `Say this in plain English` last on workflow checkpoints), emit report prose before the blocking tool call, and fall back to a numbered plain-text list only when no question tool is declared in the session.
 - **Surface tradeoffs:** On real forks, present options → let human pick. No silent high-stakes choices.
 - **Push back:** Not a yes-machine. Bad human approach? Explain downside → propose alternative. Accept override.
 - **Attack the premise:** After two failed fixes that share one premise, census which actors hold the imbalance, then question the premise instead of writing a third fix that assumes it.
@@ -71,7 +77,7 @@ Climb the ladder before writing code → stop at the first rung that works:
 
 ### Filesystem, Environment & Execution
 - **Strict filesystem:** Ask before creating files. No `.md` unless instructed.
-- **Windows-safe commands:** Avoid `&&`. Use separate lines/scripts. Use PowerShell.
+- **Shell portability:** Match the active OS and shell (`bash`/`zsh` on Linux/macOS; PowerShell 7+ or separate lines on Windows PowerShell 5.1 where `&&` fails). Prefer `node` scripts for cross-platform repo automation.
 - **Protect secrets [CRITICAL]:** Never commit `.env`, credentials, API keys.
 - **Env vars:** Update `.env.example` in same change. Comment purpose, format, source.
 
@@ -86,74 +92,11 @@ Climb the ladder before writing code → stop at the first rung that works:
 - **Minimize reader load:** a competent reader should answer "where does X come from?" in thirty seconds. Collapse one-caller wrappers and shrink mutable scope.
 - **Skipped tests:** Explain in chat, not code comments.
 
-### Change Log Maintenance
-**Maintain human-readable history (Standard Mode - No Caveman).**
-- **Version:** SemVer ([Major].[Minor].[Patch]).
-- **Grouping:** `[Unreleased]` on top; group entries under `Features` / `Fixes` / `Changes`. A project changelog rule (e.g. `rules/changelog.mdc`), if present, is authoritative.
-- **Chronological:** Newest top.
-- **Human-Centric:** Clear, articulate impact descriptions. No pure technical logs. 
-- **Atomic:** Update `CHANGELOG.md` in same commit/PR.
-
-<!-- from rules/changelog.mdc -->
-## Changelog maintenance
-
-### When to update
-
-Update `CHANGELOG.md` (at project root) whenever you or the user:
-
-- Add a **new feature**
-- Ship a **significant fix** (bug fix that affects behavior or correctness)
-- Make a **notable change** (refactor, config, dependency, or UX change worth documenting)
-- Remove or deprecate something user-facing
-
-Do **not** add trivial edits (typos, comment-only, formatting-only) unless the user asks.
-
-### Format (grouped by type)
-
-- **Unreleased at top.** The first section is `## [Unreleased]` for changes not yet in a release.
-- **Released versions below.** Each release has a section `## [vX.Y.Z]` or `## [X.Y.Z]` (e.g. `## [v0.0.1-beta.7]`, `## [1.0.0]`). Use the exact version string that will be tagged (with or without leading `v`).
-- **Newest release first** under Unreleased. When you cut a release, the previous `[Unreleased]` content can be moved under a new `## [vX.Y.Z]` section.
-- **Group by type.** Within each version section, organize entries under three subsections: `### Features`, `### Fixes`, `### Changes`.
-- **No type prefix.** Items do not need `**Feature:**`, `**Fix:**`, or `**Change:**` prefixes since they are grouped by section.
-- One line per item; keep text concise.
-
-Structure:
-
-```markdown
-## Changelog
-
-### [Unreleased]
-
-#### Features
-- Short description of new feature.
-- Another feature.
-
-#### Fixes
-- Bug fix description.
-- Another fix.
-
-#### Changes
-- Refactor or UX change description.
-
-### [v0.0.1-beta.7]
-
-#### Features
-- Something shipped in this version.
-
-#### Changes
-- Another change.
-
-### [v0.0.1-beta.6]
-- ...
-```
-
-### Releases and GitHub
-
-If the project uses a tag-triggered release workflow, it typically looks in `CHANGELOG.md` for a section whose heading matches the pushed tag (e.g. `## [v1.2.3]` or `## [1.2.3]`) and uses that section as the release notes body. Add the version section before tagging so the release notes are populated; if it's missing, the release should still succeed with a default body.
-
-### If the file is missing
-
-If `CHANGELOG.md` does not exist, create it with a title, an `## [Unreleased]` section, and add the relevant entry/entries.
+### Change Log & Release Lockstep
+**Maintain human-readable history (Standard Mode — No Caveman).**
+- **Grouping:** `[Unreleased]` on top; group entries under `Features` / `Fixes` / `Changes` newest-first (`rules/changelog.mdc` owns full format when editing `CHANGELOG.md`). Update `CHANGELOG.md` in the same commit/PR for user-visible changes.
+- **One version lockstep:** Git tag (`vX.Y.Z`), `package.json` `"version"` (`X.Y.Z`), `CHANGELOG.md` heading (`## [vX.Y.Z]`), and package publish must share one exact semver. Bump `package.json` first, run the repo's sync/generate step, never hand-edit generated manifests, and never tag an uncommitted version.
+- **Tag-workflow ownership:** When CI publishes on `v*` tags, push the committed tag only — do not also run `gh release create` or `npm publish` locally (use the `release-deploy` skill).
 
 <!-- from rules/comments.mdc -->
 ## Comments & Documentation
@@ -196,6 +139,8 @@ Every part of a module's public surface — exported functions, types, classes, 
 - Document the return only when it isn't obvious from the function name.
 - Document every error/exception the function can raise as part of its contract.
 - Add an example for non-trivial public APIs and shared utilities.
+- Keep noun clusters ≤3 words and use one canonical term per entity across the module (zero synonym rotation).
+- Format sharp-edge safety callouts as `CAUTION:` or `WARNING:` followed by a direct command, then the specific data-loss or security risk.
 - Don't duplicate what the language already expresses — let the type system, signatures, and tooling do their job.
 
 ### Externally-surfaced docs
@@ -205,38 +150,6 @@ When documentation strings are generated into a public API surface (OpenAPI/Swag
 - Describe every public field/parameter with a short user-facing sentence.
 - Map each endpoint/handler summary to the generated summary and description.
 - Declare at least one example response for each public route.
-
-<!-- from rules/release.mdc -->
-## Release version lockstep
-
-**One version.** The git tag, `package.json` `"version"`, CHANGELOG heading, and npm publish are the same semver. Never tag or publish a version that is not already committed in `package.json`.
-
-### Identity
-
-| Surface | Form | Example |
-|---------|------|---------|
-| `package.json` `"version"` | no leading `v` | `1.14.0` or `1.15.0-beta.1` |
-| git tag | `v` + that string | `v1.14.0` or `v1.15.0-beta.1` |
-| CHANGELOG heading | `## [vX.Y.Z]` (or without `v`) | `## [v1.14.0]` |
-| npm | that same `package.json` version | `balakit@1.14.0` (`latest`) or dist-tag `beta` |
-
-Generated version fields (plugin or marketplace manifests, lockfiles) follow `package.json`. Bump `package.json` only, then run the project's generate or sync step. Never hand-edit generated versions.
-
-### Order
-
-1. Cut CHANGELOG `[Unreleased]` into `## [vX.Y.Z]`.
-2. Set `package.json` `"version"` to `X.Y.Z` (no `v`).
-3. Run the project's generate or sync step (if any), then its tests and any version-consistency check.
-4. Commit. Tag that commit: `git tag -a vX.Y.Z -m "vX.Y.Z"`.
-5. Push the tag only after the commit is on the release branch. The `v*` workflow creates the GitHub Release and runs `npm publish`. Do **not** also `gh release create` or `npm publish` locally — that duplicates the tag and can publish a different version than the tag.
-
-If the tag workflow fails after the GitHub Release exists, do not publish a different version locally to "catch up." Fix the secret/token, then re-run the same tag job (make `gh release create` a no-op if the release already exists).
-
-### npm auth
-
-GitHub Actions `NPM_TOKEN` must be an npm **Automation** token (bypasses 2FA). Publish/classic tokens fail CI with `EOTP`.
-
-Procedure: `release-deploy` skill + `skills/release-deploy/projects/<owner>-<repo>.md`.
 
 <!-- from rules/testing.mdc -->
 ## Testing
@@ -297,4 +210,5 @@ If you skip tests, say so in chat with the reason — never in a code comment.
 
 Apply these only when working on matching files:
 
-- **seo-ai-search** (globs: `**/*.{astro,ts,tsx,jsx,vue,svelte,md,mdx}`) — Universal guidelines for SEO and AI-search implementation — meta tags, JSON-LD, llms.txt, crawlability, and adversarial security. → see `rules/seo-ai-search.mdc`
+- **changelog** (globs: `"**/CHANGELOG.md"`) — Maintain CHANGELOG.md for significant changes; grouped by type (Features, Fixes, Changes); source for GitHub release notes → see `rules/changelog.mdc`
+- **seo-ai-search** (globs: `"**/pages/**/*.{astro,ts,tsx,jsx,vue,svelte,mdx},**/app/**/*.{tsx,jsx,mdx},**/routes/**/*.{ts,tsx,jsx,vue,svelte},**/*{seo,meta,schema,jsonld,sitemap,robots,llms}*.{ts,tsx,js,mjs,astro,md,txt},**/public/{robots.txt,llms*.txt,ai.txt,sitemap*.xml}"`) — Universal guidelines for SEO and AI-search implementation — meta tags, JSON-LD, llms.txt, crawlability, and adversarial security. → see `rules/seo-ai-search.mdc`

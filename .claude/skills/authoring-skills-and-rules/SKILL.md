@@ -13,26 +13,9 @@ description: >-
   an existing system, not to author a skill.
 user-invocable: true
 disable-model-invocation: false
-version: "1.3.0"
+version: "1.4.0"
 author: "Ali Farahat"
 tags: ["meta", "skills", "rules", "authoring", "cross-platform", "claude-code", "cursor", "opencode", "codex", "copilot"]
-when_to_use: |
-  USE WHEN:
-  - The user asks to create, scaffold, write, or update a Skill (SKILL.md) or a
-    rule/instructions file for any agent.
-  - The user wants the SAME capability available across more than one agent
-    (Claude Code, Cursor, OpenCode, Codex, Copilot) and needs the correct file
-    layout for each.
-  - The user asks to port/translate an existing Skill or rule from one platform
-    to another, or to review one for quality.
-  - The user is unsure which artifact to use (Skill vs rule vs slash command vs
-    AGENTS.md) for a given behavior.
-
-  DO NOT USE WHEN:
-  - The task is to USE an existing skill, not to author one.
-  - The user wants product/feature code with no agent-instruction component.
-  - The user wants blinded proof that a draft changes agent behavior; use
-    blinded-eval.
 ---
 
 # Authoring Skills and Rules (cross-platform)
@@ -220,15 +203,12 @@ owner must be able to pick an option without knowing the skill's jargon.
 
 When a Skill asks a real choice:
 
-- Use the host's structured question tool (Cursor `AskQuestion`, Claude Code
-  `AskUserQuestion`, OpenCode equivalent). Numbered text fallback if missing.
-- Do not replace the checkpoint report with the question. Report first
-  (plain-terms lead, then detail), then the question, then stop.
-- Prompt: one sentence of the choice, in product language. Jargon stays above.
-- Labels: short, concrete, first is `(Recommended)`, last is always
-  `Say this in plain English`.
-- That last option is a meta question: do not advance. Rephrase + one
-  example of what each real option means here, then re-ask.
+- Invoke the host's native structured question tool (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user` — full schemas and invariants in [references/question-tools.md](references/question-tools.md)). Fall back to a numbered list only when zero question tools are declared.
+- Never put `prompt:` / `options:` pseudo-YAML fences in `SKILL.md` or output templates — models echo them as raw text instead of calling the tool.
+- Emit the full checkpoint report (including any footer) **before** calling the blocking question tool, then stop.
+- Keep options between **2 and 4** (`maxItems: 4` on Claude Code and OpenCode; native widgets already provide free-text `"Other"`). Keep `header` ≤12 chars and `label` ≤40 chars.
+- Prompt: one sentence of the choice, in product language. Jargon stays in the report above.
+- Labels: short, concrete, first ends `(Recommended)`, last is always `Say this in plain English` (meta: rephrase + one concrete example, re-invoke the question tool, do not advance).
 - One question at a time. Free-text always overrides.
 
 ---
@@ -342,3 +322,4 @@ The 4 phases apply, with these additions:
 | [references/codex.md](references/codex.md) | Codex: AGENTS.md hierarchy, `config.toml`, `.agents/skills`, prompts (deprecated) |
 | [references/copilot.md](references/copilot.md) | Copilot: copilot-instructions, `*.instructions.md` (`applyTo`), prompt files |
 | [references/cross-platform.md](references/cross-platform.md) | Write-once-run-everywhere: the mirror/symlink strategy + AGENTS.md convergence |
+| [references/question-tools.md](references/question-tools.md) | Native Question UI schemas & 5 invariants across Claude Code, Cursor, OpenCode, Codex, Copilot, Gemini CLI |

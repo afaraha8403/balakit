@@ -1,23 +1,18 @@
 ---
 name: kit-workflows
 description: >-
-  Portable playbooks for a bug fix, a named-data-shape feature, or a
-  behavior-preserving refactor. Apply when the user asks to reproduce and
-  fix a defect, ship a small feature, or reshape code without changing
-  behavior. Use unmatched-workflow when no playbook fits. Use deep-deliberation
-  for a consequential design fork. Use dissect for an existing-system audit.
+  Portable playbooks for a bug fix, a named-data-shape feature, a
+  behavior-preserving refactor, or a custom hypothesis-driven workflow
+  (large migrations and multi-part changes). Apply when the user asks to
+  reproduce and fix a defect, ship a feature, reshape code without changing
+  behavior, or run a structured migration when no narrower playbook fits.
+  Use inception when the deliverable is the plan. Use deep-deliberation for
+  a consequential design fork. Use dissect for an existing-system audit.
 user-invocable: true
 disable-model-invocation: false
-version: "1.1.0"
+version: "2.0.0"
 author: "Ali Farahat"
-tags: ["playbook", "bug-fix", "feature", "refactor"]
-when_to_use: |
-  USE WHEN:
-  - The user wants a bug reproduced and fixed, a small feature shipped, or
-    a behavior-preserving refactor.
-  DO NOT USE WHEN:
-  - No playbook fits (use unmatched-workflow).
-  - The work is an existing-system audit (use dissect).
+tags: ["playbook", "bug-fix", "feature", "refactor", "migration"]
 ---
 
 # Kit workflows
@@ -33,10 +28,9 @@ into the todo list verbatim. Skipped steps stay with `skip:` / `n/a:`.
 | [playbooks/bug-fix.md](playbooks/bug-fix.md) | A defect: reproduce, root-cause, fix with evidence |
 | [playbooks/feature.md](playbooks/feature.md) | New or changed behavior from a named data shape |
 | [playbooks/refactor.md](playbooks/refactor.md) | Behavior-preserving reshape |
-
-If none match, stop and use `unmatched-workflow`.
+| [playbooks/custom.md](playbooks/custom.md) | Large migration, multi-part change, or task where none of the three above fit |
 
 ## Reply contract
 
-First line: `Playbook: bug-fix`, `Playbook: feature`, or `Playbook: refactor`.
+First line: `Playbook: bug-fix`, `Playbook: feature`, `Playbook: refactor`, or `Playbook: custom`.
 Then what was verified, and any `skip:` lines.

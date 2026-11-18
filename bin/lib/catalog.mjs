@@ -3,7 +3,7 @@
  */
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, basename } from "node:path";
-import { RULES_DIR, SKILLS_DIR, RULE_BUNDLED_SKILLS, canonicalizeRuleName } from "./pkg.mjs";
+import { RULES_DIR, SKILLS_DIR, canonicalizeRuleName, canonicalizeSkillName } from "./pkg.mjs";
 
 /**
  * Parse one .mdc rule into frontmatter fields, raw text, and body.
@@ -73,16 +73,16 @@ export function loadSkills() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** Expand rule names to the skills they bundle. */
-export function bundledSkillsFor(ruleNames) {
-  return [...new Set(ruleNames.flatMap((r) => RULE_BUNDLED_SKILLS[r] ?? []))];
+/** Legacy hook kept for public ESM compatibility (no rules bundle hidden skills). */
+export function bundledSkillsFor(_ruleNames) {
+  return [];
 }
 
 /** Truncate a string for display. */
 export const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
 /**
- * Sort CLI names into known rules and skills.
+ * Sort CLI names into known rules and skills, resolving rule and skill aliases.
  * @param {string[]} names
  * @param {Array<{name: string}>} allRules
  * @param {Array<{name: string}>} allSkills
@@ -96,9 +96,14 @@ export function classifyNames(names, allRules, allSkills) {
   const unknown = [];
   for (const n of names) {
     const rule = canonicalizeRuleName(n);
-    if (ruleSet.has(rule)) ruleNames.push(rule);
-    else if (skillSet.has(n)) skillNames.push(n);
-    else unknown.push(n);
+    const skill = canonicalizeSkillName(n);
+    if (ruleSet.has(rule)) {
+      if (!ruleNames.includes(rule)) ruleNames.push(rule);
+    } else if (skillSet.has(skill)) {
+      if (!skillNames.includes(skill)) skillNames.push(skill);
+    } else {
+      unknown.push(n);
+    }
   }
   return { ruleNames, skillNames, unknown };
 }

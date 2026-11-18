@@ -9,16 +9,9 @@ description: >-
   system-wide entity audit.
 user-invocable: true
 disable-model-invocation: false
-version: "1.2.0"
+version: "1.3.0"
 author: "Ali Farahat"
 tags: ["review", "safety", "verification"]
-when_to_use: |
-  USE WHEN:
-  - The user asks what a change could break, or whether a small diff is safe.
-  - A small-looking diff is about to merge and they do not trust it.
-  DO NOT USE WHEN:
-  - They want an onboarding explainer (use subsystem-walkthrough).
-  - They want a full entity audit of an existing system (use dissect).
 ---
 
 # Proving change safety

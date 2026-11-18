@@ -26,9 +26,7 @@ Default `init` installs engineering skills plus standing rules. `--rules-only` s
 
 Reload the agent window after a skill or plugin install. Cursor does not pick up `~/.cursor/plugins/local/` until reload.
 
-Then run `npx balakit doctor`. It checks every recorded skill and link on disk. If something is missing, `npx balakit update` reinstalls it from the package.
-
-Skills need Node 22.20 or newer (the bundled skills.sh CLI requires it). On older Node, `init` installs the rules and says that skills were skipped.
+Then run `npx balakit@latest doctor`. It checks every recorded skill, rule file, and link on disk. If something is missing or stale after an upgrade, `npx balakit@latest doctor --fix` (or `update`) repairs and reconciles it on Node 18+.
 
 ## Does native plugin install replace the CLI?
 
@@ -44,7 +42,7 @@ Same OpenAI plugins. ChatGPT is the Plugins tab (web/desktop). Codex CLI is `cod
 
 ## OpenCode (or Cline, Windsurf, …) has no plugin install
 
-Skip native plugins. `npx balakit init --agents opencode -y` installs standing rules and engineering skills for that tool. Skills come from the balakit package you ran (via a bundled skills.sh), so no GitHub download is needed. Add more with `npx balakit add …`; later runs reuse the recorded tools.
+Skip native plugins. `npx balakit@latest init --agents opencode -y` installs standing rules and engineering skills for that tool directly from the balakit package on Node 18+, with no GitHub download needed. Add more with `npx balakit@latest add …`. Later runs reuse the recorded tools.
 
 ## Cursor: Customize → User Rules is empty
 
@@ -52,11 +50,19 @@ That UI is Cursor account settings, not files. The CLI writes `~/.cursor/rules/*
 
 ## Can I mix agents?
 
-Yes. `--agents cursor,claude-code,opencode` (or `all`). Each tool gets only its own files. See [which tools get which files](cli.md#which-tools-get-which-files) and the [id table](cli.md#agent-ids). `init --agents` sets the list; `add --agents` adds to it.
+Yes. `--agents cursor,claude-code,opencode` (or `all`). Each tool gets only its own files. See [which tools get which files](cli.md#which-tools-get-which-files) and the [id table](cli.md#agent-ids). `init --agents` sets the list, while `add --agents` adds to it.
 
-## I edited a rule file and `update` didn't overwrite it
+## I edited a rule file or skill folder and `update` didn't overwrite it
 
-That's on purpose. Balakit keeps rule files you changed, and `doctor` lists them as warnings. Run `npx balakit update --force` to replace them; your version is saved next to the file as `.bak`.
+That is on purpose. BalaKit keeps rule files and canonical skill folders you changed, and `doctor` lists them as warnings. Run `npx balakit@latest update --force` to replace them. Your version is saved next to the path as `.bak`.
+
+## How do I upgrade cleanly without duplicate or leftover files?
+
+Run `npx balakit@latest update` (or `npx balakit@latest doctor --fix`). Schema 4 migrates renamed rules and skills, sweeps retired files and `balakit-nlm` plugins, and cleans legacy `skills-lock.json` entries. It also prunes duplicate Cursor `.mdc` rules when `AGENTS.md` is active, and warns on project+user overlap.
+
+## Why didn't an interactive skill show a clickable question picker?
+
+Run `npx balakit@latest update` and reload the agent window to install the cross-harness Native Question UI contract (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, and `ask_user`, max 4 options). When a session exposes none of those tools (such as a headless runner), skills fall back to a numbered plain-text list.
 
 ## A script or agent ran `npx balakit add …` and it exited 2
 
@@ -68,7 +74,7 @@ A step needed an answer, but there was no terminal to ask in. Add `-y` to accept
 
 ## Skills installed but the agent never uses them
 
-Ask by name (`/inception`, "use kit-workflows", "dissect the billing service"). Several skills are **manual** (`disable-model-invocation: true`): `inception`, `opinion`, `execute`, `trl`, `blinded-eval`, `generating-app-verify`, `refreshing-app-verify`, `unmatched-workflow`, `deep-deliberation`, `cloakbrowser-fallback`. The agent will not auto-start those.
+Ask by name (`/inception`, "use kit-workflows", `/dissect the billing service`). Heavy or interactive workflows are **manual** (`disable-model-invocation: true`): `inception`, `execute`, `dissect`, `trl`, `blinded-eval`, `verify-app`, `deep-deliberation`, `cloakbrowser-fallback`. The agent will not auto-start those without your command. Every installed skill sets `user-invocable: true` so slash commands always work.
 
 ## I used `npx skills add` and `balakit status` looks empty
 

@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { buildPlugins } from "./build-plugins.mjs";
+import { syncRepo } from "./sync.mjs";
 import { PLUGINS } from "./plugins-catalog.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -81,8 +82,22 @@ export function checkLockstep(root = ROOT) {
   return { ok: mismatches.length === 0 && found.length > 0, expected, found, mismatches };
 }
 
-function gitDirty(root) {
-  const r = spawnSync("git", ["status", "--porcelain", "--", "plugins", ".cursor-plugin", ".claude-plugin", ".agents/plugins"], {
+function gitDirty(root, fullSync = false) {
+  const paths = fullSync
+    ? [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "plugins",
+        ".cursor-plugin",
+        ".claude-plugin",
+        ".agents",
+        ".cursor",
+        ".claude",
+        ".github/instructions",
+        ".balakit/rules",
+      ]
+    : ["plugins", ".cursor-plugin", ".claude-plugin", ".agents/plugins"];
+  const r = spawnSync("git", ["status", "--porcelain", "--", ...paths], {
     cwd: root,
     encoding: "utf8",
   });
@@ -94,12 +109,14 @@ const isMain =
   import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isMain) {
+  const sync = process.argv.includes("--sync");
   const rebuild = process.argv.includes("--rebuild");
   const git = process.argv.includes("--git");
-  if (rebuild) buildPlugins();
+  if (sync) syncRepo(ROOT);
+  else if (rebuild) buildPlugins();
   const result = checkLockstep(ROOT);
   if (!result.found.length) {
-    console.error("No plugin versions found. Run node scripts/build-plugins.mjs first.");
+    console.error("No plugin versions found. Run npm run sync first.");
     process.exit(1);
   }
   if (!result.ok) {
@@ -110,9 +127,9 @@ if (isMain) {
     process.exit(1);
   }
   if (git) {
-    const dirty = gitDirty(ROOT);
+    const dirty = gitDirty(ROOT, sync);
     if (dirty) {
-      console.error("Generated plugin files drifted from git after rebuild:\n" + dirty);
+      console.error("Generated files drifted from git after sync/rebuild:\n" + dirty);
       process.exit(1);
     }
   }

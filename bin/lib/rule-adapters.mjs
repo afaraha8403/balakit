@@ -4,16 +4,28 @@
  */
 
 /**
- * Split a Cursor `globs` frontmatter value into individual patterns.
+ * Split a Cursor `globs` frontmatter value into individual patterns without
+ * splitting commas inside `{astro,ts,tsx}` brace expansions.
  * @param {string} globs
  * @returns {string[]}
  */
 export function globList(globs) {
-  return String(globs ?? "")
-    .replace(/^["']|["']$/g, "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const raw = String(globs ?? "").trim().replace(/^["']|["']$/g, "");
+  const out = [];
+  let cur = "";
+  let depth = 0;
+  for (const ch of raw) {
+    if (ch === "{") depth++;
+    else if (ch === "}" && depth > 0) depth--;
+    if (ch === "," && depth === 0) {
+      if (cur.trim()) out.push(cur.trim());
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
 }
 
 /**
