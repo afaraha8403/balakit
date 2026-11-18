@@ -5,13 +5,14 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SCRIPT = join(ROOT, "skills/documentation-writer/scripts/lint-ste.mjs");
+const SCRIPT_URL = pathToFileURL(SCRIPT).href;
 
 test("lintSte passes clean 80% STE technical markdown with domain nouns, hedges, and code blocks", async () => {
-  const { lintSte } = await import(SCRIPT);
+  const { lintSte } = await import(SCRIPT_URL);
   const doc = [
     "---",
     "title: ensure-frontmatter-is-ignored",
@@ -35,7 +36,7 @@ test("lintSte passes clean 80% STE technical markdown with domain nouns, hedges,
 });
 
 test("lintSte flags semicolons, unapproved words, nominalizations, phrasal verbs, buzzwords, progressive tense, and length caps", async () => {
-  const { lintSte } = await import(SCRIPT);
+  const { lintSte } = await import(SCRIPT_URL);
   const bad = [
     "The operator is running checks to ensure the cluster works; prior to restart we dive into logs.",
     "",
@@ -61,7 +62,7 @@ test("lintSte flags semicolons, unapproved words, nominalizations, phrasal verbs
 });
 
 test("lintSte flags paragraphs over 6 sentences", async () => {
-  const { lintSte } = await import(SCRIPT);
+  const { lintSte } = await import(SCRIPT_URL);
   const sevenSentences =
     "One short fact. Two short facts. Three short facts. Four short facts. Five short facts. Six short facts. Seven short facts.";
   const report = lintSte(sevenSentences);

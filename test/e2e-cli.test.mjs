@@ -8,9 +8,9 @@
 
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, lstatSync, readlinkSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, lstatSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -198,10 +198,7 @@ test("e2e: user skill add with copilot links ~/.copilot/skills; remove drops the
   const copilotSkill = join(home, ".copilot", "skills", "dissect");
   assert.ok(existsSync(join(agentsSkill, "SKILL.md")), "skills CLI should land in ~/.agents/skills");
   assert.ok(lstatSync(copilotSkill).isSymbolicLink(), "CLI should symlink ~/.copilot/skills/dissect");
-  assert.equal(
-    readlinkSync(copilotSkill),
-    relative(join(home, ".copilot", "skills"), agentsSkill),
-  );
+  assert.equal(realpathSync(copilotSkill), realpathSync(agentsSkill));
 
   const glob = JSON.parse(readFileSync(join(home, ".balakit", "installed.json"), "utf8"));
   assert.ok(glob.skills.includes("dissect"));

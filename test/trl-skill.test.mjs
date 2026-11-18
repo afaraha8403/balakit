@@ -10,7 +10,7 @@ const read = (rel) => readFileSync(join(ROOT, "skills/trl", rel), "utf8");
 
 /** Text inside ```text fences: what actually gets sent to an assessor. */
 function promptBlocks(md) {
-  return [...md.matchAll(/```text\n([\s\S]*?)```/g)].map((m) => m[1]).join("\n");
+  return [...md.matchAll(/```text\r?\n([\s\S]*?)```/g)].map((m) => m[1]).join("\n");
 }
 
 test("assessor prompts never carry the target, sealed score, or ledger", () => {

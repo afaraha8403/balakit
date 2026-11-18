@@ -32,15 +32,22 @@ let packedCli;
 
 before(() => {
   packRoot = mkdtempSync(join(tmpdir(), "balakit-e2e-pack-"));
-  const packed = spawnSync("npm", ["pack", "--pack-destination", packRoot, "--quiet"], {
-    cwd: ROOT,
-    encoding: "utf8",
-  });
+  const isWin = process.platform === "win32";
+  const packed = spawnSync(
+    isWin ? "npm.cmd" : "npm",
+    ["pack", "--pack-destination", packRoot, "--quiet"],
+    {
+      cwd: ROOT,
+      encoding: "utf8",
+      shell: isWin,
+    },
+  );
   assert.equal(packed.status, 0, `npm pack failed:\n${packed.stderr}\n${packed.stdout}`);
   const tgzName = packed.stdout.trim().split(/\r?\n/).pop();
   assert.ok(tgzName?.endsWith(".tgz"), `Unexpected npm pack output: ${packed.stdout}`);
 
-  const untar = spawnSync("tar", ["-xzf", join(packRoot, tgzName), "-C", packRoot], {
+  const untar = spawnSync("tar", ["-xzf", tgzName], {
+    cwd: packRoot,
     encoding: "utf8",
   });
   assert.equal(untar.status, 0, `tar extract failed:\n${untar.stderr}`);
