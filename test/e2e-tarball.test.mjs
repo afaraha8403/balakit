@@ -203,7 +203,7 @@ test("e2e tarball: real-world v1.21.0 schema-3 global manifest upgrades cleanly 
       ),
     );
 
-    const up = runPacked(["update", "-y", "--scope", "user"], { cwd, home });
+    const up = runPacked(["update", "-y", "--scope", "user", "--force"], { cwd, home });
     assert.equal(up.status, 0, out(up));
 
     // Retired rule, retired skills, and retired Cursor plugin are swept.

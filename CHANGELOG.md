@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.22.2]
+
+### Fixes
+- Preserve standalone `@balacode/mental` rule and skill files (`mental.mdc`, `mental.md`, and `skills/mental`) even during `--force` upgrades.
+
 ## [v1.22.1]
 
 ### Fixes

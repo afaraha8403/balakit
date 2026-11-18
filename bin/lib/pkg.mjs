@@ -41,7 +41,7 @@ export const RULE_ALIASES = Object.freeze({
 });
 
 /** Rule basenames retired from disk; upgrade prunes their old `.mdc` / twin files. */
-export const RETIRED_RULES = Object.freeze(["global", "release", "mental"]);
+export const RETIRED_RULES = Object.freeze(["global", "release"]);
 
 /**
  * Skill name aliases → canonical directory names. Supports CLI shorthand and
@@ -66,7 +66,6 @@ export const RETIRED_SKILLS = Object.freeze([
   "refreshing-app-verify",
   "unmatched-workflow",
   "opinion",
-  "mental",
 ]);
 
 /** Plugin directory slugs retired/renamed under `~/.cursor/plugins/local/`. */

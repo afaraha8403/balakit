@@ -1,6 +1,6 @@
 {
   "name": "balakit-core",
-  "version": "1.22.1",
+  "version": "1.22.2",
   "description": "Standing project rules: meta-principle, testing, comments, and changelog maintenance.",
   "author": {
     "name": "Ali Farahat",

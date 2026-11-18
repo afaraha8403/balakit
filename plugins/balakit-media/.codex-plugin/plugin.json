@@ -1,6 +1,6 @@
 {
   "name": "balakit-media",
-  "version": "1.22.1",
+  "version": "1.22.2",
   "description": "Fal.ai media generation skill for images, video, upscale, and creative workflows.",
   "skills": "./skills/"
 }
