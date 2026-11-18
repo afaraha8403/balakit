@@ -10,7 +10,7 @@ import { RULES_DIR, SKILLS_DIR, canonicalizeRuleName, canonicalizeSkillName } fr
  * @param {string} file Absolute path to a `.mdc` file.
  */
 export function parseRule(file) {
-  const raw = readFileSync(file, "utf8");
+  const raw = readFileSync(file, "utf8").replace(/\r\n/g, "\n");
   const m = raw.match(/^\s*---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)$/);
   const fm = m ? m[1] : "";
   const body = (m ? m[2] : raw).trim();
