@@ -62,7 +62,9 @@ Run `npx balakit@latest update` (or `npx balakit@latest doctor --fix`). Schema 4
 
 ## Why didn't an interactive skill show a clickable question picker?
 
-Run `npx balakit@latest update` and reload the agent window to install the cross-harness Native Question UI contract (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, and `ask_user`, max 4 options). When a session exposes none of those tools (such as a headless runner), skills fall back to a numbered plain-text list.
+Run `npx balakit@latest update --scope user` and reload the agent window. User-scope setup installs the cross-harness Question UI contract (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, and `ask_user`, max 4 options). It also enables `default_mode_request_user_input = true` in `~/.codex/config.toml` for Codex Default mode and registers `~/.balakit/mcp.mjs` (`balakit mcp`) for MCP form-elicitation hosts.
+
+In T3 Code, `copilot --acp` (v1.0.114) omits `ask_user` and declines MCP form elicitation upstream. BalaKit hides its MCP `ask_user` tool there and falls back to a numbered list (`1.`–`4.`). Switch the T3 Code thread to Claude Code, Codex, OpenCode, or Gemini when you want graphical question cards.
 
 ## A script or agent ran `npx balakit add …` and it exited 2
 

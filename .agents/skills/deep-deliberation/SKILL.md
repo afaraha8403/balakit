@@ -93,7 +93,7 @@ In the **same turn** after emitting the complete stage report markdown: inspect 
 
 - **Option count:** strictly **2–4 options** (`maxItems: 4` on Claude Code and OpenCode; native widgets automatically provide a free-text `"Other"` field).
 - **Header & labels:** `header` ≤12 chars; option `label` ≤40 chars. First option ends `(Recommended)`. Last option is always `Say this in plain English`.
-- **Prompt:** one plain-English product sentence. Never include `DELIBERATION_STATE` tokens or internal jargon.
+- **Prompt:** one plain-English product sentence. Never include internal state tokens or jargon.
 - **Meta loop (`Say this in plain English`):** do not advance the stage. Rephrase with a concrete project example for each real option, then re-invoke the native question tool at the same checkpoint. Free-text user replies always override.
 
 ## Operating contract
@@ -113,22 +113,9 @@ In the **same turn** after emitting the complete stage report markdown: inspect 
 - A meta question (including `Say this in plain English`) does not
   advance the state; rephrase, re-ask, remain at the current checkpoint.
 
-## Runtime state
+## Runtime state (internal only)
 
-Start every pipeline response with this block and update it mechanically:
-
-```text
-DELIBERATION_STATE
-stage: 1 | 2 | 3
-checkpoint: none | 1 | 2 | 3
-mode: interactive | brake | autopilot
-shortlist: unset | A,B
-delegate_results: 0/N
-next_action: one action only
-```
-
-If the state is missing after a context change, reconstruct it from the latest
-completed template and ask a **plain question** before advancing.
+Track `stage` (`1 | 2 | 3`), `checkpoint` (`none | 1 | 2 | 3`), `mode` (`interactive | brake | autopilot`), `shortlist` (`A,B`), and `delegate_results` (`0/N`) silently in the session todo list. **Never emit an internal state code block in user-facing chat.** If context compacts mid-run, reconstruct state from the latest completed stage report and ask a **plain question** before advancing.
 
 ## Pipeline
 

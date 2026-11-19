@@ -79,29 +79,16 @@ then `/execute`.
 - Preserve host-required plan structure (Cursor YAML todos, Claude injected
   path). Depth lands as sections, not a replacement template.
 
-## Runtime state
+## Runtime state (internal only)
 
-Start every pipeline response with this block and update it mechanically:
-
-```text
-INCEPTION_STATE
-stage: frame | specialists | write | done
-pace: interactive | brake | autopilot
-host: cursor | claude-code | opencode | copilot | codex | other
-plan_mode: on | off
-canvas: unset | <path or host-uri>
-next_action: one action only
-```
-
-If the state is missing after a context change, reconstruct it from the latest
-canvas path and ask the user to confirm before advancing.
+Track `stage` (`frame | specialists | write | done`), `pace` (`interactive | brake | autopilot`), `host`, `plan_mode` (`on | off`), and `canvas` silently in the session todo list and plan canvas. **Never emit an internal state code block in user-facing chat.** If context compacts mid-run, reconstruct state from the session todos and the latest canvas path, then confirm with the user before advancing.
 
 ## Pipeline
 
 Copy these steps into the todo list verbatim. Skip with `skip: <reason>`.
 
 1. Parse the pace flag. Detect the host and whether Plan Mode is on. Read [references/hosts.md](references/hosts.md).
-2. Resolve the canvas (below). Record `canvas` in `INCEPTION_STATE`.
+2. Resolve the canvas (below) and record its path in the session todo list.
 3. Frame: outcome, constraints, non-goals, named data shape if it is already knowable. Interactive: ask only when blocked or the choice is costly.
 4. Pull specialists from [references/specialists.md](references/specialists.md). Each unused row stays in the list with `skip: <reason>`.
 5. Write the plan onto the canvas. Meet [references/depth-bar.md](references/depth-bar.md). Host-native format when Plan Mode is on.

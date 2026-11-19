@@ -77,4 +77,4 @@ When interactive mode needs a user choice, inspect your session's live declared 
 | `cursor` | `AskQuestion` (`title`, `questions: [{ id, prompt, options: [{ id, label }], allow_multiple: false }]`) |
 | `opencode` | `question` (`questions: [{ question, header, options: [{ label, description }], multiple: false }]`) |
 | `codex` | `request_user_input` (`questions: [{ id, header, question, options: [{ label, description }] }]`) |
-| `copilot` / `other` | `vscode_askQuestions` or `ask_user` if declared; numbered plain-text list only when zero question tools exist |
+| `copilot` / `other` | `vscode_askQuestions` or `ask_user` (including `balakit` MCP `ask_user` — check `tool_search` if deferred tools exist); numbered plain-text list only when zero question tools exist |

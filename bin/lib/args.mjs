@@ -20,6 +20,7 @@ Usage:
   npx ${CMD}@latest status           What balakit owns (inventory)
   npx ${CMD}@latest doctor [--fix]   Health: drift, duplicates, retired leftovers, broken links
   npx ${CMD}@latest update           Refresh installed kit pieces & prune retired artifacts
+  npx ${CMD}@latest mcp              Run stdio MCP elicitation server (ask_user UI)
 
 Options:
   --scope project|user   Install to this repo (default) or this machine
@@ -108,6 +109,10 @@ warnings alone exit 0. Pass --fix to repair automatically.`,
   list: `Usage: ${CMD} list [--json]
 
 Every rule, skill, and supported tool, with what each tool can receive.`,
+  mcp: `Usage: ${CMD} mcp [--force-tools]
+
+Runs Balakit's zero-dependency stdio MCP server. Exposes an \`ask_user\`
+structured question tool to MCP hosts that declare form elicitation.`,
 };
 
 /**
@@ -175,6 +180,7 @@ export function parseArgv(argv) {
     rulesOnly: false,
     force: false,
     fix: false,
+    forceTools: false,
     cursorPlugins: undefined,
     json: false,
     help: false,
@@ -188,6 +194,7 @@ export function parseArgv(argv) {
     "status",
     "update",
     "doctor",
+    "mcp",
     "help",
   ]);
 
@@ -220,6 +227,8 @@ export function parseArgv(argv) {
       args.force = true;
     } else if (a === "--fix") {
       args.fix = true;
+    } else if (a === "--force-tools") {
+      args.forceTools = true;
     } else if (a === "--cursor-plugins") {
       args.cursorPlugins = true;
     } else if (a === "--no-cursor-plugins") {

@@ -12,6 +12,7 @@ import { cmdAdd } from "./commands/add.mjs";
 import { cmdRemove } from "./commands/remove.mjs";
 import { cmdList, cmdStatus, cmdUpdate, cmdDoctor } from "./commands/status.mjs";
 import { cmdInteractive } from "./commands/interactive.mjs";
+import { runMcpServer } from "./lib/mcp.mjs";
 
 export { renderRulesBlock, renderRepoStandingDocs, mergeManaged, removeManaged, demote } from "./lib/render.mjs";
 export { parseRule, skillDescription, bundledSkillsFor, loadRules, loadSkills } from "./lib/catalog.mjs";
@@ -68,6 +69,17 @@ export {
   migrateManifest,
 } from "./lib/manifest.mjs";
 export { buildInstallPlan, runInstallPlan, planSelection, isHomeCwd, HOME_PROJECT_INIT } from "./lib/install.mjs";
+export {
+  runMcpServer,
+  createMcpSession,
+  ASK_USER_TOOL,
+  clientSupportsFormElicitation,
+  buildElicitationParams,
+  normalizeQuestions,
+  normalizeElicitationResult,
+  installUserHarnessConfigs,
+  removeUserHarnessConfigs,
+} from "./lib/mcp.mjs";
 export { MENTAL_MOVED, MENTAL_REPO } from "./lib/mental-moved.mjs";
 
 async function main() {
@@ -91,6 +103,11 @@ async function main() {
     force: args.force,
     cursorPlugins: args.cursorPlugins,
   };
+
+  if (args.command === "mcp") {
+    const code = await runMcpServer({ forceTools: args.forceTools, version: VERSION });
+    process.exit(code);
+  }
 
   // A prompt whose input closes (piped or detached stdin) leaves its promise
   // unresolved; Node then drains the loop and would exit 0 with nothing done.

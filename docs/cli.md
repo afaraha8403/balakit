@@ -19,6 +19,7 @@ Install walkthrough: [Install](install.md). What each skill does: [Skills](skill
 | `npx balakit status` | What BalaKit owns (project + user manifests), with skill counts on disk |
 | `npx balakit@latest doctor [--fix]` | Checks every recorded file, skill tree, and link on disk. `--fix` reconciles and repairs broken scopes |
 | `npx balakit@latest update` | Reinstalls recorded pieces, migrates renamed skills/rules, and prunes retired artifacts across active scopes |
+| `npx balakit mcp` | Runs the stdio MCP elicitation server (`ask_user` UI card for MCP hosts with form elicitation) |
 | `npx balakit help <command>` | Help for one command (also `<command> --help`) |
 | `npx balakit -v` | Print semver |
 
@@ -64,9 +65,9 @@ balakit init -y
 | Claude Code | `CLAUDE.md` block + `.claude/rules/<scoped>.md` | `~/.claude/CLAUDE.md` block |
 | Cursor alone | `.cursor/rules/*.mdc` (no duplicate `AGENTS.md`) | `~/.cursor/rules/*.mdc` |
 | Cursor + any `AGENTS.md` tool | Always-on rules once in `AGENTS.md` + scoped `.cursor/rules/<scoped>.mdc` | `~/.cursor/rules/*.mdc` |
-| Codex, OpenCode, Copilot, Gemini CLI, and other `AGENTS.md` readers | `AGENTS.md` block (Copilot also gets `.github/instructions/<scoped>.instructions.md`) | Codex `~/.codex/AGENTS.md`, OpenCode `~/.config/opencode/AGENTS.md`, Copilot `~/.copilot/copilot-instructions.md`, Gemini CLI `~/.gemini/GEMINI.md` |
+| Codex, OpenCode, Copilot, Gemini CLI, and other `AGENTS.md` readers | `AGENTS.md` block (Copilot also gets `.github/instructions/<scoped>.instructions.md`) | Codex `~/.codex/AGENTS.md` + `~/.codex/config.toml` (`default_mode_request_user_input`), OpenCode `~/.config/opencode/AGENTS.md`, Copilot `~/.copilot/copilot-instructions.md` + `~/.copilot/mcp-config.json`, Gemini CLI `~/.gemini/GEMINI.md` + `~/.gemini/settings.json` |
 
-Scoped rules write an on-demand copy to `.balakit/rules/<name>.md` (or `~/.balakit/rules/<name>.md`). `AGENTS.md`, `CLAUDE.md`, and user standing blocks then add a 1-line conditional pointer instead of inlining scoped prose.
+Scoped rules write an on-demand copy to `.balakit/rules/<name>.md` (or `~/.balakit/rules/<name>.md`). `AGENTS.md`, `CLAUDE.md`, and user standing blocks then add a 1-line conditional pointer instead of inlining scoped prose. In user scope, BalaKit also installs `~/.balakit/mcp.mjs` and merges `mcpServers.balakit` without overwriting your existing MCP servers or Codex settings.
 
 A file that already has a balakit block stays maintained, even after you stop picking its tool, until `update` reconciles unselected surfaces.
 

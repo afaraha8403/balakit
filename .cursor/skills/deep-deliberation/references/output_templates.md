@@ -1,20 +1,20 @@
 # Output templates
 
 Use these structures exactly. Fill every section; write `None` when a section
-has no content. Do not replace them with an unstructured narrative.
+has no content. Do not replace them with an unstructured narrative, and never
+prepend an internal state code block above the markdown headings.
 
-Always set `mode:` in `DELIBERATION_STATE` (`interactive` | `brake` |
-`autopilot`). A reconstructed `circuit` is `brake`.
+Track `mode` (`interactive` | `brake` | `autopilot`) internally. Treat `--circuit` as `brake`.
 
 When `mode` is `brake` or `autopilot` and this is **not** the final
-checkpoint: `next_action` is the next stage, not a wait. Replace the
+checkpoint: advance directly to the next stage instead of waiting. Replace the
 `## Checkpoint N` ask with a `## PACE_LOG` of the auto-accepted choice.
 
 When `mode` is `brake` at Checkpoint 3: keep the ask (plain question:
 go ahead with this recommendation?).
 
-When `mode` is `autopilot` at Checkpoint 3: `next_action` is the proceed
-action (start implementing the recommendation). Replace `## Checkpoint 3`
+When `mode` is `autopilot` at Checkpoint 3: start implementing the
+recommendation. Replace `## Checkpoint 3`
 with a `## PACE_LOG` that records the auto-accepted recommendation, then
 execute. Change `## Next step` from "Do not execute it" to the action you
 are about to take.
@@ -26,14 +26,6 @@ report, and **then** invoke the host's native structured question tool (`AskUser
 ## Stage 1 — Frame and shortlist
 
 ```markdown
-DELIBERATION_STATE
-stage: 1
-checkpoint: 1
-mode: interactive | brake | autopilot
-shortlist: A,B
-delegate_results: 0/0
-next_action: Wait for the user's Checkpoint 1 decision.
-
 ## Decision
 [Decision, desired outcome, decision horizon, and cost of delay.]
 
@@ -81,14 +73,6 @@ Immediately after emitting the Stage 1 markdown above (when `mode` is `interacti
 ## Stage 2 — Evidence tournament
 
 ```markdown
-DELIBERATION_STATE
-stage: 2
-checkpoint: 2
-mode: interactive | brake | autopilot
-shortlist: A,B
-delegate_results: [returned]/[launched]
-next_action: Wait for the user's Checkpoint 2 decision.
-
 ## Review missions
 - [Mission]: [returned | failed | unavailable]
 
@@ -125,14 +109,6 @@ Immediately after emitting the Stage 2 markdown above (when `mode` is `interacti
 ## Final recommendation
 
 ```markdown
-DELIBERATION_STATE
-stage: 3
-checkpoint: 3
-mode: interactive | brake | autopilot
-shortlist: A,B
-delegate_results: [returned]/[launched]
-next_action: Wait for the user's Checkpoint 3 decision.
-
 ## Recommendation
 [Chosen option, confidence, and concise rationale.]
 

@@ -30,6 +30,7 @@ import {
 import { recordInstall, readManifest, projectManifestPath, globalManifestPath, guardFor } from "./manifest.mjs";
 import { copyCursorLocalPlugins, listCursorLocalPlugins, pruneRetiredCursorPlugins } from "./cursor-native.mjs";
 import { pruneDanglingSkillLinks } from "./verify.mjs";
+import { installUserHarnessConfigs } from "./mcp.mjs";
 
 /** @typedef {"project"|"user"} InstallScope */
 
@@ -153,6 +154,14 @@ export function buildInstallPlan({
     const { linkDirs } = resolveSkillDestinations(agentIds, installScope);
     surfaces.push(`${prefix}.agents/skills`, ...linkDirs.map((d) => `${prefix}${d}`));
   }
+  if (installScope === "user" && (activeRules.length || selection.skills.length)) {
+    if (agentIds.includes("copilot") || agentIds.includes("gemini-cli")) {
+      surfaces.push("~/.balakit/mcp.mjs");
+    }
+    if (agentIds.includes("copilot")) surfaces.push("~/.copilot/mcp-config.json");
+    if (agentIds.includes("gemini-cli")) surfaces.push("~/.gemini/settings.json");
+    if (agentIds.includes("codex")) surfaces.push("~/.codex/config.toml");
+  }
   if (copyPlugins) surfaces.push("~/.cursor/plugins/local");
 
   return {
@@ -229,6 +238,20 @@ export function formatPlanReview(plan, { dryRun = false } = {}) {
     if (none.length) lines.push(`  (no skills for ${none.map(label).join(", ")}: rules only)`);
   }
   if (plan.cursorPlugins) lines.push("  ~/.cursor/plugins/local/balakit-*  ← every Cursor plugin pack (--cursor-plugins)");
+  if (user && (rules.length || plan.skills.length)) {
+    if (plan.agentIds.includes("copilot") || plan.agentIds.includes("gemini-cli")) {
+      lines.push("  ~/.balakit/mcp.mjs  ← standalone Question UI MCP server");
+    }
+    if (plan.agentIds.includes("copilot")) {
+      lines.push("  ~/.copilot/mcp-config.json  ← registers mcpServers.balakit (preserves existing servers)");
+    }
+    if (plan.agentIds.includes("gemini-cli")) {
+      lines.push("  ~/.gemini/settings.json  ← registers mcpServers.balakit (preserves existing settings)");
+    }
+    if (plan.agentIds.includes("codex")) {
+      lines.push("  ~/.codex/config.toml  ← enables default_mode_request_user_input (if unset)");
+    }
+  }
   if (!user && !plan.skills.length && !rules.length) lines.push("  (nothing)");
   if (dryRun) lines.unshift("[dry-run]");
   return lines;
@@ -471,6 +494,36 @@ export async function runInstallPlan(plan, { dryRun = false, yes = false, review
   };
 
   if (!runSkillBatch(plan.skills)) skillsFailed = true;
+
+  if (scope === "user" && !skillsFailed && (plan.personal.length || plan.skills.length)) {
+    const hc = installUserHarnessConfigs({
+      agentIds,
+      home: userHome,
+      dryRun,
+      pruneUnselected,
+      recordedSurfaces: recorded,
+    });
+    if (hc.written.length) {
+      p.note(hc.written.join("\n"), dryRun ? "Would configure harness Question UI" : "Configured harness Question UI");
+    }
+    if (hc.removed.length) {
+      p.note(hc.removed.join("\n"), dryRun ? "Would prune unselected MCP wiring" : "Pruned unselected MCP wiring");
+    }
+    notes.push(...hc.notes);
+    accumulatedSurfaces.push(...hc.surfaces);
+    droppedFiles.push(...hc.droppedFiles);
+    if (!dryRun) {
+      recordInstall(
+        manifestScope,
+        {
+          surfaces: hc.surfaces,
+          files: hc.files,
+          dropFiles: hc.droppedFiles,
+        },
+        where,
+      );
+    }
+  }
 
   if (plan.cursorPlugins) {
     const copied = copyCursorLocalPlugins({ dryRun, home: userHome });

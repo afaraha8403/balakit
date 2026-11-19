@@ -18,6 +18,7 @@ import {
   treeSha256,
   hasLegacySkillsLock,
 } from "./skills-install.mjs";
+import { verifyUserHarnessConfigs } from "./mcp.mjs";
 
 /**
  * One check result.
@@ -268,6 +269,10 @@ export function verifyScope(scope, { cwd = process.cwd(), home = homedir() } = {
     warn(
       `Legacy skills-lock.json in ${scope} scope still contains machine-local balakit paths. Run \`npx ${CMD}@latest doctor --fix\` or \`update\` to scrub it.`,
     );
+  }
+
+  if (scope === "user") {
+    findings.push(...verifyUserHarnessConfigs({ surfaces: manifest.surfaces, home, cmd: CMD }));
   }
 
   return { scope, manifest, findings, skills: { present, missing }, brokenLinks, retiredOnDisk };

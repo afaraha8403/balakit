@@ -25,6 +25,7 @@ import {
 } from "../lib/manifest.mjs";
 import { hasManagedBlock } from "../lib/render.mjs";
 import { listCursorLocalPlugins, knownKitPluginNames } from "../lib/cursor-native.mjs";
+import { removeUserHarnessConfigs } from "../lib/mcp.mjs";
 
 /**
  * @param {{ names: string[], dryRun?: boolean, yes?: boolean, scope?: "project"|"user", force?: boolean, cursorPlugins?: boolean }} opts
@@ -159,6 +160,19 @@ export async function cmdRemove(opts) {
     if (res.notes.length) p.note(res.notes.join("\n"), "Notes");
     if (!opts.dryRun) {
       recordRemove(scope === "user" ? "global" : "project", { skills: skillNames, files: res.droppedKeys });
+    }
+  }
+
+  if (scope === "user") {
+    const remainingUserSkills = glob.skills.filter((s) => !skillNames.includes(s));
+    if (remainingUser.length === 0 && remainingUserSkills.length === 0) {
+      const hc = removeUserHarnessConfigs({ home, dryRun: opts.dryRun });
+      if (hc.removed.length) {
+        p.note(hc.removed.join("\n"), opts.dryRun ? "Would remove MCP wiring" : "Removed MCP wiring");
+      }
+      if (!opts.dryRun) {
+        recordRemove("global", { files: hc.droppedFiles, surfaces: hc.droppedSurfaces });
+      }
     }
   }
 

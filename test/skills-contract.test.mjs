@@ -76,6 +76,19 @@ test("interactive skills invoke native Question UI tools and never embed pseudo-
   assert.doesNotMatch(templates, /^prompt:/m, "output_templates.md must not embed raw prompt: YAML");
 });
 
+test("skills and rules never emit visible *_STATE telemetry fences in user-facing chat", () => {
+  for (const file of walkFiles(SKILLS_DIR)) {
+    const text = readFileSync(file, "utf8");
+    assert.doesNotMatch(
+      text,
+      /\b(?:INCEPTION|EXECUTE|DELIBERATION|TRL)_STATE\b/,
+      `Unexpected visible state block token in ${file}`,
+    );
+  }
+  const base = readFileSync(join(ROOT, "rules", "base.mdc"), "utf8");
+  assert.match(base, /Never prepend internal `\*_STATE` telemetry blocks/);
+});
+
 test("base.mdc defines the cross-harness Native Question UI contract and checkpoint carve-out", () => {
   const base = readFileSync(join(ROOT, "rules", "base.mdc"), "utf8");
   for (const toolName of [

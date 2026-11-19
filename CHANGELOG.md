@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.22.4]
+
+### Features
+- Add `balakit mcp` stdio server with capability-gated `ask_user` form elicitation for MCP and T3 Code hosts.
+- Wire user-scope Question UI configs into `~/.codex/config.toml`, `~/.copilot/mcp-config.json`, and `~/.gemini/settings.json` without overwriting existing entries.
+
+### Fixes
+- Remove visible `INCEPTION_STATE`, `EXECUTE_STATE`, `DELIBERATION_STATE`, and `TRL_STATE` code blocks from user-facing skill output.
+
 ## [v1.22.3]
 
 ### Fixes

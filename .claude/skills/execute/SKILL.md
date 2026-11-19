@@ -51,17 +51,9 @@ $ARGUMENTS
 - In `execute` mode, only this parent chat writes files after rendering takes. In `opinion` mode, nobody writes files.
 - If this host cannot spawn child agents at all, stop and report it. If auto-pick finds fewer than two families, offer Current-for-all or `deep-deliberation`.
 
-## Runtime state
+## Runtime state (internal only)
 
-```text
-EXECUTE_STATE
-mode: execute | opinion
-host: cursor | claude-code | opencode | copilot | codex | other
-agents: 2-5
-roster: unset | Current,OpenAI,…
-takes: 0/N
-next_action: one action only
-```
+Track `mode` (`execute | opinion`), `host`, `agents` (`2–5`), `roster`, and `takes` (`0/N`) silently in the session todo list. **Never emit an internal state code block in user-facing chat.**
 
 ## Pipeline
 

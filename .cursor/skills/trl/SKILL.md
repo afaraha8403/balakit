@@ -68,23 +68,9 @@ Strip flags from the scope text. A lone integer is `--target`.
   dogfood notes come from the user, word for word, with who and when.
 - `--assess-only` writes only the ledger and dossier under `.balakit/trl/`.
 
-## Runtime state
+## Runtime state (internal only)
 
-Start every pipeline response with this block. Update it mechanically.
-
-```text
-TRL_STATE
-stage: frame | baseline | panel | gap | build | done
-scope: app | feature | improvement — <one line>
-target: N
-cycle: n/max
-overall: unset | N (provenance)
-ledger: unset | .balakit/trl/<slug>/ledger.md
-next_action: one action only
-```
-
-If the block is missing after a context change, rebuild it from the ledger
-and confirm with the user before advancing.
+Track `stage` (`frame | baseline | panel | gap | build | done`), `scope`, `target`, `cycle` (`n/max`), `overall`, and `ledger` (`.balakit/trl/<slug>/ledger.md`) silently in the ledger file and session todo list. **Never emit an internal state code block in user-facing chat.** If context compacts mid-run, rebuild state from `.balakit/trl/<slug>/ledger.md` and confirm with the user before advancing.
 
 ## Pipeline
 
