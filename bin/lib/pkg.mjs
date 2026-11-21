@@ -127,6 +127,7 @@ export const TEAM_INIT_SKILLS = Object.freeze([
   "inception",
   "execute",
   "trl",
+  "ui-craft",
   "verify-app",
   "documentation-writer",
   "release-deploy",

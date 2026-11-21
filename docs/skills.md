@@ -97,6 +97,16 @@ The ledger and evidence list live in `.balakit/trl/<slug>/`.
 
 **Say:** `/trl the CSV export --target 7` or `/trl --assess-only`
 
+### `ui-craft`
+
+Designs, refines, redesigns, or audits web interfaces through five separated passes: token contract (`DESIGN.md`), per-route Surface Intents (`Persuade`, `Operate`, `Read`, `Showcase`), craft-floor implementation, fresh-eyes critique with structural accessibility audit, and live `390px` / `1440px` browser proof.
+
+Use `--refine` to preserve the existing brand while tightening hierarchy, craft, and accessibility. Use `--redesign` to replace the visual world while keeping features and factual copy. Use `--audit` for a read-only scorecard, Three-Proof findings list, and live DOM probe. Combine any mode with `--focus <type|layout|a11y|states|motion|responsive>` for a narrow pass, or `--brake` to review `DESIGN.md` and direction before editing UI code.
+
+Do not use this for single-line CSS tweaks. Use `verify-app` for long-term functional E2E maps, and `seo-audit` for crawlability and GEO.
+
+**Say:** `/ui-craft build the habit tracker UI`, `/ui-craft --refine --focus a11y`, or `/ui-craft --audit`
+
 ## Prove behavior
 
 These ship with default `init`.

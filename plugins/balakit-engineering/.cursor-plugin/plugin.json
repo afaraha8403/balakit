@@ -1,7 +1,7 @@
 {
   "name": "balakit-engineering",
-  "version": "1.22.4",
-  "description": "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, app verification, blinded eval, deliberation, inception, execute, TRL readiness loop, dissect, docs, release, and stealth browser fallback.",
+  "version": "1.23.0",
+  "description": "Engineering workflow skills: authoring, walkthrough, rationale, change-safety, UI craft, app verification, blinded eval, deliberation, inception, execute, TRL readiness loop, dissect, docs, release, and stealth browser fallback.",
   "author": {
     "name": "Ali Farahat",
     "email": "ali@balacode.io",
@@ -16,6 +16,7 @@
     "documentation",
     "release",
     "authoring",
+    "ui",
     "balakit"
   ]
 }

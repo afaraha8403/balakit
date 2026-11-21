@@ -21,6 +21,7 @@ const INTERACTIVE_SKILLS = [
   "inception",
   "release-deploy",
   "trl",
+  "ui-craft",
 ];
 
 function walkFiles(dir) {
@@ -33,8 +34,8 @@ function walkFiles(dir) {
   return out;
 }
 
-test("catalog ships 22 consolidated skills with matching frontmatter names and <500-line bodies", () => {
-  assert.equal(SKILL_NAMES.length, 22);
+test("catalog ships 23 consolidated skills with matching frontmatter names and <500-line bodies", () => {
+  assert.equal(SKILL_NAMES.length, 23);
   for (const name of SKILL_NAMES) {
     const md = readFileSync(join(SKILLS_DIR, name, "SKILL.md"), "utf8");
     const lines = md.split(/\r?\n/);
@@ -103,4 +104,32 @@ test("base.mdc defines the cross-harness Native Question UI contract and checkpo
   }
   assert.match(base, /total options ≤4/);
   assert.match(base, /Unless an active skill or playbook defines an explicit interactive checkpoint/);
+});
+
+test("ui-craft ships four one-level references, four workflow modes, and DOM viewport probe", () => {
+  const dir = join(SKILLS_DIR, "ui-craft");
+  const md = readFileSync(join(dir, "SKILL.md"), "utf8");
+  for (const token of ["--refine", "--redesign", "--audit", "--focus", "--brake"]) {
+    assert.match(md, new RegExp(token), `ui-craft/SKILL.md missing ${token}`);
+  }
+  for (const ref of [
+    "design-system.md",
+    "craft-floor.md",
+    "critique-and-a11y.md",
+    "viewport-proof.md",
+  ]) {
+    const refPath = join(dir, "references", ref);
+    assert.equal(existsSync(refPath), true, `Missing ui-craft/references/${ref}`);
+    assert.match(md, new RegExp(`references/${ref}`), `ui-craft/SKILL.md missing link to ${ref}`);
+    const refText = readFileSync(refPath, "utf8");
+    assert.doesNotMatch(
+      refText,
+      /references\/[a-z0-9-]+\.md/,
+      `ui-craft/references/${ref} must stay one level deep`,
+    );
+  }
+  const probe = readFileSync(join(dir, "references", "viewport-proof.md"), "utf8");
+  assert.match(probe, /390×844/);
+  assert.match(probe, /1440×900/);
+  assert.match(probe, /horizontalOverflowPx/);
 });

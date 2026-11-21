@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.23.0]
+
+### Features
+- Add `ui-craft` skill for five-pass web UI design, refinement, redesign, accessibility auditing, and live `390px`/`1440px` viewport proof.
+
 ## [v1.22.4]
 
 ### Features

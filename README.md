@@ -65,12 +65,23 @@ After `init`, plan without hunting the skills table:
 
 Full contract: [inception](docs/skills.md#inception).
 
+### Try ui-craft
+
+Build, refine, redesign, or audit web UIs in five separated passes (`DESIGN.md` tokens, per-route intents, craft floor, blind critique, and `390px`/`1440px` browser proof):
+
+- `/ui-craft <brief>` builds a new web UI end-to-end.
+- `/ui-craft --refine` tightens an existing interface while preserving its brand and tokens.
+- `/ui-craft --redesign` replaces the visual world while keeping features and copy.
+- `/ui-craft --audit` scores every route and runs a read-only a11y and DOM probe (combine any mode with `--focus <axis>` or `--brake`).
+
+Full contract: [ui-craft](docs/skills.md#ui-craft).
+
 ## What you get
 
 | Layer | What it is | When it runs |
 | --- | --- | --- |
 | **Standing rules** | Always-on behavior: simplicity, testing, comments, changelog, one version when you ship | Every task |
-| **Engineering skills** | Playbooks you invoke: how / why / is it safe, plan, audit, compare, prove, ship | When you ask, or when the skill's apply-when matches |
+| **Engineering skills** | Playbooks you invoke: how / why / is it safe, plan, audit, compare, design UI, prove, ship | When you ask, or when the skill's apply-when matches |
 | **Extra packs** | SEO, marketing, media (Fal.ai), NotebookLM, stealth browser | `npx balakit add …` or a native plugin |
 
 Default `init` does **not** install SEO, marketing, media, NotebookLM, or `cloakbrowser-fallback`. Add those when you need them.
@@ -93,6 +104,7 @@ Ask the agent by name. One sentence each. Full pages: [Skills](docs/skills.md).
 | Compare approaches before building | [`deep-deliberation`](docs/skills.md#deep-deliberation) | Checkpointed option comparison |
 | A durable, file-level plan | [`inception`](docs/skills.md#inception) | Writes the plan and stops. Recommends `execute` |
 | Workers research, then build (or `--opinion` read-only) | [`execute`](docs/skills.md#execute) | Parallel takes across worker slots (`--opinion` stops before edits) |
+| Design, refine, redesign, or audit a web UI | [`ui-craft`](docs/skills.md#ui-craft) | Five-pass UI workflow: `DESIGN.md` tokens, per-route intents, craft floor, blind critique + a11y, `390px`/`1440px` live proof |
 | Make it ready for real users | [`trl`](docs/skills.md#trl) | Scores a TRL 1–9 per area with a blind agent panel, then builds toward the next level |
 
 `dissect`, `deep-deliberation`, and `inception` share `--brake` (skip waits) and `--autopilot` (take recommended choices). `--circuit` still works (alias of `--brake`). On `inception`, brake still **stops at the plan**. Only `--autopilot` runs `execute`. Interactive checkpoints call each harness's native Question UI (`AskUserQuestion`, `AskQuestion`, `question`, `request_user_input`, `vscode_askQuestions`, or `ask_user`) with at most 4 options and `Say this in plain English` last.
